@@ -12,6 +12,7 @@ import ResizeHandle from "@/components/ResizeHandle";
 import Select from "@/components/Select";
 import { DEFAULT_CSS, DEFAULT_CSV, THEMES } from "@/lib/defaults";
 import { buildDocument } from "@/lib/preview";
+import { withTools } from "@/lib/table-tools";
 
 const CSV_KEY = "vizify:csv";
 const CSS_KEY = "vizify:css";
@@ -23,10 +24,11 @@ const AUTOSAVE_MS = 500;
 
 type SaveStatus = "Not saved" | "Saved";
 
-function persist(csv: string, css: string): boolean {
+function persist(data: string, css: string): boolean {
   try {
-    localStorage.setItem(CSV_KEY, csv);
+    localStorage.setItem(CSV_KEY, data);
     localStorage.setItem(CSS_KEY, css);
+    localStorage.removeItem("vizify:format");
     return true;
   } catch {
     return false; // storage blocked or full
@@ -63,7 +65,10 @@ export default function Playground() {
   // Autosave shortly after the user stops typing, once saved values were restored.
   useEffect(() => {
     if (!loaded) return;
-    const t = setTimeout(() => setStatus(persist(csv, css) ? "Saved" : "Not saved"), AUTOSAVE_MS);
+    const t = setTimeout(
+      () => setStatus(persist(csv, css) ? "Saved" : "Not saved"),
+      AUTOSAVE_MS,
+    );
     return () => clearTimeout(t);
   }, [csv, css, loaded]);
 
@@ -78,8 +83,8 @@ export default function Playground() {
     }
   }
 
-  const doc = useMemo(() => buildDocument(csv, css), [csv, css]);
   const theme = THEMES.find((t) => t.css === css);
+  const doc = useMemo(() => withTools(buildDocument(csv, css)), [csv, css]);
 
   function edit(setter: (v: string) => void) {
     return (v: string) => {
@@ -104,6 +109,21 @@ export default function Playground() {
     URL.revokeObjectURL(url);
   }
 
+  async function onCopy() {
+    try {
+      await navigator.clipboard.writeText(doc);
+    } catch {
+      // Fallback when the Clipboard API is blocked or the page isn't focused.
+      const ta = document.createElement("textarea");
+      ta.value = doc;
+      ta.style.cssText = "position:fixed;opacity:0";
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand("copy");
+      ta.remove();
+    }
+  }
+
   return (
     <div className="flex h-screen flex-col bg-sunken">
       <header className="flex h-[56px] shrink-0 items-center gap-[12px] border-b border-line bg-surface px-[16px] py-[8px]">
@@ -115,7 +135,13 @@ export default function Playground() {
         </div>
         <div className="min-w-px flex-1" />
 
-        <input ref={fileInput} type="file" accept=".csv,text/csv,text/plain" hidden onChange={onUpload} />
+        <input
+          ref={fileInput}
+          type="file"
+          accept=".csv,text/csv,text/plain"
+          hidden
+          onChange={onUpload}
+        />
         <Button onClick={() => fileInput.current?.click()}>
           <UploadIcon />
           Upload
@@ -124,7 +150,7 @@ export default function Playground() {
           <SaveIcon />
           Save
         </Button>
-        <ExportMenu onDownloadHtml={onExport} onCopyHtml={() => navigator.clipboard.writeText(doc)} />
+        <ExportMenu onDownloadHtml={onExport} onCopyHtml={onCopy} />
         <Button variant="ghost" disabled title="Accounts aren't available in the client-only MVP">
           Sign in
         </Button>
@@ -138,17 +164,6 @@ export default function Playground() {
           <EditorPane
             label="DATA"
             filename="data.csv"
-            action={
-              <Select
-                label="Data format"
-                value="csv"
-                onChange={() => {}}
-                options={[
-                  { value: "csv", label: "CSV" },
-                  { value: "markdown", label: "Markdown", hint: "soon", disabled: true },
-                ]}
-              />
-            }
             language="plaintext"
             value={csv}
             collapsed={dataCollapsed}
@@ -165,7 +180,11 @@ export default function Playground() {
                 display={`Theme: ${theme?.name ?? "Custom"}`}
                 onChange={(id) => edit(setCss)(THEMES.find((t) => t.id === id)?.css ?? css)}
                 options={[
-                  ...THEMES.map((t) => ({ value: t.id, label: t.name })),
+                  ...THEMES.map((t) => ({
+                    value: t.id,
+                    label: t.name,
+                    hint: t.pro ? "free account" : undefined,
+                  })),
                   { value: "custom", label: "Custom", disabled: true },
                 ]}
               />
@@ -186,15 +205,15 @@ export default function Playground() {
         />
 
         <section className="flex min-h-0 min-w-px flex-1 flex-col overflow-clip rounded-[12px] bg-surface">
-          <div className="flex h-[40px] shrink-0 items-center justify-between border-b border-line bg-paper px-[16px] font-mono text-[12px] text-ink3">
+          <div className="flex h-[40px] shrink-0 items-center justify-between gap-[12px] border-b border-line bg-paper px-[16px] font-mono text-[12px] text-ink3">
             <span className="font-medium tracking-[0.72px]">PREVIEW</span>
-            <span className="flex items-center gap-[6px]">
+            <span className="flex shrink-0 items-center gap-[6px]">
               <Image src={liveDot} alt="" width={6} height={6} />
               Live
             </span>
           </div>
-          {/* Script-less sandbox: user CSS can only style the rendered table, never the app. */}
-          <iframe title="Table preview" sandbox="" srcDoc={doc} className="min-h-0 flex-1 bg-white" />
+          {/* Sandboxed without allow-same-origin: only our injected toolbar script runs, isolated from the app. */}
+          <iframe title="Table preview" sandbox="allow-scripts" srcDoc={doc} className="min-h-0 flex-1 bg-white" />
         </section>
       </main>
     </div>

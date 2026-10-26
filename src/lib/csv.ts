@@ -66,8 +66,8 @@ export function csvToHtmlTable(csv: string): string {
   const pad = (r: string[]) => [...r, ...Array<string>(cols - r.length).fill("")];
 
   const th = pad(header)
-    .map((c) => `<th>${escapeHtml(c)}</th>`)
-    .join("");
+  .map((c) => `<th>${escapeHtml(c).replace(/_/g, "_<wbr>")}</th>`)
+  .join("");
   const trs = body
     .map((r) => `<tr>${pad(r).map((c) => `<td>${escapeHtml(c)}</td>`).join("")}</tr>`)
     .join("");
