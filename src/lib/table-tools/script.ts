@@ -1,4 +1,4 @@
-import { SCRIPT_SOURCE } from "./toolbar-runtime.js";
+import { SCRIPT_SOURCE } from "./runtime.js";
 
 export const SCRIPT = `
 <script>

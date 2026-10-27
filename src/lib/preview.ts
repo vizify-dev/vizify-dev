@@ -1,20 +1,36 @@
 import { csvToHtmlTable } from "@/lib/csv";
+import BASE_CSS from "./preview/base.css";
+import DOCUMENT_HTML from "./preview/document.html";
+import INTERACTIVE_CSS from "./preview/interactive.css";
+import { INTERACTIVE_SCRIPT } from "./preview/interactive.runtime.js";
+import PRINT_CSS from "./preview/print.css";
+
 
 const FONTS_LINK =
   '<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;600;700&display=swap">';
 
-
-// Wide data scrolls sideways inside the page instead of spilling out; words never break mid-word.
-const FIT =
-  ".vz-scroll{overflow-x:auto;max-width:100%}" +
-  "th,td{overflow-wrap:normal;word-break:normal}";
-
-
-
-/** Builds a standalone HTML document: the CSV rendered as a table, styled by the user's CSS. */
-export function buildDocument(csv: string, css: string): string {
-  const safeCss = css.replace(/<\/style/gi, "<\\/style");
-  
-  return `<!doctype html><html><head><meta charset="utf-8">${FONTS_LINK}<style>body{margin:0;padding:40px;background:#fff;color:#1f2837;font-family:"Hanken Grotesk",system-ui,sans-serif}</style><style>${safeCss}</style><style>${FIT}</style></head><body>${csvToHtmlTable(csv)}</body></html>`;
+function replace(template: string, token: string, value: string): string {
+  return template.replace(token, () => value);
 }
 
+/**
+ * Builds a standalone HTML document: the CSV rendered as a table, styled by the user's CSS.
+ * interactive=false gives a static copy (all rows, no script), used for PDF export.
+ */
+
+export function buildDocument(csv: string, css: string, interactive = true): string {
+  const safeCss = css.replace(/<\/style/gi, "<\\/style");
+  const values: Record<string, string> = {
+    "<!-- FONTS_LINK -->": FONTS_LINK,
+    "/* BASE_CSS */": BASE_CSS,
+    "<!-- INTERACTIVE_STYLE -->": interactive ? `<style>${INTERACTIVE_CSS}</style>` : "",
+    "/* THEME_CSS */": safeCss,
+    "<!-- PRINT_STYLE -->": interactive ? "" : `<style>${PRINT_CSS}</style>`,
+    "<!-- TABLE -->": csvToHtmlTable(csv),
+    "<!-- SCRIPT -->": interactive ? `<script>${INTERACTIVE_SCRIPT}</script>` : "",
+  };
+  return Object.entries(values).reduce(
+    (document, [token, value]) => replace(document, token, value),
+    DOCUMENT_HTML,
+  );
+}
