@@ -2,7 +2,7 @@ import { csvToHtmlTable } from "@/lib/csv";
 
 const FONTS_LINK =
   '<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;600;700&display=swap">';
-// Keeps any theme's table inside its container: equal columns, text wraps instead of overflowing.
+
 
 // Wide data scrolls sideways inside the page instead of spilling out; words never break mid-word.
 const FIT =

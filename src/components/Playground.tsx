@@ -10,9 +10,10 @@ import { SaveIcon, UploadIcon } from "@/components/Icons";
 import Logo from "@/components/Logo";
 import ResizeHandle from "@/components/ResizeHandle";
 import Select from "@/components/Select";
-import { DEFAULT_CSS, DEFAULT_CSV, THEMES } from "@/lib/defaults";
+import { DEFAULT_CSV } from "@/lib/defaults";
 import { buildDocument } from "@/lib/preview";
 import { withTools } from "@/lib/table-tools";
+import type { Theme } from "@/lib/themes";
 
 const CSV_KEY = "vizify:csv";
 const CSS_KEY = "vizify:css";
@@ -35,9 +36,9 @@ function persist(data: string, css: string): boolean {
   }
 }
 
-export default function Playground() {
+export default function Playground({ themes }: { themes: Theme[] }) {
   const [csv, setCsv] = useState(DEFAULT_CSV);
-  const [css, setCss] = useState(DEFAULT_CSS);
+  const [css, setCss] = useState(themes[0]?.css ?? "");
   const [loaded, setLoaded] = useState(false);
   const [status, setStatus] = useState<SaveStatus>("Not saved");
   const [dataCollapsed, setDataCollapsed] = useState(false);
@@ -83,7 +84,7 @@ export default function Playground() {
     }
   }
 
-  const theme = THEMES.find((t) => t.css === css);
+  const theme = themes.find((t) => t.css === css);
   const doc = useMemo(() => withTools(buildDocument(csv, css)), [csv, css]);
 
   function edit(setter: (v: string) => void) {
@@ -178,9 +179,9 @@ export default function Playground() {
                 label="Theme"
                 value={theme?.id ?? "custom"}
                 display={`Theme: ${theme?.name ?? "Custom"}`}
-                onChange={(id) => edit(setCss)(THEMES.find((t) => t.id === id)?.css ?? css)}
+                onChange={(id) => edit(setCss)(themes.find((t) => t.id === id)?.css ?? css)}
                 options={[
-                  ...THEMES.map((t) => ({
+                  ...themes.map((t) => ({
                     value: t.id,
                     label: t.name,
                     hint: t.pro ? "free account" : undefined,

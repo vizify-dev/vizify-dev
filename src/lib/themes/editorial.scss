@@ -1,0 +1,112 @@
+@use "base";
+
+@import url("https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;900&family=Inter:wght@400;600&display=swap");
+
+:root { --vz-title: "The Weekly Report"; }
+
+html { background: #f6f1e7; }
+
+body {
+  box-sizing: border-box;
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 44px 32px;
+  color: #111;
+  font-family: Inter, system-ui, sans-serif;
+
+  .vz-bar {
+    flex-wrap: wrap;
+    padding-bottom: 16px;
+    margin-bottom: 8px;
+    border-bottom: 3px double #111;
+  }
+
+  .vz-title {
+    order: -1;
+    flex: 1 0 100%;
+    margin: 0 0 14px;
+    font: 900 48px "Playfair Display", Georgia, serif;
+    letter-spacing: -.02em;
+  }
+
+  .vz-search,
+  .vz-bar select,
+  .vz-bar button {
+    background: transparent;
+    border: 0;
+    border-bottom: 1px solid #111;
+    border-radius: 0;
+    color: #111;
+  }
+
+  .vz-search {
+    max-width: 280px;
+    kbd { display: none; }
+  }
+
+  .vz-count { color: #6b6256; }
+}
+
+table {
+  font: 14px Inter, system-ui, sans-serif;
+  counter-reset: row;
+}
+
+tbody tr { counter-increment: row; }
+
+th {
+  padding: 14px 10px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: #6b6256;
+  border-bottom: 1px solid #111;
+}
+
+td {
+  padding: 18px 10px;
+  border-bottom: 1px solid #d8d0bf;
+  font-variant-numeric: tabular-nums;
+
+  &:first-child {
+    font: 600 18px "Playfair Display", Georgia, serif;
+
+    &::before {
+      content: counter(row, decimal-leading-zero);
+      margin-right: 16px;
+      font: 600 12px Inter, sans-serif;
+      color: #c2410c;
+      letter-spacing: .08em;
+    }
+  }
+}
+
+tbody tr:hover td { background: #efe8d8; }
+
+.status-pill,
+.status-pill.in-progress,
+.status-pill.done,
+.status-pill.not-started {
+  background: none;
+  padding: 0 0 2px;
+  border-radius: 0;
+  border-bottom: 2px solid currentColor;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+}
+
+.status-pill {
+  &.in-progress { color: #c2410c; }
+  &.done { color: #15803d; }
+  &.not-started { color: #6b6256; }
+}
+
+.avatar {
+  background: #111 !important;
+  width: 26px;
+  height: 26px;
+  font-size: 11px;
+}

@@ -1,0 +1,124 @@
+@use "base";
+@use "mixins" as *;
+
+:root { --vz-title: "My Tasks"; }
+
+html {
+  background: linear-gradient(135deg, #d8c7fb 0%, #cfe2f8 50%, #bff0da 100%) fixed;
+}
+
+body {
+  box-sizing: border-box;
+  width: min(960px, calc(100% - 32px));
+  margin: 24px auto;
+  padding: 20px;
+  color: #1e1b4b;
+  background: rgba(255, 255, 255, 0.45);
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  border-radius: 28px;
+  box-shadow: 0 30px 60px -20px rgba(80, 70, 160, 0.3);
+
+  .vz-search {
+    max-width: 280px;
+    background: rgba(255, 255, 255, 0.7);
+    border-color: #fff;
+    border-radius: 14px;
+  }
+
+  .vz-bar select,
+  .vz-bar button {
+    background: rgba(255, 255, 255, 0.7);
+    border-color: #fff;
+    border-radius: 14px;
+  }
+}
+
+.vz-bar {
+  padding: 14px 18px;
+  background: rgba(255, 255, 255, 0.6);
+  border: 1px solid #fff;
+  border-radius: 20px;
+
+  &::before {
+    content: "";
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    margin-right: 56px;
+    flex-shrink: 0;
+    background: #a78bfa;
+    box-shadow: 22px 0 0 #60a5fa, 44px 0 0 #6ee7b7;
+  }
+}
+
+table {
+  border-collapse: separate;
+  border-spacing: 0 10px;
+}
+
+th {
+  background: transparent;
+  color: #64748b;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  border-bottom: 1px solid rgba(100, 116, 139, 0.25);
+}
+
+td {
+  background: rgba(255, 255, 255, 0.65);
+  border: 0;
+  padding: 14px 16px;
+
+  &:first-child {
+    border-radius: 16px 0 0 16px;
+    font-weight: 500;
+
+    &::before {
+      content: "○";
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 36px;
+      height: 36px;
+      margin-right: 14px;
+      vertical-align: middle;
+      font-size: 16px;
+      border-radius: 50%;
+      border: 1.5px solid #7dd3fc;
+      color: #0ea5e9;
+      background: #f0f9ff;
+    }
+  }
+
+  &:last-child { border-radius: 0 16px 16px 0; }
+}
+
+tbody tr:hover td { background: rgba(255, 255, 255, 0.9); }
+
+tr[data-status="done"] td:first-child::before {
+  content: "✓";
+  border-color: #86efac;
+  color: #16a34a;
+  background: #f0fdf4;
+}
+
+tr[data-status="in-progress"] td:first-child::before {
+  content: "◔";
+  border-color: #c4b5fd;
+  color: #7c3aed;
+  background: #faf5ff;
+}
+
+.status-pill::before {
+  content: "";
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.avatar { box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.6); }
+
+@include due-icon("64748b");
