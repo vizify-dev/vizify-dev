@@ -1,4 +1,4 @@
-import type { ThemeDef } from "./types";
+import type { ThemeDef } from "../types";
 
 export const editorial: ThemeDef = {
   id: "editorial",
