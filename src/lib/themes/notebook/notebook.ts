@@ -1,4 +1,4 @@
-import type { ThemeDef } from "./types";
+import type { ThemeDef } from "../types";
 
 export const notebook: ThemeDef = {
   id: "notebook",

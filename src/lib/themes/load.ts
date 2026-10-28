@@ -8,6 +8,6 @@ const themesDir = path.join(process.cwd(), "src/lib/themes");
 export function loadThemes(): Theme[] {
   return THEME_DEFS.map((def) => ({
     ...def,
-    css: compile(path.join(themesDir, `${def.id}.scss`)).css,
+    css: compile(path.join(themesDir, def.id, `${def.id}.scss`)).css,
   }));
 }

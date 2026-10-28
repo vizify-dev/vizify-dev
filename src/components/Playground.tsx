@@ -18,6 +18,7 @@ import type { Theme } from "@/lib/themes";
 const CSV_KEY = "vizify:csv";
 const CSS_KEY = "vizify:css";
 const SIDEBAR_KEY = "vizify:sidebar";
+const CSV_ACCEPT = ".csv,text/csv,text/plain";
 const SIDEBAR_DEFAULT = 440;
 const SIDEBAR_MIN = 280;
 const PREVIEW_MIN = 360;
@@ -25,11 +26,10 @@ const AUTOSAVE_MS = 500;
 
 type SaveStatus = "Not saved" | "Saved";
 
-function persist(data: string, css: string): boolean {
+function persist(csv: string, css: string): boolean {
   try {
-    localStorage.setItem(CSV_KEY, data);
+    localStorage.setItem(CSV_KEY, csv);
     localStorage.setItem(CSS_KEY, css);
-    localStorage.removeItem("vizify:format");
     return true;
   } catch {
     return false; // storage blocked or full
@@ -139,7 +139,7 @@ export default function Playground({ themes }: { themes: Theme[] }) {
         <input
           ref={fileInput}
           type="file"
-          accept=".csv,text/csv,text/plain"
+          accept={CSV_ACCEPT}
           hidden
           onChange={onUpload}
         />
