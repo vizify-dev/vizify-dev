@@ -1,0 +1,115 @@
+@use "../base";
+
+:root { --vz-title: "Receipt"; }
+
+html { background: #e8e2d6; }
+
+body {
+  position: relative;
+  box-sizing: border-box;
+  width: max-content;
+  min-width: min(640px, calc(100% - 32px));
+  max-width: none;
+  margin: 28px auto 44px;
+  padding: 28px 26px 34px;
+  background: #fffef8;
+  color: #1c1c1c;
+  font-family: "Courier New", ui-monospace, monospace;
+  box-shadow: 0 18px 30px -18px rgba(0, 0, 0, .4);
+
+  &::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: -12px;
+    height: 12px;
+    background:
+      linear-gradient(135deg, #fffef8 50%, transparent 50%) 0 0 / 16px 12px,
+      linear-gradient(225deg, #fffef8 50%, transparent 50%) 0 0 / 16px 12px;
+  }
+
+  .vz-bar {
+    flex-wrap: wrap;
+    padding-bottom: 14px;
+    margin-bottom: 6px;
+    border-bottom: 2px dashed #1c1c1c;
+  }
+
+  .vz-title {
+    order: -1;
+    flex: 1 0 100%;
+    margin: 0 0 12px;
+    text-align: center;
+    font: 700 22px "Courier New", monospace;
+    letter-spacing: .35em;
+    text-transform: uppercase;
+  }
+
+  .vz-search,
+  .vz-bar select,
+  .vz-bar button {
+    background: transparent;
+    border: 1px dashed #1c1c1c;
+    border-radius: 0;
+    color: #1c1c1c;
+    font-family: inherit;
+  }
+
+  .vz-search kbd { display: none; }
+  .vz-count { color: #1c1c1c; }
+}
+
+table { font: 13px "Courier New", ui-monospace, monospace; }
+
+th {
+  font-size: 11px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  padding: 12px 6px;
+  border-bottom: 2px dashed #1c1c1c;
+
+  &:last-child { text-align: right; }
+}
+
+td {
+  padding: 11px 6px;
+  border-bottom: 1px dashed #b9b4a6;
+
+  &:last-child { text-align: right; }
+}
+
+tbody tr {
+  &:last-child td {
+    border-bottom: 0;
+    border-top: 2px solid #1c1c1c;
+    font-weight: 700;
+  }
+
+  &:hover td { background: #f6f1e2; }
+}
+
+.status-pill,
+.status-pill.in-progress,
+.status-pill.done,
+.status-pill.not-started {
+  background: none;
+  color: #1c1c1c;
+  border: 1px solid #1c1c1c;
+  border-radius: 2px;
+  padding: 2px 8px;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+}
+
+.status-pill.done::before { content: "✓"; }
+
+.avatar {
+  background: none !important;
+  color: #1c1c1c;
+  border: 1px solid #1c1c1c;
+  width: 24px;
+  height: 24px;
+  font-size: 11px;
+}
