@@ -2,9 +2,14 @@ import { csvToHtmlTable } from "@/lib/csv";
 import BASE_CSS from "./preview/base.css";
 import DOCUMENT_HTML from "./preview/document.html";
 import INTERACTIVE_CSS from "./preview/interactive.css";
-import { INTERACTIVE_SCRIPT } from "./preview/interactive.runtime.js";
+import INTERACTIVE_SCRIPT_HTML from "./preview/interactive.script.html";
+import INTERACTIVE_RUNTIME from "./preview/interactive.runtime.generated.txt";
 import PRINT_CSS from "./preview/print.css";
 
+const INTERACTIVE_SCRIPT = INTERACTIVE_SCRIPT_HTML.replace(
+  "/* INTERACTIVE_RUNTIME */",
+  INTERACTIVE_RUNTIME,
+);
 
 const FONTS_LINK =
   '<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;600;700&display=swap">';
@@ -27,7 +32,7 @@ export function buildDocument(csv: string, css: string, interactive = true): str
     "/* THEME_CSS */": safeCss,
     "<!-- PRINT_STYLE -->": interactive ? "" : `<style>${PRINT_CSS}</style>`,
     "<!-- TABLE -->": csvToHtmlTable(csv),
-    "<!-- SCRIPT -->": interactive ? `<script>${INTERACTIVE_SCRIPT}</script>` : "",
+    "<!-- SCRIPT -->": interactive ? INTERACTIVE_SCRIPT : "",
   };
   return Object.entries(values).reduce(
     (document, [token, value]) => replace(document, token, value),

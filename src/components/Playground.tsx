@@ -12,15 +12,20 @@ import PhotoButton from "@/components/PhotoButton";
 import ResizeHandle from "@/components/ResizeHandle";
 import Select from "@/components/Select";
 import ViewSwitch, { type View } from "@/components/ViewSwitch";
-import { DEFAULT_CSV } from "@/lib/table/defaults";
+import { DEFAULT_CSV } from "@/lib/defaults";
 import { copyText, download, printHtml } from "@/lib/export";
 import { fileToPhoto } from "@/lib/resume/photo";
-import { buildDocument } from "@/lib/table/preview";
+import { buildDocument } from "@/lib/preview";
 import { buildResumeDocument } from "@/lib/resume";
-import { DEFAULT_RESUME_CSV, RESUME_THEMES, type ThemeOption } from "@/lib/resume/resume";
+import {
+  DEFAULT_RESUME_CSV,
+  isResumeSample,
+  RESUME_THEMES,
+  type ThemeOption,
+} from "@/lib/resume/resume";
 import { persist, restore, savePhoto, saveSidebar, VIEWS, type Work } from "@/lib/storage";
-import { withTools } from "@/lib/table/tools";
-import type { Theme } from "@/lib/table/themes";
+import { withTools } from "@/lib/table-tools";
+import type { Theme } from "@/lib/themes";
 
 const CSV_ACCEPT = ".csv,text/csv,text/plain";
 const SIDEBAR_DEFAULT = 440;
@@ -47,6 +52,14 @@ export default function Playground({ themes }: { themes: Theme[] }) {
   const { csv, css } = data[view];
   const themeList: ThemeOption[] = view === "table" ? themes : RESUME_THEMES;
   const theme = themeList.find((t) => t.css === css);
+  const resumeLayout =
+    theme?.id === "resume-graphic"
+      ? "graphic"
+      : theme?.id === "resume-sidebar"
+        ? "sidebar"
+        : theme?.id === "resume-uiux"
+          ? "uiux"
+          : undefined;
 
   // Restore saved work after mount (avoids SSR hydration mismatch).
   useEffect(() => {
@@ -97,8 +110,8 @@ export default function Playground({ themes }: { themes: Theme[] }) {
     () =>
       view === "table"
         ? withTools(buildDocument(csv, css))
-        : buildResumeDocument(csv, css, photo),
-    [view, csv, css, photo],
+        : buildResumeDocument(csv, css, photo, resumeLayout),
+    [view, csv, css, photo, resumeLayout],
   );
 
   async function onUpload(e: React.ChangeEvent<HTMLInputElement>) {
@@ -125,7 +138,9 @@ export default function Playground({ themes }: { themes: Theme[] }) {
 
   // PDF uses a static copy: all rows, no script.
   const staticDoc = () =>
-    view === "table" ? buildDocument(csv, css, false) : buildResumeDocument(csv, css, photo);
+    view === "table"
+      ? buildDocument(csv, css, false)
+      : buildResumeDocument(csv, css, photo, resumeLayout);
 
   return (
     <div className="flex h-screen flex-col bg-sunken">
@@ -189,7 +204,14 @@ export default function Playground({ themes }: { themes: Theme[] }) {
                 label="Theme"
                 value={theme?.id ?? "custom"}
                 display={`Theme: ${theme?.name ?? "Custom"}`}
-                onChange={(id) => setCss(themeList.find((t) => t.id === id)?.css ?? css)}
+                onChange={(id) => {
+                  const nextTheme = themeList.find((t) => t.id === id);
+                  if (!nextTheme) return;
+                  setCss(nextTheme.css);
+                  if (view === "resume" && nextTheme.sample && isResumeSample(csv)) {
+                    setCsv(nextTheme.sample);
+                  }
+                }}
                 options={[
                   ...themeList.map((t) => ({
                     value: t.id,

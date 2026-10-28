@@ -1,0 +1,15 @@
+export const RESUME_BASE_CSS = `
+*{box-sizing:border-box}
+body{margin:0;padding:32px 16px;background:#eef1f6;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.r-error{font:14px system-ui,sans-serif;color:#b42318}
+.r-sec[data-s="contact"],.r-photo{display:none}
+.r-body{display:flex;flex-direction:column}
+.r-side,.r-main{display:contents}
+.r-sec{order:var(--i,0)}
+.r-bar b{margin-left:8px;font-weight:600}
+.r-langs{display:flex;flex-wrap:wrap;gap:14px;margin:0;padding:0;list-style:none}
+.r-ring{display:flex;flex-direction:column-reverse;align-items:center;gap:4px}
+.r-ring b{display:grid;place-items:center;width:58px;height:58px;border-radius:50%;font-weight:600;background:radial-gradient(circle,#fff 0 55%,transparent 56%),conic-gradient(#2c3a55 calc(var(--p)*1%),#d6dae2 0)}
+@page{margin:0}
+@media print{body{padding:0;background:#fff}}
+`;
