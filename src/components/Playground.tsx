@@ -8,18 +8,21 @@ import EditorPane from "@/components/EditorPane";
 import ExportMenu from "@/components/ExportMenu";
 import { SaveIcon, UploadIcon } from "@/components/Icons";
 import Logo from "@/components/Logo";
+import PhotoButton from "@/components/PhotoButton";
 import ResizeHandle from "@/components/ResizeHandle";
 import Select from "@/components/Select";
 import ViewSwitch, { type View } from "@/components/ViewSwitch";
-import { DEFAULT_CSV } from "@/lib/defaults";
+import { DEFAULT_CSV } from "@/lib/table/defaults";
 import { copyText, download, printHtml } from "@/lib/export";
-import { buildDocument } from "@/lib/preview";
+import { fileToPhoto } from "@/lib/resume/photo";
+import { buildDocument } from "@/lib/table/preview";
 import { buildResumeDocument } from "@/lib/resume";
-import { DEFAULT_RESUME_CSV, RESUME_THEMES, type ThemeOption } from "@/lib/resume-defaults";
-import { persist, restore, saveSidebar, VIEWS, type Work } from "@/lib/storage";
-import { withTools } from "@/lib/table-tools";
-import type { Theme } from "@/lib/themes";
+import { DEFAULT_RESUME_CSV, RESUME_THEMES, type ThemeOption } from "@/lib/resume/resume";
+import { persist, restore, savePhoto, saveSidebar, VIEWS, type Work } from "@/lib/storage";
+import { withTools } from "@/lib/table/tools";
+import type { Theme } from "@/lib/table/themes";
 
+const CSV_ACCEPT = ".csv,text/csv,text/plain";
 const SIDEBAR_DEFAULT = 440;
 const SIDEBAR_MIN = 280;
 const PREVIEW_MIN = 360;
@@ -33,6 +36,7 @@ export default function Playground({ themes }: { themes: Theme[] }) {
     table: { csv: DEFAULT_CSV, css: themes[0]?.css ?? "" },
     resume: { csv: DEFAULT_RESUME_CSV, css: RESUME_THEMES[0].css },
   });
+  const [photo, setPhoto] = useState("");
   const [loaded, setLoaded] = useState(false);
   const [status, setStatus] = useState<SaveStatus>("Not saved");
   const [dataCollapsed, setDataCollapsed] = useState(false);
@@ -41,11 +45,8 @@ export default function Playground({ themes }: { themes: Theme[] }) {
   const fileInput = useRef<HTMLInputElement>(null);
 
   const { csv, css } = data[view];
- 
   const themeList: ThemeOption[] = view === "table" ? themes : RESUME_THEMES;
   const theme = themeList.find((t) => t.css === css);
-  const CSV_ACCEPT = ".csv,text/csv,text/plain";
-  
 
   // Restore saved work after mount (avoids SSR hydration mismatch).
   useEffect(() => {
@@ -62,6 +63,7 @@ export default function Playground({ themes }: { themes: Theme[] }) {
     if (Object.keys(saved.work).length > 0) setStatus("Saved");
     if (saved.view) setView(saved.view);
     if (saved.sidebar) setSidebarWidth(saved.sidebar);
+    if (saved.photo) setPhoto(saved.photo);
     setLoaded(true);
   }, []);
 
@@ -92,8 +94,11 @@ export default function Playground({ themes }: { themes: Theme[] }) {
   const setCss = update("css");
 
   const doc = useMemo(
-    () => (view === "table" ? withTools(buildDocument(csv, css)) : buildResumeDocument(csv, css)),
-    [view, csv, css],
+    () =>
+      view === "table"
+        ? withTools(buildDocument(csv, css))
+        : buildResumeDocument(csv, css, photo),
+    [view, csv, css, photo],
   );
 
   async function onUpload(e: React.ChangeEvent<HTMLInputElement>) {
@@ -103,8 +108,24 @@ export default function Playground({ themes }: { themes: Theme[] }) {
     setCsv(await file.text());
   }
 
+  async function onPhoto(file: File) {
+    try {
+      const url = await fileToPhoto(file);
+      setPhoto(url);
+      setStatus(savePhoto(url) ? "Saved" : "Not saved");
+    } catch {
+      // unreadable image: keep the current photo
+    }
+  }
+
+  function onRemovePhoto() {
+    setPhoto("");
+    savePhoto("");
+  }
+
   // PDF uses a static copy: all rows, no script.
-  const staticDoc = () => (view === "table" ? buildDocument(csv, css, false) : buildResumeDocument(csv, css));
+  const staticDoc = () =>
+    view === "table" ? buildDocument(csv, css, false) : buildResumeDocument(csv, css, photo);
 
   return (
     <div className="flex h-screen flex-col bg-sunken">
@@ -121,13 +142,7 @@ export default function Playground({ themes }: { themes: Theme[] }) {
         </div>
         <div className="min-w-px flex-1" />
 
-        <input
-          ref={fileInput}
-          type="file"
-          accept={CSV_ACCEPT}
-          hidden
-          onChange={onUpload}
-        />
+        <input ref={fileInput} type="file" accept={CSV_ACCEPT} hidden onChange={onUpload} />
         <Button onClick={() => fileInput.current?.click()}>
           <UploadIcon />
           Upload
@@ -139,7 +154,7 @@ export default function Playground({ themes }: { themes: Theme[] }) {
         <ExportMenu
           onDownloadHtml={() => download(doc, "text/html", `vizify-${view}.html`)}
           onDownloadCsv={() => download(csv, "text/csv;charset=utf-8", `vizify-${view}.csv`)}
-          onDownloadPdf={() => printHtml(staticDoc())}
+          onDownloadPdf={() => printHtml(staticDoc(), { fitResumeToPage: view === "resume" })}
           onCopyHtml={() => copyText(doc)}
         />
         <Button variant="ghost" disabled title="Accounts aren't available in the client-only MVP">
@@ -155,6 +170,11 @@ export default function Playground({ themes }: { themes: Theme[] }) {
           <EditorPane
             label="DATA"
             filename={view === "table" ? "data.csv" : "resume.csv"}
+            action={
+              view === "resume" ? (
+                <PhotoButton hasPhoto={photo !== ""} onPick={onPhoto} onRemove={onRemovePhoto} />
+              ) : undefined
+            }
             language="plaintext"
             value={csv}
             collapsed={dataCollapsed}

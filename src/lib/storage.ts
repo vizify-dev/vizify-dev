@@ -10,6 +10,7 @@ const KEYS: Record<View, { csv: string; css: string }> = {
 };
 const VIEW_KEY = "vizify:view";
 const SIDEBAR_KEY = "vizify:sidebar";
+const PHOTO_KEY = "vizify:resume:photo";
 
 export function persist(view: View, csv: string, css: string): boolean {
   try {
@@ -19,6 +20,16 @@ export function persist(view: View, csv: string, css: string): boolean {
     return true;
   } catch {
     return false; // storage blocked or full
+  }
+}
+/** Saves the uploaded resume photo (a data URL). An empty string removes it. */
+export function savePhoto(photo: string): boolean {
+  try {
+    if (photo) localStorage.setItem(PHOTO_KEY, photo);
+    else localStorage.removeItem(PHOTO_KEY);
+    return true;
+  } catch {
+    return false;
   }
 }
 
@@ -31,10 +42,11 @@ export function saveSidebar(width: number) {
 }
 
 /** Reads everything saved so far. Never throws; missing values come back empty. */
-export function restore(): { work: Restored; view: View | null; sidebar: number | null } {
+export function restore(): { work: Restored; view: View | null; sidebar: number | null; photo: string } {
   const work: Restored = {};
   let view: View | null = null;
   let sidebar: number | null = null;
+  let photo = "";
   try {
     for (const v of VIEWS) {
       const csv = localStorage.getItem(KEYS[v].csv);
@@ -44,8 +56,9 @@ export function restore(): { work: Restored; view: View | null; sidebar: number 
     const savedView = localStorage.getItem(VIEW_KEY);
     if (savedView === "table" || savedView === "resume") view = savedView;
     sidebar = Number(localStorage.getItem(SIDEBAR_KEY)) || null;
+    photo = localStorage.getItem(PHOTO_KEY) ?? "";
   } catch {
     // localStorage unavailable; fall back to defaults.
   }
-  return { work, view, sidebar };
+  return { work, view, sidebar, photo };
 }
