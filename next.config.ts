@@ -6,11 +6,19 @@ const nextConfig: NextConfig = {
   turbopack: {
     rules: {
       "*.html": {
-        condition: { path: /src\/lib\/(?:table-tools\/bar|preview\/document)\.html$/ },
+        condition: {
+          path: /src\/lib\/(?:table-tools\/(?:bar|script)|preview\/(?:document|interactive\.script))\.html$/,
+        },
         type: "text",
       },
       "*.css": {
         condition: { path: /src\/lib\/(?:table-tools\/bar|preview\/(?:base|interactive|print))\.css$/ },
+        type: "text",
+      },
+      "*.txt": {
+        condition: {
+          path: /src\/lib\/(?:table-tools\/runtime|preview\/interactive\.runtime)\.generated\.txt$/,
+        },
         type: "text",
       },
     },
