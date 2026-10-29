@@ -6,8 +6,8 @@ import { fileURLToPath } from "node:url";
 const require = createRequire(import.meta.url);
 const ts = require("typescript");
 const runtimePaths = [
-  "../src/lib/table-tools/runtime.ts",
-  "../src/lib/preview/interactive.runtime.ts",
+  "../src/lib/table/tools/runtime.ts",
+  "../src/lib/table/preview/interactive.runtime.ts",
 ];
 let hasErrors = false;
 

@@ -43,34 +43,3 @@ export function parseCsv(input: string): string[][] {
   // Drop fully blank lines.
   return rows.filter((r) => r.length > 1 || r[0].trim() !== "");
 }
-
-const HTML_ESCAPES: Record<string, string> = {
-  "&": "&amp;",
-  "<": "&lt;",
-  ">": "&gt;",
-  '"': "&quot;",
-  "'": "&#39;",
-};
-
-function escapeHtml(value: string): string {
-  return value.replace(/[&<>"']/g, (c) => HTML_ESCAPES[c]);
-}
-
-/** Converts raw CSV into a semantic HTML table. The first row becomes the header. */
-export function csvToHtmlTable(csv: string): string {
-  const rows = parseCsv(csv);
-  if (rows.length === 0) return "";
-
-  const [header, ...body] = rows;
-  const cols = Math.max(...rows.map((r) => r.length));
-  const pad = (r: string[]) => [...r, ...Array<string>(cols - r.length).fill("")];
-
-  const th = pad(header)
-  .map((c) => `<th>${escapeHtml(c).replace(/_/g, "_<wbr>")}</th>`)
-  .join("");
-  const trs = body
-    .map((r) => `<tr>${pad(r).map((c) => `<td>${escapeHtml(c)}</td>`).join("")}</tr>`)
-    .join("");
-
-  return `<table><thead><tr>${th}</tr></thead><tbody>${trs}</tbody></table>`;
-}

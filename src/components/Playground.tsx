@@ -12,10 +12,10 @@ import PhotoButton from "@/components/PhotoButton";
 import ResizeHandle from "@/components/ResizeHandle";
 import Select from "@/components/Select";
 import ViewSwitch, { type View } from "@/components/ViewSwitch";
-import { DEFAULT_CSV } from "@/lib/defaults";
+import { DEFAULT_CSV } from "@/lib/table/defaults";
 import { copyText, download, printHtml } from "@/lib/export";
 import { fileToPhoto } from "@/lib/resume/photo";
-import { buildDocument } from "@/lib/preview";
+import { buildDocument } from "@/lib/table/preview";
 import { buildResumeDocument } from "@/lib/resume";
 import {
   DEFAULT_RESUME_CSV,
@@ -24,8 +24,8 @@ import {
   type ThemeOption,
 } from "@/lib/resume/resume";
 import { persist, restore, savePhoto, saveSidebar, VIEWS, type Work } from "@/lib/storage";
-import { withTools } from "@/lib/table-tools";
-import type { Theme } from "@/lib/themes";
+import { withTools } from "@/lib/table/tools";
+import type { Theme } from "@/lib/table/themes";
 
 const CSV_ACCEPT = ".csv,text/csv,text/plain";
 const SIDEBAR_DEFAULT = 440;
