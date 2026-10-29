@@ -2,12 +2,14 @@ import { csvToHtmlTable } from "@/lib/csv";
 import BASE_CSS from "./preview/base.css";
 import DOCUMENT_HTML from "./preview/document.html";
 import INTERACTIVE_CSS from "./preview/interactive.css";
-import { INTERACTIVE_SCRIPT } from "./preview/interactive.runtime.js";
+import INTERACTIVE_SCRIPT_HTML from "./preview/interactive.script.html";
+import INTERACTIVE_RUNTIME from "./preview/interactive.runtime.generated.txt";
 import PRINT_CSS from "./preview/print.css";
 
-
-const FONTS_LINK =
-  '<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;600;700&display=swap">';
+const INTERACTIVE_SCRIPT = INTERACTIVE_SCRIPT_HTML.replace(
+  "/* INTERACTIVE_RUNTIME */",
+  INTERACTIVE_RUNTIME,
+);
 
 function replace(template: string, token: string, value: string): string {
   return template.replace(token, () => value);
@@ -21,13 +23,12 @@ function replace(template: string, token: string, value: string): string {
 export function buildDocument(csv: string, css: string, interactive = true): string {
   const safeCss = css.replace(/<\/style/gi, "<\\/style");
   const values: Record<string, string> = {
-    "<!-- FONTS_LINK -->": FONTS_LINK,
     "/* BASE_CSS */": BASE_CSS,
-    "<!-- INTERACTIVE_STYLE -->": interactive ? `<style>${INTERACTIVE_CSS}</style>` : "",
+    "/* INTERACTIVE_CSS */": interactive ? INTERACTIVE_CSS : "",
     "/* THEME_CSS */": safeCss,
-    "<!-- PRINT_STYLE -->": interactive ? "" : `<style>${PRINT_CSS}</style>`,
+    "/* PRINT_CSS */": interactive ? "" : PRINT_CSS,
     "<!-- TABLE -->": csvToHtmlTable(csv),
-    "<!-- SCRIPT -->": interactive ? `<script>${INTERACTIVE_SCRIPT}</script>` : "",
+    "<!-- SCRIPT -->": interactive ? INTERACTIVE_SCRIPT : "",
   };
   return Object.entries(values).reduce(
     (document, [token, value]) => replace(document, token, value),

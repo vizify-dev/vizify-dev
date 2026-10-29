@@ -1,10 +1,14 @@
-import { BAR } from "@/lib/table/tools/bar";
-import { SCRIPT } from "@/lib/table/tools/script";
+import { BAR } from "./tools/bar";
+import { SCRIPT } from "./tools/script";
 
-/** Inject toolbar after <body> and script before </body>. */
+/** Fill the toolbar slots in the standalone table document. */
 export function withTools(html: string, title?: string): string {
-  const attr = (title ?? "").replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;");
+  const safeTitle = (title ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/"/g, "&quot;")
+    .replace(/</g, "&lt;");
+  const bar = BAR.replace("<!-- TOOL_TITLE -->", safeTitle);
   return html
-    .replace(/<body[^>]*>/i, (m) => m + BAR.replace('id="vz-title"', `id="vz-title" data-t="${attr}"`))
-    .replace(/<\/body>/i, () => SCRIPT + "</body>");
+    .replace("<!-- TOOLBAR -->", () => bar)
+    .replace("<!-- TOOLBAR_SCRIPT -->", () => SCRIPT);
 }

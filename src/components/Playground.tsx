@@ -10,29 +10,24 @@ import { SaveIcon, UploadIcon } from "@/components/Icons";
 import Logo from "@/components/Logo";
 import ResizeHandle from "@/components/ResizeHandle";
 import Select from "@/components/Select";
-import ViewSwitch, { type View } from "@/components/ViewSwitch";
-import { DEFAULT_CSV } from "@/lib/defaults";
+import { DEFAULT_CSV } from "@/lib/table/defaults";
 import { copyText, download, printHtml } from "@/lib/export";
 import { buildDocument } from "@/lib/preview";
-import { buildResumeDocument } from "@/lib/resume";
-import { DEFAULT_RESUME_CSV, RESUME_THEMES, type ThemeOption } from "@/lib/resume-defaults";
-import { persist, restore, saveSidebar, VIEWS, type Work } from "@/lib/storage";
-import { withTools } from "@/lib/table-tools";
-import type { Theme } from "@/lib/themes";
+import { persist, restore, saveSidebar } from "@/lib/storage";
+import { withTools } from "@/lib/table/tools";
+import type { Theme } from "@/lib/table/themes";
 
 const SIDEBAR_DEFAULT = 440;
 const SIDEBAR_MIN = 280;
 const PREVIEW_MIN = 360;
 const AUTOSAVE_MS = 500;
+const CSV_ACCEPT = ".csv,text/csv,text/plain";
 
 type SaveStatus = "Not saved" | "Saved";
 
 export default function Playground({ themes }: { themes: Theme[] }) {
-  const [view, setView] = useState<View>("table");
-  const [data, setData] = useState<Work>({
-    table: { csv: DEFAULT_CSV, css: themes[0]?.css ?? "" },
-    resume: { csv: DEFAULT_RESUME_CSV, css: RESUME_THEMES[0].css },
-  });
+  const [csv, setCsv] = useState(DEFAULT_CSV);
+  const [css, setCss] = useState(themes[0]?.css ?? "");
   const [loaded, setLoaded] = useState(false);
   const [status, setStatus] = useState<SaveStatus>("Not saved");
   const [dataCollapsed, setDataCollapsed] = useState(false);
@@ -40,27 +35,15 @@ export default function Playground({ themes }: { themes: Theme[] }) {
   const [sidebarWidth, setSidebarWidth] = useState(SIDEBAR_DEFAULT);
   const fileInput = useRef<HTMLInputElement>(null);
 
-  const { csv, css } = data[view];
- 
-  const themeList: ThemeOption[] = view === "table" ? themes : RESUME_THEMES;
-  const theme = themeList.find((t) => t.css === css);
-  const CSV_ACCEPT = ".csv,text/csv,text/plain";
-  
+  const theme = themes.find((t) => t.css === css);
 
   // Restore saved work after mount (avoids SSR hydration mismatch).
   useEffect(() => {
     const saved = restore();
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    setData((prev) => {
-      const next = { ...prev };
-      for (const v of VIEWS) {
-        const r = saved.work[v];
-        if (r) next[v] = { csv: r.csv ?? prev[v].csv, css: r.css ?? prev[v].css };
-      }
-      return next;
-    });
-    if (Object.keys(saved.work).length > 0) setStatus("Saved");
-    if (saved.view) setView(saved.view);
+    if (saved.csv !== null) setCsv(saved.csv);
+    if (saved.css !== null) setCss(saved.css);
+    if (saved.csv !== null || saved.css !== null) setStatus("Saved");
     if (saved.sidebar) setSidebarWidth(saved.sidebar);
     setLoaded(true);
   }, []);
@@ -69,11 +52,11 @@ export default function Playground({ themes }: { themes: Theme[] }) {
   useEffect(() => {
     if (!loaded) return;
     const t = setTimeout(
-      () => setStatus(persist(view, csv, css) ? "Saved" : "Not saved"),
+      () => setStatus(persist(csv, css) ? "Saved" : "Not saved"),
       AUTOSAVE_MS,
     );
     return () => clearTimeout(t);
-  }, [view, csv, css, loaded]);
+  }, [csv, css, loaded]);
 
   function resizeSidebar(width: number) {
     const max = Math.max(SIDEBAR_MIN, window.innerWidth - PREVIEW_MIN);
@@ -82,29 +65,25 @@ export default function Playground({ themes }: { themes: Theme[] }) {
     saveSidebar(next);
   }
 
-  function update(field: "csv" | "css") {
-    return (v: string) => {
-      setStatus("Not saved");
-      setData((d) => ({ ...d, [view]: { ...d[view], [field]: v } }));
-    };
-  }
-  const setCsv = update("csv");
-  const setCss = update("css");
-
-  const doc = useMemo(
-    () => (view === "table" ? withTools(buildDocument(csv, css)) : buildResumeDocument(csv, css)),
-    [view, csv, css],
-  );
+  const onCsvChange = (value: string) => {
+    setStatus("Not saved");
+    setCsv(value);
+  };
+  const onCssChange = (value: string) => {
+    setStatus("Not saved");
+    setCss(value);
+  };
+  const doc = useMemo(() => withTools(buildDocument(csv, css)), [csv, css]);
 
   async function onUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     e.target.value = "";
     if (!file) return;
-    setCsv(await file.text());
+    onCsvChange(await file.text());
   }
 
   // PDF uses a static copy: all rows, no script.
-  const staticDoc = () => (view === "table" ? buildDocument(csv, css, false) : buildResumeDocument(csv, css));
+  const staticDoc = () => buildDocument(csv, css, false);
 
   return (
     <div className="flex h-screen flex-col bg-sunken">
@@ -114,10 +93,6 @@ export default function Playground({ themes }: { themes: Theme[] }) {
         <div className="flex min-w-0 items-center gap-[10px]">
           <span className="whitespace-nowrap text-[15px] font-semibold text-ink">Untitled project</span>
           <span className="whitespace-nowrap font-mono text-[12px] text-ink3">{status}</span>
-        </div>
-        <div className="hidden h-[24px] w-px shrink-0 bg-line md:block" />
-        <div className="hidden md:block">
-          <ViewSwitch value={view} onChange={setView} />
         </div>
         <div className="min-w-px flex-1" />
 
@@ -132,13 +107,13 @@ export default function Playground({ themes }: { themes: Theme[] }) {
           <UploadIcon />
           Upload
         </Button>
-        <Button onClick={() => setStatus(persist(view, csv, css) ? "Saved" : "Not saved")}>
+        <Button onClick={() => setStatus(persist(csv, css) ? "Saved" : "Not saved")}>
           <SaveIcon />
           Save
         </Button>
         <ExportMenu
-          onDownloadHtml={() => download(doc, "text/html", `vizify-${view}.html`)}
-          onDownloadCsv={() => download(csv, "text/csv;charset=utf-8", `vizify-${view}.csv`)}
+          onDownloadHtml={() => download(doc, "text/html", "vizify-table.html")}
+          onDownloadCsv={() => download(csv, "text/csv;charset=utf-8", "vizify-table.csv")}
           onDownloadPdf={() => printHtml(staticDoc())}
           onCopyHtml={() => copyText(doc)}
         />
@@ -154,12 +129,12 @@ export default function Playground({ themes }: { themes: Theme[] }) {
         >
           <EditorPane
             label="DATA"
-            filename={view === "table" ? "data.csv" : "resume.csv"}
+            filename="data.csv"
             language="plaintext"
             value={csv}
             collapsed={dataCollapsed}
             onToggle={() => setDataCollapsed((c) => !c)}
-            onChange={setCsv}
+            onChange={onCsvChange}
           />
           <EditorPane
             label="CSS"
@@ -169,9 +144,9 @@ export default function Playground({ themes }: { themes: Theme[] }) {
                 label="Theme"
                 value={theme?.id ?? "custom"}
                 display={`Theme: ${theme?.name ?? "Custom"}`}
-                onChange={(id) => setCss(themeList.find((t) => t.id === id)?.css ?? css)}
+                onChange={(id) => onCssChange(themes.find((t) => t.id === id)?.css ?? css)}
                 options={[
-                  ...themeList.map((t) => ({
+                  ...themes.map((t) => ({
                     value: t.id,
                     label: t.name,
                     hint: t.pro ? "free account" : undefined,
@@ -184,7 +159,7 @@ export default function Playground({ themes }: { themes: Theme[] }) {
             value={css}
             collapsed={cssCollapsed}
             onToggle={() => setCssCollapsed((c) => !c)}
-            onChange={setCss}
+            onChange={onCssChange}
           />
         </div>
 

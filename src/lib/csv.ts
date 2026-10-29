@@ -1,3 +1,9 @@
+import TABLE_TEMPLATE from "@/lib/table/preview/table.html";
+import HEADER_CELL_TEMPLATE from "@/lib/table/preview/header-cell.html";
+import ROW_TEMPLATE from "@/lib/table/preview/row.html";
+import DATA_CELL_TEMPLATE from "@/lib/table/preview/data-cell.html";
+import HEADER_BREAK from "@/lib/table/preview/header-break.html";
+
 /** Parses CSV text into rows of fields. Handles quoted fields, "" escapes, and CRLF/LF. */
 export function parseCsv(input: string): string[][] {
   const rows: string[][] = [];
@@ -56,6 +62,10 @@ function escapeHtml(value: string): string {
   return value.replace(/[&<>"']/g, (c) => HTML_ESCAPES[c]);
 }
 
+function replaceToken(template: string, token: string, value: string): string {
+  return template.replace(token, () => value);
+}
+
 /** Converts raw CSV into a semantic HTML table. The first row becomes the header. */
 export function csvToHtmlTable(csv: string): string {
   const rows = parseCsv(csv);
@@ -66,11 +76,30 @@ export function csvToHtmlTable(csv: string): string {
   const pad = (r: string[]) => [...r, ...Array<string>(cols - r.length).fill("")];
 
   const th = pad(header)
-  .map((c) => `<th>${escapeHtml(c).replace(/_/g, "_<wbr>")}</th>`)
-  .join("");
+    .map((c) =>
+      replaceToken(
+        HEADER_CELL_TEMPLATE.trim(),
+        "<!-- CELL_CONTENT -->",
+        escapeHtml(c).replace(/_/g, () => HEADER_BREAK.trim()),
+      ),
+    )
+    .join("");
   const trs = body
-    .map((r) => `<tr>${pad(r).map((c) => `<td>${escapeHtml(c)}</td>`).join("")}</tr>`)
+    .map((r) =>
+      replaceToken(
+        ROW_TEMPLATE.trim(),
+        "<!-- ROW_CELLS -->",
+        pad(r)
+          .map((c) =>
+            replaceToken(DATA_CELL_TEMPLATE.trim(), "<!-- CELL_CONTENT -->", escapeHtml(c)),
+          )
+          .join(""),
+      ),
+    )
     .join("");
 
-  return `<table><thead><tr>${th}</tr></thead><tbody>${trs}</tbody></table>`;
+  return replaceToken(TABLE_TEMPLATE.trim(), "<!-- TABLE_HEADERS -->", th).replace(
+    "<!-- TABLE_ROWS -->",
+    () => trs,
+  );
 }

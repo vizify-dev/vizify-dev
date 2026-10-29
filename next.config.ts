@@ -7,17 +7,19 @@ const nextConfig: NextConfig = {
     rules: {
       "*.html": {
         condition: {
-          path: /src\/lib\/(?:table-tools\/(?:bar|script)|preview\/(?:document|interactive\.script))\.html$/,
+          path: /src\/lib\/(?:table\/(?:tools\/(?:bar|script)|preview\/(?:document|table|header-cell|row|data-cell|header-break))|preview\/(?:document|interactive\.script))\.html$/,
         },
         type: "text",
       },
       "*.css": {
-        condition: { path: /src\/lib\/(?:table-tools\/bar|preview\/(?:base|interactive|print))\.css$/ },
+        condition: {
+          path: /src\/lib\/(?:table\/(?:tools\/bar|preview\/(?:base|interactive|print))|preview\/(?:base|interactive|print))\.css$/,
+        },
         type: "text",
       },
       "*.txt": {
         condition: {
-          path: /src\/lib\/(?:table-tools\/runtime|preview\/interactive\.runtime)\.generated\.txt$/,
+          path: /src\/lib\/(?:table\/tools\/runtime|preview\/interactive\.runtime)\.generated\.txt$/,
         },
         type: "text",
       },
