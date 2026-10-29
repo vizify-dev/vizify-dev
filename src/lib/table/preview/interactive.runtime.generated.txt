@@ -1,0 +1,134 @@
+(() => {
+    var _a;
+    const table = document.querySelector("table");
+    if (!table)
+        return;
+    const body = table.tBodies[0];
+    const headerRow = (_a = table.tHead) === null || _a === void 0 ? void 0 : _a.rows[0];
+    if (!body || !headerRow)
+        return;
+    const tableBody = body;
+    const rows = Array.from(body.rows);
+    const headers = Array.from(headerRow.cells);
+    const pageSize = 10;
+    let page = 1;
+    let sortColumn = -1;
+    let sortDirection = 0;
+    function cellText(row, column) {
+        var _a, _b, _c;
+        return (_c = (_b = (_a = row.cells[column]) === null || _a === void 0 ? void 0 : _a.textContent) === null || _b === void 0 ? void 0 : _b.trim()) !== null && _c !== void 0 ? _c : "";
+    }
+    headers.forEach((_header, column) => {
+        const counts = new Map();
+        rows.forEach((row) => {
+            var _a;
+            const value = cellText(row, column).toLowerCase();
+            if (value)
+                counts.set(value, ((_a = counts.get(value)) !== null && _a !== void 0 ? _a : 0) + 1);
+        });
+        rows.forEach((row) => {
+            var _a, _b;
+            const value = cellText(row, column).toLowerCase();
+            if (value && ((_a = counts.get(value)) !== null && _a !== void 0 ? _a : 0) > 1) {
+                (_b = row.cells[column]) === null || _b === void 0 ? void 0 : _b.classList.add("cssv-dup");
+            }
+        });
+    });
+    const pager = document.createElement("div");
+    pager.className = "cssv-pager";
+    table.after(pager);
+    function sortedRows() {
+        if (sortDirection === 0)
+            return [...rows];
+        return [...rows].sort((a, b) => {
+            const aText = cellText(a, sortColumn);
+            const bText = cellText(b, sortColumn);
+            const aNumber = Number.parseFloat(aText);
+            const bNumber = Number.parseFloat(bText);
+            const numeric = !Number.isNaN(aNumber) &&
+                !Number.isNaN(bNumber) &&
+                Number.isFinite(Number(aText)) &&
+                Number.isFinite(Number(bText));
+            const comparison = numeric
+                ? aNumber - bNumber
+                : aText.localeCompare(bText, undefined, { numeric: true, sensitivity: "base" });
+            return comparison * sortDirection;
+        });
+    }
+    function render() {
+        const allRows = sortedRows();
+        const pageCount = Math.max(1, Math.ceil(allRows.length / pageSize));
+        page = Math.min(page, pageCount);
+        tableBody.replaceChildren(...allRows.slice((page - 1) * pageSize, page * pageSize));
+        pager.hidden = allRows.length <= pageSize;
+        pager.replaceChildren();
+        const info = document.createElement("span");
+        info.textContent = `Page ${page} of ${pageCount} · ${allRows.length} rows`;
+        const navigation = document.createElement("div");
+        function addButton(label, targetPage, disabled, active = false) {
+            const button = document.createElement("button");
+            button.type = "button";
+            button.textContent = label;
+            button.disabled = disabled;
+            if (active)
+                button.className = "on";
+            button.onclick = () => {
+                page = targetPage;
+                render();
+            };
+            navigation.appendChild(button);
+        }
+        addButton("Prev", page - 1, page === 1);
+        for (let targetPage = 1; targetPage <= pageCount; targetPage++) {
+            if (targetPage === 1 || targetPage === pageCount || Math.abs(targetPage - page) <= 1) {
+                addButton(String(targetPage), targetPage, false, targetPage === page);
+            }
+            else if (Math.abs(targetPage - page) === 2) {
+                const ellipsis = document.createElement("span");
+                ellipsis.textContent = "…";
+                navigation.appendChild(ellipsis);
+            }
+        }
+        addButton("Next", page + 1, page === pageCount);
+        pager.append(info, navigation);
+    }
+    headers.forEach((header, column) => {
+        const sortIndicator = document.createElement("span");
+        sortIndicator.className = "cssv-sort";
+        sortIndicator.setAttribute("aria-hidden", "true");
+        const up = document.createElement("i");
+        up.className = "up";
+        up.textContent = "▲";
+        const down = document.createElement("i");
+        down.className = "down";
+        down.textContent = "▼";
+        sortIndicator.append(up, down);
+        header.appendChild(sortIndicator);
+        header.tabIndex = 0;
+        header.setAttribute("aria-sort", "none");
+        function sortByHeader() {
+            if (sortColumn === column) {
+                sortDirection = sortDirection === 1 ? -1 : sortDirection === -1 ? 0 : 1;
+            }
+            else {
+                sortColumn = column;
+                sortDirection = 1;
+            }
+            if (sortDirection === 0)
+                sortColumn = -1;
+            headers.forEach((item, index) => {
+                item.setAttribute("aria-sort", index === sortColumn ? (sortDirection === 1 ? "ascending" : "descending") : "none");
+            });
+            page = 1;
+            render();
+        }
+        header.addEventListener("click", sortByHeader);
+        header.addEventListener("keydown", (event) => {
+            if (event.key === "Enter" || event.key === " ") {
+                event.preventDefault();
+                sortByHeader();
+            }
+        });
+    });
+    render();
+})();

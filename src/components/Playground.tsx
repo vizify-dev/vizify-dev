@@ -10,10 +10,10 @@ import { SaveIcon, UploadIcon } from "@/components/Icons";
 import Logo from "@/components/Logo";
 import ResizeHandle from "@/components/ResizeHandle";
 import Select from "@/components/Select";
-import { DEFAULT_CSV } from "@/lib/defaults";
-import { buildDocument } from "@/lib/preview";
-import { withTools } from "@/lib/table-tools";
-import type { Theme } from "@/lib/themes";
+import { DEFAULT_CSV } from "@/lib/table/defaults";
+import { buildDocument } from "@/lib/table/preview";
+import { withTools } from "@/lib/table/tools";
+import type { Theme } from "@/lib/table/themes";
 
 const CSV_KEY = "vizify:csv";
 const CSS_KEY = "vizify:css";
