@@ -7,7 +7,7 @@ const nextConfig: NextConfig = {
     rules: {
       "*.html": {
         condition: {
-          path: /src\/lib\/table\/(?:tools\/(?:bar|script)|preview\/(?:document|interactive\.script|table|header-cell|row|data-cell|header-break))\.html$/,
+          path: /src\/lib\/(?:resume\/templates|table\/(?:tools\/(?:bar|script)|preview\/(?:document|interactive\.script|table|header-cell|row|data-cell|header-break)))\.html$/,
         },
         type: "text",
       },

@@ -1,15 +1,22 @@
 import { parseCsv } from "@/lib/csv";
+import RESUME_TEMPLATES_HTML from "./templates.html";
 
 const COLS = ["section", "title", "subtitle", "date", "details"] as const;
 type Col = (typeof COLS)[number];
 type Row = Record<Col, string>;
+type ResumeLayout = "graphic" | "sidebar" | "uiux";
 
-const ESC: Record<string, string> = { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" };
-const esc = (s: string) => s.replace(/[&<>"']/g, (c) => ESC[c]);
-const split = (s: string) => s.split("|").map((x) => x.trim()).filter(Boolean);
-const safeSrc = (u: string) => (/^(https:\/\/|data:image\/)/i.test(u) ? u : "");
+const ESC: Record<string, string> = {
+  "&": "&amp;",
+  "<": "&lt;",
+  ">": "&gt;",
+  '"': "&quot;",
+  "'": "&#39;",
+};
+const esc = (value: string) => value.replace(/[&<>"']/g, (character) => ESC[character]);
+const split = (value: string) => value.split("|").map((item) => item.trim()).filter(Boolean);
+const safeSrc = (url: string) => (/^(https:\/\/|data:image\/)/i.test(url) ? url : "");
 
-// Section names map to a "kind" so themes can place sections whatever the user calls them.
 const KINDS: [string, RegExp][] = [
   ["about", /about|summary|profile|objective/],
   ["experience", /experience|employment|work/],
@@ -18,30 +25,45 @@ const KINDS: [string, RegExp][] = [
   ["languages", /language/],
   ["references", /reference/],
 ];
-const kindOf = (name: string) => KINDS.find(([, re]) => re.test(name.toLowerCase()))?.[0] ?? "other";
 
-const ICONS = {
-  phone: '<path d="M3.5 2h2.5l1 3-1.5 1a8 8 0 0 0 3.5 3.5L10 8l3 1v2.5a1.5 1.5 0 0 1-1.5 1.5A10 10 0 0 1 2 3.5 1.5 1.5 0 0 1 3.5 2Z"/>',
-  mail: '<rect x="2" y="3.5" width="12" height="9" rx="1.5"/><path d="m2.5 5 5.5 4 5.5-4"/>',
-  pin: '<path d="M8 14s4.5-4 4.5-7.5a4.5 4.5 0 0 0-9 0C3.5 10 8 14 8 14Z"/><circle cx="8" cy="6.5" r="1.5"/>',
-  web: '<circle cx="8" cy="8" r="6"/><path d="M2.5 6h11M2.5 10h11M8 2a10 10 0 0 1 0 12M8 2a10 10 0 0 0 0 12"/>',
-};
+const TEMPLATES = new Map(
+  Array.from(
+    RESUME_TEMPLATES_HTML.matchAll(
+      /<template data-template="([^"]+)">([\s\S]*?)<\/template>/g,
+    ),
+    ([, name, content]) => [name, content.trim()] as const,
+  ),
+);
 
-function icon(kind: keyof typeof ICONS) {
-  return `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONS[kind]}</svg>`;
+function render(name: string, values: Record<string, string> = {}): string {
+  const template = TEMPLATES.get(name);
+  if (template === undefined) throw new Error(`Missing resume HTML template: ${name}`);
+
+  return template.replace(/<!-- ([A-Z_]+) -->/g, (token, key: string) => {
+    if (!(key in values)) throw new Error(`Missing ${key} value in resume template: ${name}`);
+    return values[key];
+  });
 }
 
-function contactKind(v: string): keyof typeof ICONS {
-  if (v.includes("@")) return "mail";
-  if (/^[+\d(][\d\s().+-]{5,}$/.test(v)) return "phone";
-  if (/^(https?:\/\/|www\.)/i.test(v)) return "web";
+const kindOf = (name: string) =>
+  KINDS.find(([, expression]) => expression.test(name.toLowerCase()))?.[0] ?? "other";
+
+function icon(kind: "phone" | "mail" | "pin" | "web"): string {
+  return render(`icon-${kind}`);
+}
+
+function contactKind(value: string): "phone" | "mail" | "pin" | "web" {
+  if (value.includes("@")) return "mail";
+  if (/^[+\d(][\d\s().+-]{5,}$/.test(value)) return "phone";
+  if (/^(https?:\/\/|www\.)/i.test(value)) return "web";
   return "pin";
 }
 
-/** "Languages: English" -> bold label. */
-function rich(s: string) {
-  const m = /^([^:]{2,30}):\s+(.*)$/.exec(s);
-  return m ? `<strong>${esc(m[1])}:</strong> ${esc(m[2])}` : esc(s);
+function rich(value: string): string {
+  const match = /^([^:]{2,30}):\s+(.*)$/.exec(value);
+  return match
+    ? render("rich", { LABEL: esc(match[1]), VALUE: esc(match[2]) })
+    : esc(value);
 }
 
 function languageLevel(value: string): { name: string; score: number | null } {
@@ -70,63 +92,87 @@ function languageLevel(value: string): { name: string; score: number | null } {
 function readRows(csv: string): { rows: Row[]; missing: string[] } {
   const table = parseCsv(csv);
   if (table.length === 0) return { rows: [], missing: [] };
-  const head = table[0].map((h) => h.trim().toLowerCase());
-  const at = (c: Col) => head.indexOf(c);
-  if (at("section") < 0) return { rows: [], missing: ["section"] };
+  const header = table[0].map((value) => value.trim().toLowerCase());
+  const columnIndex = (column: Col) => header.indexOf(column);
+  if (columnIndex("section") < 0) return { rows: [], missing: ["section"] };
+
   const rows = table.slice(1).map(
-    (r) => Object.fromEntries(COLS.map((c) => [c, at(c) < 0 ? "" : (r[at(c)] ?? "").trim()])) as Row,
+    (row) =>
+      Object.fromEntries(
+        COLS.map((column) => [
+          column,
+          columnIndex(column) < 0 ? "" : (row[columnIndex(column)] ?? "").trim(),
+        ]),
+      ) as Row,
   );
   return { rows, missing: [] };
 }
 
-function entry(r: Row, fmt: (s: string) => string) {
-  const items = split(r.details);
-  return (
-    `<div class="r-entry"><div class="r-line">` +
-    (r.title ? `<strong class="r-title">${esc(r.title)}</strong>` : "") +
-    (r.date ? `<span class="r-date">${esc(r.date)}</span>` : "") +
-    `</div>` +
-    (r.subtitle ? `<div class="r-sub">${esc(r.subtitle)}</div>` : "") +
-    (items.length ? `<ul class="r-bullets">${items.map((i) => `<li>${fmt(i)}</li>`).join("")}</ul>` : "") +
-    `</div>`
-  );
+function entry(row: Row, format: (value: string) => string): string {
+  const items = split(row.details);
+  return render("entry", {
+    TITLE: row.title ? render("title", { VALUE: esc(row.title) }) : "",
+    DATE: row.date ? render("date", { VALUE: esc(row.date) }) : "",
+    SUBTITLE: row.subtitle ? render("subtitle", { VALUE: esc(row.subtitle) }) : "",
+    BULLETS: items.length
+      ? render("bullets", {
+          ITEMS: items.map((item) => render("bullet", { VALUE: format(item) })).join(""),
+        })
+      : "",
+  });
 }
-
-type ResumeLayout = "graphic" | "sidebar" | "uiux";
 
 function renderSection(name: string, rows: Row[], layout?: ResumeLayout): string {
   const kind = kindOf(name);
-  const items = rows.flatMap((r) => split(r.details));
+  const items = rows.flatMap((row) => split(row.details));
   let body: string;
-  if (rows.some((r) => r.title)) {
-    body = rows.map((r) => entry(r, kind === "references" ? rich : esc)).join("");
+
+  if (rows.some((row) => row.title)) {
+    body = rows.map((row) => entry(row, kind === "references" ? rich : esc)).join("");
   } else if (kind === "about") {
-    body = rows.map((r) => `<p class="r-text">${esc(r.details)}</p>`).join("");
+    body = rows.map((row) => render("paragraph", { VALUE: esc(row.details) })).join("");
   } else if (kind === "skills") {
-    body = `<ul class="r-skills">${items.map((i) => {
-      const match = /^(.*?)\s+(\d{1,3})%$/.exec(i);
-      return layout === "graphic" && match
-        ? `<li class="r-bar"><span>${esc(match[1])}</span><b>${match[2]}%</b></li>`
-        : `<li>${esc(i)}</li>`;
-    }).join("")}</ul>`;
+    body = render("skills", {
+      ITEMS: items
+        .map((item) => {
+          const match = /^(.*?)\s+(\d{1,3})%$/.exec(item);
+          return layout === "graphic" && match
+            ? render("graphic-skill", { NAME: esc(match[1]), SCORE: match[2] })
+            : render("skill", { VALUE: esc(item) });
+        })
+        .join(""),
+    });
   } else if (kind === "languages" && layout === "graphic") {
-    body = `<ul class="r-langs">${items.map((i) => {
-      const { name, score } = languageLevel(i);
-      return `<li class="r-ring"><span>${esc(name)}</span><b style="--p:${score ?? 0}">${score === null ? "" : `${score}%`}</b></li>`;
-    }).join("")}</ul>`;
+    body = render("languages", {
+      ITEMS: items
+        .map((item) => {
+          const { name, score } = languageLevel(item);
+          return render("language", {
+            NAME: esc(name),
+            SCORE: String(score ?? 0),
+            LABEL: score === null ? "" : `${score}%`,
+          });
+        })
+        .join(""),
+    });
   } else if (rows.length === 1 && items.length === 1 && kind !== "languages") {
-    body = `<p class="r-text">${esc(rows[0].details)}</p>`;
+    body = render("paragraph", { VALUE: esc(rows[0].details) });
   } else {
-    body = `<ul class="r-list">${items.map((i) => `<li>${rich(i)}</li>`).join("")}</ul>`;
+    body = render("list", {
+      ITEMS: items.map((item) => render("bullet", { VALUE: rich(item) })).join(""),
+    });
   }
-  return `<section class="r-sec" data-s="${kind}"><h2>${esc(name)}</h2>${body}</section>`;
+
+  return render("section", { KIND: kind, NAME: esc(name), BODY: body });
 }
 
-/** CSV rows -> resume HTML. Every cell value is escaped. */
+/** Converts resume CSV into HTML. All user-provided text and image sources are escaped. */
 export function resumeToHtml(csv: string, photoOverride = "", layout?: ResumeLayout): string {
   const { rows, missing } = readRows(csv);
   if (missing.length) {
-    return `<p class="r-error">Resume view needs columns: ${COLS.join(", ")}. Missing: ${missing.join(", ")}.</p>`;
+    return render("error", {
+      MESSAGE: `Resume view needs columns: ${COLS.join(", ")}. Missing: ${missing.join(", ")}.`,
+    });
   }
   if (rows.length === 0) return "";
 
@@ -137,107 +183,117 @@ export function resumeToHtml(csv: string, photoOverride = "", layout?: ResumeLay
   const contacts: string[] = [];
   const sections = new Map<string, Row[]>();
 
-  for (const r of rows) {
-    if (!r.section) continue;
-    const key = r.section.toLowerCase();
+  for (const row of rows) {
+    if (!row.section) continue;
+    const key = row.section.toLowerCase();
     if (key === "name") {
-      name = r.title || name;
-      role = r.subtitle || role;
+      name = row.title || name;
+      role = row.subtitle || role;
     } else if (key === "photo") {
-      photo = safeSrc(r.details) || photo;
+      photo = safeSrc(row.details) || photo;
     } else if (key === "contact") {
-      contactName = r.section;
-      contacts.push(...split(r.details));
+      contactName = row.section;
+      contacts.push(...split(row.details));
     } else {
-      sections.set(r.section, [...(sections.get(r.section) ?? []), r]);
+      sections.set(row.section, [...(sections.get(row.section) ?? []), row]);
     }
   }
-  const shownPhoto = safeSrc(photoOverride) || photo;
-  const items = contacts.map((c) => `<li>${icon(contactKind(c))}<span>${esc(c)}</span></li>`).join("");
-  const displayName = layout === "graphic" && name.includes(" ")
-    ? name.trim().replace(/^(.+?)\s+(\S+)$/, (_match, first: string, last: string) =>
-        `<span class="r-first">${esc(first)}</span><span class="r-last">${esc(last)}</span>`,
-      )
-    : esc(name);
-  const head =
-    `<header class="r-head">` +
-    (shownPhoto ? `<img class="r-photo" src="${esc(shownPhoto)}" alt="" referrerpolicy="no-referrer">` : "") +
-    `<div class="r-id">${name ? `<h1>${displayName}</h1>` : ""}${role ? `<p class="r-role">${esc(role)}</p>` : ""}</div>` +
-    (items ? `<ul class="r-contact">${items}</ul>` : "") +
-    `</header>`;
-  const contactSec = items
-    ? `<section class="r-sec" data-s="contact"><h2>${esc(contactName)}</h2><ul class="r-clist">${items}</ul></section>`
-    : "";
 
-  const renderedSections = [...sections].map(([n, rs]) => ({
-    kind: kindOf(n),
-    html: renderSection(n, rs, layout),
+  const shownPhoto = safeSrc(photoOverride) || photo;
+  const contactItems = contacts
+    .map((contact) =>
+      render("contact-item", {
+        ICON: icon(contactKind(contact)),
+        VALUE: esc(contact),
+      }),
+    )
+    .join("");
+  const displayName = layout === "graphic" && name.includes(" ")
+    ? (() => {
+        const parts = name.trim().match(/^(.+?)\s+(\S+)$/);
+        return parts
+          ? render("name-graphic", { FIRST: esc(parts[1]), LAST: esc(parts[2]) })
+          : render("name", { VALUE: esc(name) });
+      })()
+    : render("name", { VALUE: esc(name) });
+  const head = render("header", {
+    PHOTO: shownPhoto ? render("photo", { SRC: esc(shownPhoto) }) : "",
+    IDENTITY: render("identity", {
+      NAME: name ? displayName : "",
+      ROLE: role ? render("role", { VALUE: esc(role) }) : "",
+    }),
+    CONTACTS: contactItems ? render("contact-list", { ITEMS: contactItems }) : "",
+    DECORATIONS: layout === "uiux" ? render("uiux-stickers") : "",
+  });
+  const contactSection = contactItems
+    ? render("contact-section", { NAME: esc(contactName), ITEMS: contactItems })
+    : "";
+  const renderedSections = [...sections].map(([sectionName, sectionRows]) => ({
+    kind: kindOf(sectionName),
+    html: renderSection(sectionName, sectionRows, layout),
   }));
+
   if (layout === "uiux") {
-    const body = renderedSections.map(({ html }) => html).join("");
-    const decoratedHead = head.replace(
-      "</header>",
-      `<div class="r-uiux-stickers" aria-hidden="true">
-        <span class="r-sticker r-airplane">✈️</span>
-        <span class="r-sticker r-cap">🎓</span>
-        <span class="r-sticker r-leaf">🌿</span>
-        <span class="r-sticker r-eyes">👀</span>
-        <span class="r-sticker r-tongue">👅</span>
-        <span class="r-sticker r-bubble">💬</span>
-        <span class="r-sticker r-resume">Resume</span>
-        <span class="r-sticker r-creative">Creative</span>
-        <span class="r-sticker r-btech">B.Tech</span>
-        <span class="r-sticker r-date">30.06.2001</span>
-        <span class="r-sticker r-confetti">✦ ✧ ✦</span>
-        <span class="r-sticker r-ribbon r-ribbon-blue">〰</span>
-        <span class="r-sticker r-ribbon r-ribbon-pink">〰</span>
-      </div></header>`,
-    );
-    const socials = `<div class="r-uiux-socials" aria-hidden="true">
-      <span class="r-social-behance">Be</span><span class="r-social-dribbble">◉</span>
-      <span class="r-social-linkedin">in</span><span class="r-social-gmail">M</span>
-      <span class="r-social-instagram">◎</span><span class="r-social-figma">●</span>
-      <span class="r-social-pinterest">P</span>
-    </div>`;
-    return `<article class="resume resume--uiux">${decoratedHead}<div class="r-uiux-grid">${contactSec}${body}</div>${socials}</article>`;
+    return render("article-uiux", {
+      HEADER: head,
+      CONTACT_SECTION: contactSection,
+      BODY: renderedSections.map(({ html }) => html).join(""),
+      SOCIALS: render("uiux-socials"),
+    });
   }
+
   if (layout === "graphic") {
-    const about = renderedSections.filter(({ kind }) => kind === "about").map(({ html }) => html).join("");
-    const sidebar = renderedSections
-      .filter(({ kind }) => ["education", "skills", "languages"].includes(kind))
-      .map(({ html }) => html)
-      .join("");
-    const main = renderedSections
-      .filter(({ kind }) => !["about", "education", "skills", "languages"].includes(kind))
-      .map(({ html }) => html)
-      .join("");
-    return `<article class="resume resume--graphic">${head}${about}<aside class="r-side">${sidebar}${contactSec}</aside><div class="r-main">${main}</div></article>`;
+    return render("article-graphic", {
+      HEADER: head,
+      ABOUT: renderedSections
+        .filter(({ kind }) => kind === "about")
+        .map(({ html }) => html)
+        .join(""),
+      SIDEBAR: renderedSections
+        .filter(({ kind }) => ["education", "skills", "languages"].includes(kind))
+        .map(({ html }) => html)
+        .join(""),
+      CONTACT_SECTION: contactSection,
+      MAIN: renderedSections
+        .filter(({ kind }) => !["about", "education", "skills", "languages"].includes(kind))
+        .map(({ html }) => html)
+        .join(""),
+    });
   }
+
   if (layout === "sidebar") {
-  const sidebar = renderedSections
-    .filter(({ kind }) => ["education", "skills", "languages"].includes(kind))
-    .map(({ html }) => html)
-    .join("");
-  const main = renderedSections
-    .filter(({ kind }) => !["education", "skills", "languages"].includes(kind))
-    .map(({ html }) => html)
-    .join("");
-  return `<article class="resume">${head}<div class="r-body"><aside class="r-side">${contactSec}${sidebar}</aside><div class="r-main">${main}</div></div></article>`;
+    return render("article-sidebar", {
+      HEADER: head,
+      CONTACT_SECTION: contactSection,
+      SIDEBAR: renderedSections
+        .filter(({ kind }) => ["education", "skills", "languages"].includes(kind))
+        .map(({ html }) => html)
+        .join(""),
+      MAIN: renderedSections
+        .filter(({ kind }) => !["education", "skills", "languages"].includes(kind))
+        .map(({ html }) => html)
+        .join(""),
+    });
   }
-  const body = renderedSections.map(({ html }) => html).join("");
-  return `<article class="resume">${head}<div class="r-body">${contactSec}${body}</div></article>`;
+
+  return render("article-default", {
+    HEADER: head,
+    CONTACT_SECTION: contactSection,
+    BODY: renderedSections.map(({ html }) => html).join(""),
+  });
 }
 
-const FONTS_LINK =
-  '<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=Open+Sans:wght@400;600;700&display=swap">';
-
-/** Standalone resume document. No script, so it's also used as-is for PDF export. */
-export function buildResumeDocument(csv: string, css: string, photo = "", layout?: ResumeLayout): string {
+/** Creates the standalone resume document used by preview, download, and PDF export. */
+export function buildResumeDocument(
+  csv: string,
+  css: string,
+  photo = "",
+  layout?: ResumeLayout,
+): string {
   const safeCss = css.replace(/<\/style/gi, "<\\/style");
-  // Defaults before the theme CSS: the sidebar contact list and the photo are opt-in per theme.
-  const base =
-    `*{box-sizing:border-box}body{margin:0;padding:${layout === "uiux" ? "0" : "32px 16px"};background:${layout === "uiux" ? "#fff" : "#eef1f6"};-webkit-print-color-adjust:exact;print-color-adjust:exact}` +
-    '.r-sec[data-s="contact"],.r-photo{display:none}.r-side,.r-main{display:contents}.r-error{font:14px system-ui,sans-serif;color:#b42318}' +
-    "@page{size:A4 portrait;margin:0}@media print{body{padding:0;background:#fff}}";
-  return `<!doctype html><html><head><meta charset="utf-8">${FONTS_LINK}<style>${base}</style><style>${safeCss}</style></head><body>${resumeToHtml(csv, photo, layout)}</body></html>`;
+  return render("document", {
+    RESUME_CSS: safeCss,
+    LAYOUT: layout ?? "",
+    RESUME: resumeToHtml(csv, photo, layout),
+  });
 }

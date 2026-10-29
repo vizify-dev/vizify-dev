@@ -20,7 +20,6 @@ import { buildResumeDocument } from "@/lib/resume";
 import {
   DEFAULT_RESUME_CSV,
   isResumeSample,
-  RESUME_THEMES,
   type ThemeOption,
 } from "@/lib/resume/resume";
 import { persist, restore, savePhoto, saveSidebar, VIEWS, type Work } from "@/lib/storage";
@@ -35,11 +34,17 @@ const AUTOSAVE_MS = 500;
 
 type SaveStatus = "Not saved" | "Saved";
 
-export default function Playground({ themes }: { themes: Theme[] }) {
+export default function Playground({
+  themes,
+  resumeThemes,
+}: {
+  themes: Theme[];
+  resumeThemes: ThemeOption[];
+}) {
   const [view, setView] = useState<View>("table");
   const [data, setData] = useState<Work>({
     table: { csv: DEFAULT_CSV, css: themes[0]?.css ?? "" },
-    resume: { csv: DEFAULT_RESUME_CSV, css: RESUME_THEMES[0].css },
+    resume: { csv: DEFAULT_RESUME_CSV, css: resumeThemes[0]?.css ?? "" },
   });
   const [photo, setPhoto] = useState("");
   const [loaded, setLoaded] = useState(false);
@@ -50,7 +55,7 @@ export default function Playground({ themes }: { themes: Theme[] }) {
   const fileInput = useRef<HTMLInputElement>(null);
 
   const { csv, css } = data[view];
-  const themeList: ThemeOption[] = view === "table" ? themes : RESUME_THEMES;
+  const themeList: ThemeOption[] = view === "table" ? themes : resumeThemes;
   const theme = themeList.find((t) => t.css === css);
   const resumeLayout =
     theme?.id === "resume-graphic"
