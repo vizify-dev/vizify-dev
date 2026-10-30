@@ -1,4 +1,4 @@
-import { csvToHtmlTable } from "@/lib/csv";
+import { csvToHtmlTable } from "@/lib/table/csv";
 import BASE_CSS from "./preview/base.css";
 import DOCUMENT_HTML from "./preview/document.html";
 import INTERACTIVE_CSS from "./preview/interactive.css";
