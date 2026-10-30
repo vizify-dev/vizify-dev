@@ -13,7 +13,6 @@ import ResizeHandle from "@/components/ResizeHandle";
 import Select from "@/components/Select";
 import ViewSwitch, { type View } from "@/components/ViewSwitch";
 import { DEFAULT_CSV } from "@/lib/table/defaults";
-import { copyText, download, printHtml } from "@/lib/export";
 import { fileToPhoto } from "@/lib/resume/photo";
 import { buildDocument } from "@/lib/table/preview";
 import { buildResumeDocument } from "@/lib/resume";
@@ -171,12 +170,7 @@ export default function Playground({
           <SaveIcon />
           Save
         </Button>
-        <ExportMenu
-          onDownloadHtml={() => download(doc, "text/html", `vizify-${view}.html`)}
-          onDownloadCsv={() => download(csv, "text/csv;charset=utf-8", `vizify-${view}.csv`)}
-          onDownloadPdf={() => printHtml(staticDoc(), { fitResumeToPage: view === "resume" })}
-          onCopyHtml={() => copyText(doc)}
-        />
+        <ExportMenu view={view} html={doc} csv={csv} staticHtml={staticDoc()} />
         <Button variant="ghost" disabled title="Accounts aren't available in the client-only MVP">
           Sign in
         </Button>
