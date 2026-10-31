@@ -30,8 +30,8 @@ const EDITOR_OPTIONS = {
 type Props = {
   label: string;
   filename: string;
-  /** Control shown on the right of the pane header (format / theme select). */
-  action: ReactNode;
+  /** Control shown on the right of the pane header (theme select). */
+  action?: ReactNode;
   language: string;
   value: string;
   collapsed: boolean;
