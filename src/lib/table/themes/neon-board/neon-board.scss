@@ -122,9 +122,12 @@ tr[data-status="done"] td:first-child::before {
   outline: 2px solid #a855f7;
   outline-offset: 2px;
 
-  &.sam { outline-color: #2dd4bf; }
-  &.priya { outline-color: #f472b6; }
-  &.lee { outline-color: #fbbf24; }
+  &.tone-0 { outline-color: #2dd4bf; }
+  &.tone-1 { outline-color: #f472b6; }
+  &.tone-2 { outline-color: #fbbf24; }
+  &.tone-3 { outline-color: #818cf8; }
+  &.tone-4 { outline-color: #4ade80; }
+  &.tone-5 { outline-color: #f87171; }
 }
 
 @include due-icon("94a3b8");

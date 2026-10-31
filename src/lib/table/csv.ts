@@ -1,4 +1,4 @@
-import { parseCsv } from "@/lib/csv";
+import { parseCsv } from "@/lib/csv-parser";
 import TABLE_TEMPLATE from "./preview/table.html";
 import HEADER_CELL_TEMPLATE from "./preview/header-cell.html";
 import ROW_TEMPLATE from "./preview/row.html";

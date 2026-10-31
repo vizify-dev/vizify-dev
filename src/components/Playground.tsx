@@ -21,7 +21,7 @@ import {
   isResumeSample,
   type ThemeOption,
 } from "@/lib/resume/resume";
-import { persist, restore, savePhoto, saveSidebar, VIEWS, type Work } from "@/lib/storage";
+import { persist, restore, savePhoto, saveSidebar, type Work } from "@/lib/storage";
 import { withTools } from "@/lib/table/tools";
 import type { Theme } from "@/lib/table/themes";
 
@@ -69,16 +69,18 @@ export default function Playground({
   useEffect(() => {
     const saved = restore();
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    setData((prev) => {
-      const next = { ...prev };
-      for (const v of VIEWS) {
-        const r = saved.work[v];
-        if (r) next[v] = { csv: r.csv ?? prev[v].csv, css: r.css ?? prev[v].css };
-      }
-      return next;
-    });
-    if (Object.keys(saved.work).length > 0) setStatus("Saved");
+    setData((current) => ({
+      table: {
+        csv: saved.work.table?.csv ?? current.table.csv,
+        css: saved.work.table?.css ?? current.table.css,
+      },
+      resume: {
+        csv: saved.work.resume?.csv ?? current.resume.csv,
+        css: saved.work.resume?.css ?? current.resume.css,
+      },
+    }));
     if (saved.view) setView(saved.view);
+    if (saved.work.table || saved.work.resume) setStatus("Saved");
     if (saved.sidebar) setSidebarWidth(saved.sidebar);
     if (saved.photo) setPhoto(saved.photo);
     setLoaded(true);
@@ -109,6 +111,8 @@ export default function Playground({
   }
   const setCsv = update("csv");
   const setCss = update("css");
+  const onCsvChange = setCsv;
+  const onCssChange = setCss;
 
   const doc = useMemo(
     () =>
@@ -122,7 +126,7 @@ export default function Playground({
     const file = e.target.files?.[0];
     e.target.value = "";
     if (!file) return;
-    setCsv(await file.text());
+    onCsvChange(await file.text());
   }
 
   async function onPhoto(file: File) {
@@ -137,7 +141,7 @@ export default function Playground({
 
   function onRemovePhoto() {
     setPhoto("");
-    savePhoto("");
+    setStatus(savePhoto("") ? "Saved" : "Not saved");
   }
 
   // PDF uses a static copy: all rows, no script.
@@ -155,10 +159,7 @@ export default function Playground({
           <span className="whitespace-nowrap text-[15px] font-semibold text-ink">Untitled project</span>
           <span className="whitespace-nowrap font-mono text-[12px] text-ink3">{status}</span>
         </div>
-        <div className="hidden h-[24px] w-px shrink-0 bg-line md:block" />
-        <div className="hidden md:block">
-          <ViewSwitch value={view} onChange={setView} />
-        </div>
+        <ViewSwitch value={view} onChange={setView} />
         <div className="min-w-px flex-1" />
 
         <input ref={fileInput} type="file" accept={CSV_ACCEPT} hidden onChange={onUpload} />
@@ -193,7 +194,7 @@ export default function Playground({
             value={csv}
             collapsed={dataCollapsed}
             onToggle={() => setDataCollapsed((c) => !c)}
-            onChange={setCsv}
+            onChange={onCsvChange}
           />
           <EditorPane
             label="CSS"
@@ -225,7 +226,7 @@ export default function Playground({
             value={css}
             collapsed={cssCollapsed}
             onToggle={() => setCssCollapsed((c) => !c)}
-            onChange={setCss}
+            onChange={onCssChange}
           />
         </div>
 

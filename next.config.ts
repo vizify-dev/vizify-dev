@@ -12,14 +12,27 @@ const nextConfig: NextConfig = {
         type: "text",
       },
       "*.css": {
-        condition: { path: /src\/lib\/table\/(?:tools\/bar|preview\/(?:base|interactive|print))\.css$/ },
-        type: "text",
-      },
-      "*.txt": {
         condition: {
-          path: /src\/lib\/table\/(?:tools\/runtime|preview\/interactive\.runtime)\.generated\.txt$/,
+          all: [
+            {
+              path: /src\/lib\/table\/(tools\/bar|preview\/(base|interactive|print))\.css$/,
+            },
+            { query: "?raw" },
+          ],
         },
         type: "text",
+      },
+      "*.ts": {
+        condition: {
+          all: [
+            {
+              path: /src\/lib\/table\/(tools\/runtime|preview\/interactive\.runtime)\.ts$/,
+            },
+            { query: "?raw" },
+          ],
+        },
+        loaders: [require.resolve("./scripts/ts-to-text-loader.cjs")],
+        as: "*.js",
       },
     },
   },

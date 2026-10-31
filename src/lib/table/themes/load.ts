@@ -3,7 +3,7 @@ import { compile } from "sass";
 import { THEME_DEFS } from "./index";
 import type { Theme } from "./types";
 
-const themesDir = path.join(process.cwd(), "src/lib/table/themes");
+const themesDir = path.join(process.cwd(), "src", "lib", "table", "themes");
 
 export function loadThemes(): Theme[] {
   return THEME_DEFS.map((def) => ({

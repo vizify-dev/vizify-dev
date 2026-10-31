@@ -1,4 +1,4 @@
-import { parseCsv } from "@/lib/csv";
+import { parseCsv } from "@/lib/csv-parser";
 import RESUME_TEMPLATES_HTML from "./templates.html";
 
 const COLS = ["section", "title", "subtitle", "date", "details"] as const;

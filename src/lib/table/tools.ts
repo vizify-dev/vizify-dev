@@ -7,7 +7,7 @@ export function withTools(html: string, title?: string): string {
     .replace(/&/g, "&amp;")
     .replace(/"/g, "&quot;")
     .replace(/</g, "&lt;");
-  const bar = BAR.replace("<!-- TOOL_TITLE -->", safeTitle);
+  const bar = BAR.replace("<!-- TOOL_TITLE -->", () => safeTitle);
   return html
     .replace("<!-- TOOLBAR -->", () => bar)
     .replace("<!-- TOOLBAR_SCRIPT -->", () => SCRIPT);

@@ -61,9 +61,12 @@ td {
   color: white;
   flex-shrink: 0;
 
-  &.sam { background: #0d9488; }
-  &.priya { background: #db2777; }
-  &.lee { background: #d97706; }
+  &.tone-0 { background: #0d9488; }
+  &.tone-1 { background: #db2777; }
+  &.tone-2 { background: #d97706; }
+  &.tone-3 { background: #4f46e5; }
+  &.tone-4 { background: #16a34a; }
+  &.tone-5 { background: #dc2626; }
 }
 
 .due-cell {
