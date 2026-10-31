@@ -19,10 +19,12 @@
     return value.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
   }
 
-  function hue(value: string): number {
+  const AVATAR_TONES = 6;
+
+  function avatarTone(value: string): number {
     let result = 0;
     for (let i = 0; i < value.length; i++) {
-      result = (result * 31 + value.charCodeAt(i)) % 360;
+      result = (result * 31 + value.charCodeAt(i)) % AVATAR_TONES;
     }
     return result;
   }
@@ -54,12 +56,9 @@
         const wrapper = document.createElement("div");
         wrapper.className = "owner-cell";
         const avatar = document.createElement("div");
-        avatar.className = `avatar ${slug(ownerValue)}`;
+        avatar.className = `avatar tone-${avatarTone(ownerValue)}`;
         avatar.textContent = ownerValue.charAt(0).toUpperCase();
         avatar.setAttribute("aria-hidden", "true");
-        if (!["sam", "priya", "lee"].includes(slug(ownerValue))) {
-          avatar.style.background = `hsl(${hue(ownerValue)},55%,45%)`;
-        }
         const label = document.createElement("span");
         label.textContent = ownerValue;
         wrapper.append(avatar, label);

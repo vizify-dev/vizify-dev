@@ -1,3 +1,12 @@
+const AVATAR_TONES = 6;
+
+/** Spreads owners across a fixed set of tone classes so styling never depends on the owner's name. */
+function avatarTone(name: string): number {
+  let hash = 0;
+  for (let i = 0; i < name.length; i++) hash = (hash * 31 + name.charCodeAt(i)) % AVATAR_TONES;
+  return hash;
+}
+
 export function enhanceTable(tableElement: HTMLTableElement): void {
   tableElement.querySelectorAll<HTMLTableCellElement>("td:last-child").forEach((cell) => {
     const text = cell.textContent?.trim() ?? "";
@@ -22,14 +31,7 @@ export function enhanceTable(tableElement: HTMLTableElement): void {
 
   tableElement.querySelectorAll<HTMLTableCellElement>("td:nth-child(2)").forEach((cell) => {
     const name = cell.textContent?.trim() ?? "";
-    const lowerName = name.toLowerCase();
-    const avatarClass = lowerName.includes("sam")
-      ? "sam"
-      : lowerName.includes("priya")
-        ? "priya"
-        : lowerName.includes("lee")
-          ? "lee"
-          : "sam";
+    const avatarClass = `tone-${avatarTone(name)}`;
 
     const owner = document.createElement("div");
     owner.className = "owner-cell";
