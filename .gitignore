@@ -19,7 +19,6 @@
 
 # production
 /build
-/src/lib/table/tools/runtime.generated.txt
 
 # misc
 .DS_Store

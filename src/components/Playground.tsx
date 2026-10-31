@@ -12,7 +12,7 @@ import ResizeHandle from "@/components/ResizeHandle";
 import Select from "@/components/Select";
 import { DEFAULT_CSV } from "@/lib/table/defaults";
 import { copyText, download, printHtml } from "@/lib/export";
-import { buildDocument } from "@/lib/preview";
+import { buildDocument } from "@/lib/table/preview";
 import { persist, restore, saveSidebar } from "@/lib/storage";
 import { withTools } from "@/lib/table/tools";
 import type { Theme } from "@/lib/table/themes";

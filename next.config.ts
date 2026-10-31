@@ -6,22 +6,30 @@ const nextConfig: NextConfig = {
   turbopack: {
     rules: {
       "*.html": {
-        condition: {
-          path: /src\/lib\/(?:table\/(?:tools\/(?:bar|script)|preview\/(?:document|table|header-cell|row|data-cell|header-break))|preview\/(?:document|interactive\.script))\.html$/,
-        },
         type: "text",
       },
       "*.css": {
         condition: {
-          path: /src\/lib\/(?:table\/(?:tools\/bar|preview\/(?:base|interactive|print))|preview\/(?:base|interactive|print))\.css$/,
+          all: [
+            {
+              path: /src\/lib\/table\/(tools\/bar|preview\/(base|interactive|print))\.css$/,
+            },
+            { query: "?raw" },
+          ],
         },
         type: "text",
       },
-      "*.txt": {
+      "*.ts": {
         condition: {
-          path: /src\/lib\/(?:table\/tools\/runtime|preview\/interactive\.runtime)\.generated\.txt$/,
+          all: [
+            {
+              path: /src\/lib\/table\/(tools\/runtime|preview\/interactive\.runtime)\.ts$/,
+            },
+            { query: "?raw" },
+          ],
         },
-        type: "text",
+        loaders: [require.resolve("./scripts/ts-to-text-loader.cjs")],
+        as: "*.js",
       },
     },
   },
