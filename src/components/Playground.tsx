@@ -11,30 +11,19 @@ import Logo from "@/components/Logo";
 import ResizeHandle from "@/components/ResizeHandle";
 import Select from "@/components/Select";
 import { DEFAULT_CSV } from "@/lib/table/defaults";
+import { copyText, download, printHtml } from "@/lib/export";
 import { buildDocument } from "@/lib/table/preview";
+import { persist, restore, saveSidebar } from "@/lib/storage";
 import { withTools } from "@/lib/table/tools";
 import type { Theme } from "@/lib/table/themes";
 
-const CSV_KEY = "vizify:csv";
-const CSS_KEY = "vizify:css";
-const SIDEBAR_KEY = "vizify:sidebar";
-const CSV_ACCEPT = ".csv,text/csv,text/plain";
 const SIDEBAR_DEFAULT = 440;
 const SIDEBAR_MIN = 280;
 const PREVIEW_MIN = 360;
 const AUTOSAVE_MS = 500;
+const CSV_ACCEPT = ".csv,text/csv,text/plain";
 
 type SaveStatus = "Not saved" | "Saved";
-
-function persist(csv: string, css: string): boolean {
-  try {
-    localStorage.setItem(CSV_KEY, csv);
-    localStorage.setItem(CSS_KEY, css);
-    return true;
-  } catch {
-    return false; // storage blocked or full
-  }
-}
 
 export default function Playground({ themes }: { themes: Theme[] }) {
   const [csv, setCsv] = useState(DEFAULT_CSV);
@@ -46,20 +35,16 @@ export default function Playground({ themes }: { themes: Theme[] }) {
   const [sidebarWidth, setSidebarWidth] = useState(SIDEBAR_DEFAULT);
   const fileInput = useRef<HTMLInputElement>(null);
 
+  const theme = themes.find((t) => t.css === css);
+
   // Restore saved work after mount (avoids SSR hydration mismatch).
   useEffect(() => {
-    try {
-      const savedCsv = localStorage.getItem(CSV_KEY);
-      const savedCss = localStorage.getItem(CSS_KEY);
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      if (savedCsv !== null) setCsv(savedCsv);
-      if (savedCss !== null) setCss(savedCss);
-      if (savedCsv !== null || savedCss !== null) setStatus("Saved");
-      const savedWidth = Number(localStorage.getItem(SIDEBAR_KEY));
-      if (savedWidth) setSidebarWidth(savedWidth);
-    } catch {
-      // localStorage unavailable; fall back to defaults.
-    }
+    const saved = restore();
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    if (saved.csv !== null) setCsv(saved.csv);
+    if (saved.css !== null) setCss(saved.css);
+    if (saved.csv !== null || saved.css !== null) setStatus("Saved");
+    if (saved.sidebar) setSidebarWidth(saved.sidebar);
     setLoaded(true);
   }, []);
 
@@ -77,53 +62,28 @@ export default function Playground({ themes }: { themes: Theme[] }) {
     const max = Math.max(SIDEBAR_MIN, window.innerWidth - PREVIEW_MIN);
     const next = Math.round(Math.min(Math.max(width, SIDEBAR_MIN), max));
     setSidebarWidth(next);
-    try {
-      localStorage.setItem(SIDEBAR_KEY, String(next));
-    } catch {
-      // storage blocked; width just won't persist
-    }
+    saveSidebar(next);
   }
 
-  const theme = themes.find((t) => t.css === css);
+  const onCsvChange = (value: string) => {
+    setStatus("Not saved");
+    setCsv(value);
+  };
+  const onCssChange = (value: string) => {
+    setStatus("Not saved");
+    setCss(value);
+  };
   const doc = useMemo(() => withTools(buildDocument(csv, css)), [csv, css]);
-
-  function edit(setter: (v: string) => void) {
-    return (v: string) => {
-      setStatus("Not saved");
-      setter(v);
-    };
-  }
 
   async function onUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     e.target.value = "";
     if (!file) return;
-    edit(setCsv)(await file.text());
+    onCsvChange(await file.text());
   }
 
-  function onExport() {
-    const url = URL.createObjectURL(new Blob([doc], { type: "text/html" }));
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "vizify-table.html";
-    a.click();
-    URL.revokeObjectURL(url);
-  }
-
-  async function onCopy() {
-    try {
-      await navigator.clipboard.writeText(doc);
-    } catch {
-      // Fallback when the Clipboard API is blocked or the page isn't focused.
-      const ta = document.createElement("textarea");
-      ta.value = doc;
-      ta.style.cssText = "position:fixed;opacity:0";
-      document.body.appendChild(ta);
-      ta.select();
-      document.execCommand("copy");
-      ta.remove();
-    }
-  }
+  // PDF uses a static copy: all rows, no script.
+  const staticDoc = () => buildDocument(csv, css, false);
 
   return (
     <div className="flex h-screen flex-col bg-sunken">
@@ -151,7 +111,12 @@ export default function Playground({ themes }: { themes: Theme[] }) {
           <SaveIcon />
           Save
         </Button>
-        <ExportMenu onDownloadHtml={onExport} onCopyHtml={onCopy} />
+        <ExportMenu
+          onDownloadHtml={() => download(doc, "text/html", "vizify-table.html")}
+          onDownloadCsv={() => download(csv, "text/csv;charset=utf-8", "vizify-table.csv")}
+          onDownloadPdf={() => printHtml(staticDoc())}
+          onCopyHtml={() => copyText(doc)}
+        />
         <Button variant="ghost" disabled title="Accounts aren't available in the client-only MVP">
           Sign in
         </Button>
@@ -169,7 +134,7 @@ export default function Playground({ themes }: { themes: Theme[] }) {
             value={csv}
             collapsed={dataCollapsed}
             onToggle={() => setDataCollapsed((c) => !c)}
-            onChange={edit(setCsv)}
+            onChange={onCsvChange}
           />
           <EditorPane
             label="CSS"
@@ -179,7 +144,7 @@ export default function Playground({ themes }: { themes: Theme[] }) {
                 label="Theme"
                 value={theme?.id ?? "custom"}
                 display={`Theme: ${theme?.name ?? "Custom"}`}
-                onChange={(id) => edit(setCss)(themes.find((t) => t.id === id)?.css ?? css)}
+                onChange={(id) => onCssChange(themes.find((t) => t.id === id)?.css ?? css)}
                 options={[
                   ...themes.map((t) => ({
                     value: t.id,
@@ -194,7 +159,7 @@ export default function Playground({ themes }: { themes: Theme[] }) {
             value={css}
             collapsed={cssCollapsed}
             onToggle={() => setCssCollapsed((c) => !c)}
-            onChange={edit(setCss)}
+            onChange={onCssChange}
           />
         </div>
 
@@ -213,8 +178,8 @@ export default function Playground({ themes }: { themes: Theme[] }) {
               Live
             </span>
           </div>
-          {/* Sandboxed without allow-same-origin: only our injected toolbar script runs, isolated from the app. */}
-          <iframe title="Table preview" sandbox="allow-scripts" srcDoc={doc} className="min-h-0 flex-1 bg-white" />
+          {/* Sandboxed without allow-same-origin: only our injected scripts run, isolated from the app. */}
+          <iframe title="Preview" sandbox="allow-scripts" srcDoc={doc} className="min-h-0 flex-1 bg-white" />
         </section>
       </main>
     </div>

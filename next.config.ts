@@ -11,7 +11,9 @@ const nextConfig: NextConfig = {
       "*.css": {
         condition: {
           all: [
-            { path: /src\/lib\/table\/(tools\/bar|preview\/document)\.css$/ },
+            {
+              path: /src\/lib\/table\/(tools\/bar|preview\/(base|interactive|print))\.css$/,
+            },
             { query: "?raw" },
           ],
         },
@@ -20,7 +22,9 @@ const nextConfig: NextConfig = {
       "*.ts": {
         condition: {
           all: [
-            { path: /src\/lib\/table\/tools\/runtime\.ts$/ },
+            {
+              path: /src\/lib\/table\/(tools\/runtime|preview\/interactive\.runtime)\.ts$/,
+            },
             { query: "?raw" },
           ],
         },

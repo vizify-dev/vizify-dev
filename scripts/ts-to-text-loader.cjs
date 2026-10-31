@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-require-imports -- CommonJS webpack loader */
 const ts = require("typescript");
 
 module.exports = function tsToTextLoader(source) {

@@ -37,6 +37,8 @@ type Props = {
   collapsed: boolean;
   onToggle: () => void;
   onChange: (value: string) => void;
+  
+  
 };
 
 export default function EditorPane({
