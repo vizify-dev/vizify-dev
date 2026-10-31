@@ -17,9 +17,15 @@ const nextConfig: NextConfig = {
         },
         type: "text",
       },
-      "*.txt": {
-        condition: { path: /src\/lib\/table\/tools\/runtime\.generated\.txt$/ },
-        type: "text",
+      "*.ts": {
+        condition: {
+          all: [
+            { path: /src\/lib\/table\/tools\/runtime\.ts$/ },
+            { query: "?raw" },
+          ],
+        },
+        loaders: [require.resolve("./scripts/ts-to-text-loader.cjs")],
+        as: "*.js",
       },
     },
   },
