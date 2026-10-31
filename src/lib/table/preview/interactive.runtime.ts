@@ -16,20 +16,6 @@
     return row.cells[column]?.textContent?.trim() ?? "";
   }
 
-  headers.forEach((_header, column) => {
-    const counts = new Map<string, number>();
-    rows.forEach((row) => {
-      const value = cellText(row, column).toLowerCase();
-      if (value) counts.set(value, (counts.get(value) ?? 0) + 1);
-    });
-    rows.forEach((row) => {
-      const value = cellText(row, column).toLowerCase();
-      if (value && (counts.get(value) ?? 0) > 1) {
-        row.cells[column]?.classList.add("cssv-dup");
-      }
-    });
-  });
-
   const pager = document.createElement("div");
   pager.className = "cssv-pager";
   table.after(pager);
