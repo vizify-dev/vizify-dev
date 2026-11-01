@@ -8,26 +8,44 @@ import EditorPane from "@/components/EditorPane";
 import ExportMenu from "@/components/ExportMenu";
 import { SaveIcon, UploadIcon } from "@/components/Icons";
 import Logo from "@/components/Logo";
+import PhotoButton from "@/components/PhotoButton";
 import ResizeHandle from "@/components/ResizeHandle";
 import Select from "@/components/Select";
+import ViewSwitch, { type View } from "@/components/ViewSwitch";
 import { DEFAULT_CSV } from "@/lib/table/defaults";
-import { copyText, download, printHtml } from "@/lib/export";
+import { fileToPhoto } from "@/lib/resume/photo";
 import { buildDocument } from "@/lib/table/preview";
-import { persist, restore, saveSidebar } from "@/lib/storage";
+import { buildResumeDocument } from "@/lib/resume";
+import {
+  DEFAULT_RESUME_CSV,
+  isResumeSample,
+  type ThemeOption,
+} from "@/lib/resume/resume";
+import { persist, restore, savePhoto, saveSidebar, type Work } from "@/lib/storage";
 import { withTools } from "@/lib/table/tools";
 import type { Theme } from "@/lib/table/themes";
 
+const CSV_ACCEPT = ".csv,text/csv,text/plain";
 const SIDEBAR_DEFAULT = 440;
 const SIDEBAR_MIN = 280;
 const PREVIEW_MIN = 360;
 const AUTOSAVE_MS = 500;
-const CSV_ACCEPT = ".csv,text/csv,text/plain";
 
 type SaveStatus = "Not saved" | "Saved";
 
-export default function Playground({ themes }: { themes: Theme[] }) {
-  const [csv, setCsv] = useState(DEFAULT_CSV);
-  const [css, setCss] = useState(themes[0]?.css ?? "");
+export default function Playground({
+  themes,
+  resumeThemes,
+}: {
+  themes: Theme[];
+  resumeThemes: ThemeOption[];
+}) {
+  const [view, setView] = useState<View>("table");
+  const [data, setData] = useState<Work>({
+    table: { csv: DEFAULT_CSV, css: themes[0]?.css ?? "" },
+    resume: { csv: DEFAULT_RESUME_CSV, css: resumeThemes[0]?.css ?? "" },
+  });
+  const [photo, setPhoto] = useState("");
   const [loaded, setLoaded] = useState(false);
   const [status, setStatus] = useState<SaveStatus>("Not saved");
   const [dataCollapsed, setDataCollapsed] = useState(false);
@@ -35,16 +53,36 @@ export default function Playground({ themes }: { themes: Theme[] }) {
   const [sidebarWidth, setSidebarWidth] = useState(SIDEBAR_DEFAULT);
   const fileInput = useRef<HTMLInputElement>(null);
 
-  const theme = themes.find((t) => t.css === css);
+  const { csv, css } = data[view];
+  const themeList: ThemeOption[] = view === "table" ? themes : resumeThemes;
+  const theme = themeList.find((t) => t.css === css);
+  const resumeLayout =
+    theme?.id === "resume-graphic"
+      ? "graphic"
+      : theme?.id === "resume-sidebar"
+        ? "sidebar"
+        : theme?.id === "resume-uiux"
+          ? "uiux"
+          : undefined;
 
   // Restore saved work after mount (avoids SSR hydration mismatch).
   useEffect(() => {
     const saved = restore();
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    if (saved.csv !== null) setCsv(saved.csv);
-    if (saved.css !== null) setCss(saved.css);
-    if (saved.csv !== null || saved.css !== null) setStatus("Saved");
+    setData((current) => ({
+      table: {
+        csv: saved.work.table?.csv ?? current.table.csv,
+        css: saved.work.table?.css ?? current.table.css,
+      },
+      resume: {
+        csv: saved.work.resume?.csv ?? current.resume.csv,
+        css: saved.work.resume?.css ?? current.resume.css,
+      },
+    }));
+    if (saved.view) setView(saved.view);
+    if (saved.work.table || saved.work.resume) setStatus("Saved");
     if (saved.sidebar) setSidebarWidth(saved.sidebar);
+    if (saved.photo) setPhoto(saved.photo);
     setLoaded(true);
   }, []);
 
@@ -52,11 +90,11 @@ export default function Playground({ themes }: { themes: Theme[] }) {
   useEffect(() => {
     if (!loaded) return;
     const t = setTimeout(
-      () => setStatus(persist(csv, css) ? "Saved" : "Not saved"),
+      () => setStatus(persist(view, csv, css) ? "Saved" : "Not saved"),
       AUTOSAVE_MS,
     );
     return () => clearTimeout(t);
-  }, [csv, css, loaded]);
+  }, [view, csv, css, loaded]);
 
   function resizeSidebar(width: number) {
     const max = Math.max(SIDEBAR_MIN, window.innerWidth - PREVIEW_MIN);
@@ -65,15 +103,24 @@ export default function Playground({ themes }: { themes: Theme[] }) {
     saveSidebar(next);
   }
 
-  const onCsvChange = (value: string) => {
-    setStatus("Not saved");
-    setCsv(value);
-  };
-  const onCssChange = (value: string) => {
-    setStatus("Not saved");
-    setCss(value);
-  };
-  const doc = useMemo(() => withTools(buildDocument(csv, css)), [csv, css]);
+  function update(field: "csv" | "css") {
+    return (v: string) => {
+      setStatus("Not saved");
+      setData((d) => ({ ...d, [view]: { ...d[view], [field]: v } }));
+    };
+  }
+  const setCsv = update("csv");
+  const setCss = update("css");
+  const onCsvChange = setCsv;
+  const onCssChange = setCss;
+
+  const doc = useMemo(
+    () =>
+      view === "table"
+        ? withTools(buildDocument(csv, css))
+        : buildResumeDocument(csv, css, photo, resumeLayout),
+    [view, csv, css, photo, resumeLayout],
+  );
 
   async function onUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -82,8 +129,26 @@ export default function Playground({ themes }: { themes: Theme[] }) {
     onCsvChange(await file.text());
   }
 
+  async function onPhoto(file: File) {
+    try {
+      const url = await fileToPhoto(file);
+      setPhoto(url);
+      setStatus(savePhoto(url) ? "Saved" : "Not saved");
+    } catch {
+      // unreadable image: keep the current photo
+    }
+  }
+
+  function onRemovePhoto() {
+    setPhoto("");
+    setStatus(savePhoto("") ? "Saved" : "Not saved");
+  }
+
   // PDF uses a static copy: all rows, no script.
-  const staticDoc = () => buildDocument(csv, css, false);
+  const staticDoc = () =>
+    view === "table"
+      ? buildDocument(csv, css, false)
+      : buildResumeDocument(csv, css, photo, resumeLayout);
 
   return (
     <div className="flex h-screen flex-col bg-sunken">
@@ -94,29 +159,19 @@ export default function Playground({ themes }: { themes: Theme[] }) {
           <span className="whitespace-nowrap text-[15px] font-semibold text-ink">Untitled project</span>
           <span className="whitespace-nowrap font-mono text-[12px] text-ink3">{status}</span>
         </div>
+        <ViewSwitch value={view} onChange={setView} />
         <div className="min-w-px flex-1" />
 
-        <input
-          ref={fileInput}
-          type="file"
-          accept={CSV_ACCEPT}
-          hidden
-          onChange={onUpload}
-        />
+        <input ref={fileInput} type="file" accept={CSV_ACCEPT} hidden onChange={onUpload} />
         <Button onClick={() => fileInput.current?.click()}>
           <UploadIcon />
           Upload
         </Button>
-        <Button onClick={() => setStatus(persist(csv, css) ? "Saved" : "Not saved")}>
+        <Button onClick={() => setStatus(persist(view, csv, css) ? "Saved" : "Not saved")}>
           <SaveIcon />
           Save
         </Button>
-        <ExportMenu
-          onDownloadHtml={() => download(doc, "text/html", "vizify-table.html")}
-          onDownloadCsv={() => download(csv, "text/csv;charset=utf-8", "vizify-table.csv")}
-          onDownloadPdf={() => printHtml(staticDoc())}
-          onCopyHtml={() => copyText(doc)}
-        />
+        <ExportMenu view={view} html={doc} csv={csv} staticHtml={staticDoc()} />
         <Button variant="ghost" disabled title="Accounts aren't available in the client-only MVP">
           Sign in
         </Button>
@@ -129,7 +184,12 @@ export default function Playground({ themes }: { themes: Theme[] }) {
         >
           <EditorPane
             label="DATA"
-            filename="data.csv"
+            filename={view === "table" ? "data.csv" : "resume.csv"}
+            action={
+              view === "resume" ? (
+                <PhotoButton hasPhoto={photo !== ""} onPick={onPhoto} onRemove={onRemovePhoto} />
+              ) : undefined
+            }
             language="plaintext"
             value={csv}
             collapsed={dataCollapsed}
@@ -144,9 +204,16 @@ export default function Playground({ themes }: { themes: Theme[] }) {
                 label="Theme"
                 value={theme?.id ?? "custom"}
                 display={`Theme: ${theme?.name ?? "Custom"}`}
-                onChange={(id) => onCssChange(themes.find((t) => t.id === id)?.css ?? css)}
+                onChange={(id) => {
+                  const nextTheme = themeList.find((t) => t.id === id);
+                  if (!nextTheme) return;
+                  setCss(nextTheme.css);
+                  if (view === "resume" && nextTheme.sample && isResumeSample(csv)) {
+                    setCsv(nextTheme.sample);
+                  }
+                }}
                 options={[
-                  ...themes.map((t) => ({
+                  ...themeList.map((t) => ({
                     value: t.id,
                     label: t.name,
                     hint: t.pro ? "free account" : undefined,

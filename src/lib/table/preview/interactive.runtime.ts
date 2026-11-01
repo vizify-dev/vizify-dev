@@ -4,6 +4,7 @@
   const body = table.tBodies[0];
   const headerRow = table.tHead?.rows[0];
   if (!body || !headerRow) return;
+  const tableBody = body;
 
   const rows = Array.from(body.rows);
   const headers = Array.from(headerRow.cells);
@@ -15,6 +16,20 @@
   function cellText(row: HTMLTableRowElement, column: number): string {
     return row.cells[column]?.textContent?.trim() ?? "";
   }
+
+  headers.forEach((_header, column) => {
+    const counts = new Map<string, number>();
+    rows.forEach((row) => {
+      const value = cellText(row, column).toLowerCase();
+      if (value) counts.set(value, (counts.get(value) ?? 0) + 1);
+    });
+    rows.forEach((row) => {
+      const value = cellText(row, column).toLowerCase();
+      if (value && (counts.get(value) ?? 0) > 1) {
+        row.cells[column]?.classList.add("cssv-dup");
+      }
+    });
+  });
 
   const pager = document.createElement("div");
   pager.className = "cssv-pager";
@@ -43,7 +58,7 @@
     const allRows = sortedRows();
     const pageCount = Math.max(1, Math.ceil(allRows.length / pageSize));
     page = Math.min(page, pageCount);
-    body.replaceChildren(...allRows.slice((page - 1) * pageSize, page * pageSize));
+    tableBody.replaceChildren(...allRows.slice((page - 1) * pageSize, page * pageSize));
     pager.hidden = allRows.length <= pageSize;
     pager.replaceChildren();
 

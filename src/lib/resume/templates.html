@@ -1,0 +1,64 @@
+<template data-template="document">
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=Open+Sans:wght@400;600;700&display=swap">
+    <style><!-- RESUME_CSS --></style>
+  </head>
+  <body data-layout="<!-- LAYOUT -->"><!-- RESUME --></body>
+</html>
+</template>
+<template data-template="error"><p class="r-error"><!-- MESSAGE --></p></template>
+<template data-template="entry"><div class="r-entry"><div class="r-line"><!-- TITLE --><!-- DATE --></div><!-- SUBTITLE --><!-- BULLETS --></div></template>
+<template data-template="title"><strong class="r-title"><!-- VALUE --></strong></template>
+<template data-template="date"><span class="r-date"><!-- VALUE --></span></template>
+<template data-template="subtitle"><div class="r-sub"><!-- VALUE --></div></template>
+<template data-template="bullets"><ul class="r-bullets"><!-- ITEMS --></ul></template>
+<template data-template="bullet"><li><!-- VALUE --></li></template>
+<template data-template="paragraph"><p class="r-text"><!-- VALUE --></p></template>
+<template data-template="skills"><ul class="r-skills"><!-- ITEMS --></ul></template>
+<template data-template="skill"><li><!-- VALUE --></li></template>
+<template data-template="graphic-skill"><li class="r-bar"><span><!-- NAME --></span><b><!-- SCORE -->%</b></li></template>
+<template data-template="languages"><ul class="r-langs"><!-- ITEMS --></ul></template>
+<template data-template="language"><li class="r-ring"><span><!-- NAME --></span><b data-score="<!-- SCORE -->"><!-- LABEL --></b></li></template>
+<template data-template="list"><ul class="r-list"><!-- ITEMS --></ul></template>
+<template data-template="section"><section class="r-sec" data-s="<!-- KIND -->"><h2><!-- NAME --></h2><!-- BODY --></section></template>
+<template data-template="rich"><strong><!-- LABEL -->:</strong> <!-- VALUE --></template>
+<template data-template="contact-list"><ul class="r-contact"><!-- ITEMS --></ul></template>
+<template data-template="contact-item"><li><!-- ICON --><span><!-- VALUE --></span></li></template>
+<template data-template="contact-section"><section class="r-sec" data-s="contact"><h2><!-- NAME --></h2><ul class="r-clist"><!-- ITEMS --></ul></section></template>
+<template data-template="icon-phone"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 2h2.5l1 3-1.5 1a8 8 0 0 0 3.5 3.5L10 8l3 1v2.5a1.5 1.5 0 0 1-1.5 1.5A10 10 0 0 1 2 3.5 1.5 1.5 0 0 1 3.5 2Z"/></svg></template>
+<template data-template="icon-mail"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="3.5" width="12" height="9" rx="1.5"/><path d="m2.5 5 5.5 4 5.5-4"/></svg></template>
+<template data-template="icon-pin"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 14s4.5-4 4.5-7.5a4.5 4.5 0 0 0-9 0C3.5 10 8 14 8 14Z"/><circle cx="8" cy="6.5" r="1.5"/></svg></template>
+<template data-template="icon-web"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="8" cy="8" r="6"/><path d="M2.5 6h11M2.5 10h11M8 2a10 10 0 0 1 0 12M8 2a10 10 0 0 0 0 12"/></svg></template>
+<template data-template="photo"><img class="r-photo" src="<!-- SRC -->" alt="" referrerpolicy="no-referrer"></template>
+<template data-template="name"><h1><!-- VALUE --></h1></template>
+<template data-template="name-graphic"><h1><span class="r-first"><!-- FIRST --></span><span class="r-last"><!-- LAST --></span></h1></template>
+<template data-template="role"><p class="r-role"><!-- VALUE --></p></template>
+<template data-template="identity"><div class="r-id"><!-- NAME --><!-- ROLE --></div></template>
+<template data-template="header"><header class="r-head"><!-- PHOTO --><!-- IDENTITY --><!-- CONTACTS --><!-- DECORATIONS --></header></template>
+<template data-template="uiux-stickers">
+<div class="r-uiux-stickers" aria-hidden="true">
+  <span class="r-sticker r-airplane">✈️</span><span class="r-sticker r-cap">🎓</span>
+  <span class="r-sticker r-leaf">🌿</span><span class="r-sticker r-eyes">👀</span>
+  <span class="r-sticker r-tongue">👅</span><span class="r-sticker r-bubble">💬</span>
+  <span class="r-sticker r-resume">Resume</span><span class="r-sticker r-creative">Creative</span>
+  <span class="r-sticker r-btech">B.Tech</span><span class="r-sticker r-date">30.06.2001</span>
+  <span class="r-sticker r-confetti">✦ ✧ ✦</span>
+  <span class="r-sticker r-ribbon r-ribbon-blue">〰</span>
+  <span class="r-sticker r-ribbon r-ribbon-pink">〰</span>
+</div>
+</template>
+<template data-template="uiux-socials">
+<div class="r-uiux-socials" aria-hidden="true">
+  <span class="r-social-behance">Be</span><span class="r-social-dribbble">◉</span>
+  <span class="r-social-linkedin">in</span><span class="r-social-gmail">M</span>
+  <span class="r-social-instagram">◎</span><span class="r-social-figma">●</span>
+  <span class="r-social-pinterest">P</span>
+</div>
+</template>
+<template data-template="article-default"><article class="resume"><!-- HEADER --><div class="r-body"><!-- CONTACT_SECTION --><!-- BODY --></div></article></template>
+<template data-template="article-graphic"><article class="resume resume--graphic"><!-- HEADER --><!-- ABOUT --><aside class="r-side"><!-- SIDEBAR --><!-- CONTACT_SECTION --></aside><div class="r-main"><!-- MAIN --></div></article></template>
+<template data-template="article-sidebar"><article class="resume"><!-- HEADER --><div class="r-body"><aside class="r-side"><!-- CONTACT_SECTION --><!-- SIDEBAR --></aside><div class="r-main"><!-- MAIN --></div></div></article></template>
+<template data-template="article-uiux"><article class="resume resume--uiux"><!-- HEADER --><div class="r-uiux-grid"><!-- CONTACT_SECTION --><!-- BODY --></div><!-- SOCIALS --></article></template>
