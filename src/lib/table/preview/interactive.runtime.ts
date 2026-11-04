@@ -17,23 +17,20 @@
     return row.cells[column]?.textContent?.trim() ?? "";
   }
 
-  headers.forEach((_header, column) => {
-    const counts = new Map<string, number>();
-    rows.forEach((row) => {
-      const value = cellText(row, column).toLowerCase();
-      if (value) counts.set(value, (counts.get(value) ?? 0) + 1);
-    });
-    rows.forEach((row) => {
-      const value = cellText(row, column).toLowerCase();
-      if (value && (counts.get(value) ?? 0) > 1) {
-        row.cells[column]?.classList.add("cssv-dup");
-      }
-    });
+  table.addEventListener("click", (event: MouseEvent) => {
+    const target = event.target;
+    if (!(target instanceof Element)) return;
+    const cell = target.closest<HTMLButtonElement>(".cssv-cell");
+    if (!cell) return;
+    const expanded = cell.getAttribute("aria-expanded") !== "true";
+    cell.setAttribute("aria-expanded", String(expanded));
+    cell.title = expanded ? "Collapse cell text" : "Show full cell text";
+    cell.classList.toggle("cssv-expanded", expanded);
   });
 
   const pager = document.createElement("div");
   pager.className = "cssv-pager";
-  table.after(pager);
+  (table.closest(".cssv-scroll") ?? table).after(pager);
 
   function sortedRows(): HTMLTableRowElement[] {
     if (sortDirection === 0) return [...rows];
