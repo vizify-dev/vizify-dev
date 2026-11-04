@@ -249,7 +249,12 @@ export default function Playground({
             </span>
           </div>
           {/* Sandboxed without allow-same-origin: only our injected scripts run, isolated from the app. */}
-          <iframe title="Preview" sandbox="allow-scripts" srcDoc={doc} className="min-h-0 flex-1 bg-white" />
+          <iframe
+            title="Preview"
+            sandbox="allow-scripts"
+            srcDoc={loaded ? doc : ""}
+            className="min-h-0 flex-1 bg-white"
+          />
         </section>
       </main>
     </div>
