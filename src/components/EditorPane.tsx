@@ -10,6 +10,7 @@ const EDITOR_OPTIONS = {
   fontFamily: jetbrains.style.fontFamily,
   fontSize: 14,
   lineHeight: 24,
+  wordWrap: "on",
   minimap: { enabled: false },
   scrollBeyondLastLine: false,
   automaticLayout: true,
