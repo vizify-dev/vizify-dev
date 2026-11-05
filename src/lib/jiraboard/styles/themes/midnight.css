@@ -1,0 +1,2 @@
+:root{--page:#0d1117;--ink:#e6edf3;--h1:#fff;--sub:#8b949e;--lane:#161b22;--lane-t:#8b949e;--lane-r:10px;--lane-pad:10px;--lane-b:1px solid #21262d;--card:#1f2630;--card-r:8px;--card-b:1px solid #2d3643;--shadow:none;--gap:10px;--pill:#2d3643;--pill-ink:#c9d1d9;--chip-r:4px}
+.card:hover{filter:none;border-color:#58a6ff}
