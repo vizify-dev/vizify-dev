@@ -6,7 +6,7 @@ import { neonBoard } from "./neon-board/neon-board";
 import { notebook } from "./notebook/notebook";
 import { playfulPastel } from "./playful-pastel/playful-pastel";
 import { receipt } from "./receipt/receipt";
-import { terminal } from "./terminal/terminal";
+
 import type { ThemeDef } from "./types";
 import { violetCards } from "./violet-cards/violet-cards";
 
@@ -21,6 +21,6 @@ export const THEME_DEFS: ThemeDef[] = [
   violetCards,
   notebook,
   receipt,
-  terminal,
+
   editorial,
 ];

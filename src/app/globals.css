@@ -29,12 +29,12 @@
   --color-eddim: var(--eddim);
   --color-edtext: var(--edtext);
   --color-accent-light: var(--accent-light);
-  --font-sans: var(--font-hanken);
-  --font-mono: var(--font-jetbrains);
+  --font-sans: var(--font-geist), system-ui, sans-serif;
+  --font-mono: var(--font-jetbrains), ui-monospace, monospace;
 }
 
 body {
   background: var(--sunken);
   color: var(--ink);
-  font-family: var(--font-hanken), system-ui, sans-serif;
+  font-family: var(--font-sans);
 }
