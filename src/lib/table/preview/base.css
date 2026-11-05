@@ -1,9 +1,11 @@
+:root{--ui:"Geist",system-ui,sans-serif}
+
 body {
   margin: 0;
   padding: 40px;
   background: #fff;
   color: #1f2837;
-  font-family: "Hanken Grotesk", system-ui, sans-serif;
+  font-family: var(--ui);
 }
 
 @media (max-width: 640px) {
@@ -38,7 +40,7 @@ body {
 .cssv-empty {
   margin: 16px 0;
   color: #5f6a7f;
-  font: 14px system-ui, sans-serif;
+  font: 14px var(--ui);
 }
 
 .cssv-cell {
