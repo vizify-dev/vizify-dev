@@ -7,18 +7,19 @@ const nextConfig: NextConfig = {
     rules: {
       "*.html": {
         condition: {
-          path: /src\/lib\/(?:resume\/templates|table\/(?:tools\/(?:bar|script)|preview\/(?:document|interactive\.script|table|header-cell|row|data-cell|header-break)))\.html$/,
+          path: /src\/lib\/(?:resume\/templates|table\/(?:tools\/(?:bar|script)|preview\/(?:document|interactive\.script|table|header-cell|row|data-cell|header-break))|jiraboard\/(?:templates\/[^/]+|runtime\/board\.script))\.html$/,
         },
         type: "text",
       },
       "*.css": {
         condition: {
-          all: [
-            {
-              path: /src\/lib\/table\/(tools\/bar|preview\/(base|interactive|print))\.css$/,
-            },
-            { query: "?raw" },
-          ],
+          path: /src\/lib\/(?:table\/(?:tools\/bar|preview\/(?:base|interactive|print))|jiraboard\/styles\/.*)\.css$/,
+        },
+        type: "text",
+      },
+      "*.txt": {
+        condition: {
+          path: /src\/lib\/(?:table\/(?:tools\/runtime|preview\/interactive\.runtime)|jiraboard\/runtime\/board\.runtime)\.generated\.txt$/,
         },
         type: "text",
       },
