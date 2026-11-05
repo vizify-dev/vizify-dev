@@ -9,6 +9,8 @@ const ITEM =
 
 type ExportMenuViewProps = {
   onDownloadHtml: () => void;
+  onDownloadCss: () => void;
+  onDownloadJavascript?: () => void;
   onDownloadCsv: () => void;
   onDownloadPdf: () => void;
   onCopyHtml: () => void;
@@ -16,6 +18,8 @@ type ExportMenuViewProps = {
 
 export default function ExportMenuView({
   onDownloadHtml,
+  onDownloadCss,
+  onDownloadJavascript,
   onDownloadCsv,
   onDownloadPdf,
   onCopyHtml,
@@ -35,10 +39,28 @@ export default function ExportMenuView({
           <button type="button" className={ITEM} onClick={onDownloadHtml}>
             <span className="text-[14px] font-semibold">HTML file</span>
             <span className="text-[12px] text-ink3">
-              One self-contained page · .html
+              Markup with separate asset files · .html
             </span>
           </button>
         </MenuItem>
+        <MenuItem>
+          <button type="button" className={ITEM} onClick={onDownloadCss}>
+            <span className="text-[14px] font-semibold">CSS file</span>
+            <span className="text-[12px] text-ink3">
+              Stylesheet referenced by the HTML
+            </span>
+          </button>
+        </MenuItem>
+        {onDownloadJavascript && (
+          <MenuItem>
+            <button type="button" className={ITEM} onClick={onDownloadJavascript}>
+              <span className="text-[14px] font-semibold">JavaScript file</span>
+              <span className="text-[12px] text-ink3">
+                Table interactions referenced by the HTML
+              </span>
+            </button>
+          </MenuItem>
+        )}
         <MenuItem>
           <button type="button" className={ITEM} onClick={onDownloadCsv}>
             <span className="text-[14px] font-semibold">CSV file</span>
@@ -63,7 +85,7 @@ export default function ExportMenuView({
             onClick={onCopyHtml}
           >
             <CopyIcon className="size-[16px] text-ink3" />
-            <span className="text-[14px] font-semibold">Copy HTML</span>
+            <span className="text-[14px] font-semibold">Copy HTML markup</span>
           </button>
         </MenuItem>
       </MenuItems>

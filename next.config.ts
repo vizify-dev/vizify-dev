@@ -6,6 +6,9 @@ const nextConfig: NextConfig = {
   turbopack: {
     rules: {
       "*.html": {
+        condition: {
+          path: /src\/lib\/(?:resume\/templates|table\/(?:tools\/(?:bar|script)|preview\/(?:document|interactive\.script|table|header-cell|row|data-cell|header-break)))\.html$/,
+        },
         type: "text",
       },
       "*.css": {

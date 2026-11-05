@@ -19,13 +19,9 @@
     return value.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
   }
 
-  const AVATAR_TONES = 6;
-
   function avatarTone(value: string): number {
     let result = 0;
-    for (let i = 0; i < value.length; i++) {
-      result = (result * 31 + value.charCodeAt(i)) % AVATAR_TONES;
-    }
+    for (let i = 0; i < value.length; i++) result = (result * 31 + value.charCodeAt(i)) % 6;
     return result;
   }
 
@@ -46,8 +42,7 @@
         const pill = document.createElement("span");
         pill.className = `status-pill ${slug(statusValue)}`;
         pill.textContent = statusValue;
-        statusCell.textContent = "";
-        statusCell.appendChild(pill);
+        statusCell.replaceChildren(pill);
       }
 
       const ownerCell = row.cells[ownerIndex];
@@ -55,15 +50,16 @@
       if (ownerIndex > -1 && ownerCell && ownerValue) {
         const wrapper = document.createElement("div");
         wrapper.className = "owner-cell";
+
         const avatar = document.createElement("div");
         avatar.className = `avatar tone-${avatarTone(ownerValue)}`;
         avatar.textContent = ownerValue.charAt(0).toUpperCase();
         avatar.setAttribute("aria-hidden", "true");
+
         const label = document.createElement("span");
         label.textContent = ownerValue;
         wrapper.append(avatar, label);
-        ownerCell.textContent = "";
-        ownerCell.appendChild(wrapper);
+        ownerCell.replaceChildren(wrapper);
       }
     });
   }
@@ -104,6 +100,13 @@
     return row.cells[index]?.getAttribute("data-v") ?? "";
   }
 
+  function numericValue(value: string): number | null {
+    const normalized = value.replace(/[,$%\s]/g, "");
+    if (!normalized) return null;
+    const parsed = Number(normalized);
+    return Number.isFinite(parsed) ? parsed : null;
+  }
+
   function sort(): void {
     if (!columnSelect) return;
     const selectedIndex = columnSelect.value;
@@ -113,10 +116,10 @@
       rows.sort((a, b) => {
         const aValue = cellValue(a, columnIndex);
         const bValue = cellValue(b, columnIndex);
-        const aNumber = Number.parseFloat(aValue.replace(/[,$%\s]/g, ""));
-        const bNumber = Number.parseFloat(bValue.replace(/[,$%\s]/g, ""));
+        const aNumber = numericValue(aValue);
+        const bNumber = numericValue(bValue);
         const comparison =
-          !Number.isNaN(aNumber) && !Number.isNaN(bNumber)
+          aNumber !== null && bNumber !== null
             ? aNumber - bNumber
             : aValue.localeCompare(bValue, undefined, {
                 numeric: true,
