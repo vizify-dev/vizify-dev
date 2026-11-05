@@ -1,12 +1,13 @@
 import type { View } from "@/components/ViewSwitch";
 
-export const VIEWS: View[] = ["table", "resume"];
+export const VIEWS: View[] = ["table", "resume", "board"];
 export type Work = Record<View, { csv: string; css: string }>;
 export type Restored = Partial<Record<View, { csv: string | null; css: string | null }>>;
 
 const KEYS: Record<View, { csv: string; css: string }> = {
   table: { csv: "vizify:csv", css: "vizify:css" },
   resume: { csv: "vizify:resume:csv", css: "vizify:resume:css" },
+  board: { csv: "vizify:board:csv", css: "vizify:board:css" },
 };
 const VIEW_KEY = "vizify:view";
 const SIDEBAR_KEY = "vizify:sidebar";
@@ -60,7 +61,7 @@ export function restore(): {
       if (csv !== null || css !== null) work[currentView] = { csv, css };
     }
     const savedView = localStorage.getItem(VIEW_KEY);
-    if (savedView === "table" || savedView === "resume") view = savedView;
+    if (VIEWS.includes(savedView as View)) view = savedView as View;
     sidebar = Number(localStorage.getItem(SIDEBAR_KEY)) || null;
     photo = localStorage.getItem(PHOTO_KEY) ?? "";
   } catch {
