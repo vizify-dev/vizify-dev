@@ -56,7 +56,7 @@ export default function ExportMenuView({
             <button type="button" className={ITEM} onClick={onDownloadJavascript}>
               <span className="text-[14px] font-semibold">JavaScript file</span>
               <span className="text-[12px] text-ink3">
-                Table interactions referenced by the HTML
+                Interactive behavior referenced by the HTML
               </span>
             </button>
           </MenuItem>
