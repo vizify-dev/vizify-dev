@@ -7,18 +7,34 @@ const nextConfig: NextConfig = {
     rules: {
       "*.html": {
         condition: {
-          path: /src\/lib\/(?:resume\/templates|table\/(?:tools\/(?:bar|script)|preview\/(?:document|interactive\.script|table|header-cell|row|data-cell|header-break)))\.html$/,
+          path: /src\/lib\/(?:resume\/templates|table\/(?:tools\/(?:bar|script)|preview\/(?:document|interactive\.script|table|header-cell|row|data-cell|header-break))|cards\/(?:templates\/[^/]+|runtime\/cards\.script))\.html$/,
         },
         type: "text",
       },
       "*.css": {
         condition: {
-          all: [
+          any: [
             {
-              path: /src\/lib\/table\/(tools\/bar|preview\/(base|interactive|print))\.css$/,
+              all: [
+                {
+                  path: /src\/lib\/table\/(tools\/bar|preview\/(base|interactive|print))\.css$/,
+                },
+                { query: "?raw" },
+              ],
             },
-            { query: "?raw" },
+            {
+              all: [
+                { path: /src\/lib\/cards\/styles\/.*\.css$/ },
+                { query: "?raw" },
+              ],
+            },
           ],
+        },
+        type: "text",
+      },
+      "*.txt": {
+        condition: {
+          path: /src\/lib\/cards\/runtime\/cards\.runtime\.generated\.txt$/,
         },
         type: "text",
       },
