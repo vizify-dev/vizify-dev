@@ -54,7 +54,15 @@ export function csvToHtmlTable(csv: string): string {
             const content = value
               ? `<button class="cssv-cell" type="button" aria-expanded="false" title="Show full cell text">${escapeHtml(value)}</button>`
               : "";
-            return replaceToken(DATA_CELL_TEMPLATE.trim(), "<!-- CELL_CONTENT -->", content);
+            return replaceToken(
+              replaceToken(
+                DATA_CELL_TEMPLATE.trim(),
+                "<!-- CELL_VALUE -->",
+                escapeHtml(value.trim()),
+              ),
+              "<!-- CELL_CONTENT -->",
+              content,
+            );
           })
           .join(""),
       ),
