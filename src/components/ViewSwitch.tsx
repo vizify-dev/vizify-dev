@@ -1,10 +1,11 @@
 "use client";
 
-export type View = "table" | "resume";
+export type View = "table" | "resume" | "cards";
 
 const OPTIONS: { value: View; label: string }[] = [
   { value: "table", label: "Table" },
   { value: "resume", label: "Resume" },
+  { value: "cards", label: "ID Cards" },
 ];
 
 /** Segmented control for choosing how the data is rendered. */

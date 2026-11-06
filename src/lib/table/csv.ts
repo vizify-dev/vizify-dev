@@ -1,24 +1,24 @@
 import { parseCsv } from "@/lib/csv-parser";
+import { escapeHtml } from "@/lib/html";
 import TABLE_TEMPLATE from "./preview/table.html";
 import HEADER_CELL_TEMPLATE from "./preview/header-cell.html";
 import ROW_TEMPLATE from "./preview/row.html";
 import DATA_CELL_TEMPLATE from "./preview/data-cell.html";
 import HEADER_BREAK from "./preview/header-break.html";
 
-const HTML_ESCAPES: Record<string, string> = {
-  "&": "&amp;",
-  "<": "&lt;",
-  ">": "&gt;",
-  '"': "&quot;",
-  "'": "&#39;",
-};
-
-function escapeHtml(value: string): string {
-  return value.replace(/[&<>"']/g, (character) => HTML_ESCAPES[character]);
-}
-
 function replaceToken(template: string, token: string, value: string): string {
   return template.replace(token, () => value);
+}
+
+const IMAGE_HEADERS = /^(photo|image|avatar|picture)$/i;
+const IMAGE_SRC = /^(https?:\/\/|data:image\/(png|jpe?g|gif|webp|avif);base64,)/i;
+
+function cellContent(value: string, column: string): string {
+  const trimmed = value.trim();
+  if (IMAGE_HEADERS.test(column.trim()) && IMAGE_SRC.test(trimmed)) {
+    return `<img src="${escapeHtml(trimmed)}" alt="" loading="lazy" referrerpolicy="no-referrer">`;
+  }
+  return escapeHtml(value);
 }
 
 /** Converts raw CSV into a semantic HTML table. The first row becomes the header. */
@@ -30,7 +30,8 @@ export function csvToHtmlTable(csv: string): string {
   const cols = Math.max(...rows.map((row) => row.length));
   const pad = (row: string[]) => [...row, ...Array<string>(cols - row.length).fill("")];
 
-  const headers = pad(header)
+  const paddedHeader = pad(header);
+  const headers = paddedHeader
     .map((value) =>
       replaceToken(
         HEADER_CELL_TEMPLATE.trim(),
@@ -45,8 +46,12 @@ export function csvToHtmlTable(csv: string): string {
         ROW_TEMPLATE.trim(),
         "<!-- ROW_CELLS -->",
         pad(row)
-          .map((value) =>
-            replaceToken(DATA_CELL_TEMPLATE.trim(), "<!-- CELL_CONTENT -->", escapeHtml(value)),
+          .map((value, index) =>
+            replaceToken(
+              DATA_CELL_TEMPLATE.trim(),
+              "<!-- CELL_CONTENT -->",
+              cellContent(value, paddedHeader[index]),
+            ),
           )
           .join(""),
       ),
