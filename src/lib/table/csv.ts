@@ -23,19 +23,24 @@ function replaceToken(template: string, token: string, value: string): string {
 
 /** Converts raw CSV into a semantic HTML table. The first row becomes the header. */
 export function csvToHtmlTable(csv: string): string {
-  const rows = parseCsv(csv);
-  if (rows.length === 0) return "";
+  const rows = parseCsv(csv, "auto");
+  if (rows.length === 0) {
+    return '<div class="cssv-empty" role="status">No data yet. Upload a CSV to get started.</div>';
+  }
 
   const [header, ...body] = rows;
   const cols = Math.max(...rows.map((row) => row.length));
   const pad = (row: string[]) => [...row, ...Array<string>(cols - row.length).fill("")];
 
   const headers = pad(header)
-    .map((value) =>
+    .map((value, index) =>
       replaceToken(
         HEADER_CELL_TEMPLATE.trim(),
         "<!-- CELL_CONTENT -->",
-        escapeHtml(value).replace(/_/g, () => HEADER_BREAK.trim()),
+        escapeHtml(value.trim() ? value : `Column ${index + 1}`).replace(
+          /_/g,
+          () => HEADER_BREAK.trim(),
+        ),
       ),
     )
     .join("");
@@ -45,16 +50,22 @@ export function csvToHtmlTable(csv: string): string {
         ROW_TEMPLATE.trim(),
         "<!-- ROW_CELLS -->",
         pad(row)
-          .map((value) =>
-            replaceToken(DATA_CELL_TEMPLATE.trim(), "<!-- CELL_CONTENT -->", escapeHtml(value)),
-          )
+          .map((value) => {
+            const content = value
+              ? `<button class="cssv-cell" type="button" aria-expanded="false" title="Show full cell text">${escapeHtml(value)}</button>`
+              : "";
+            return replaceToken(DATA_CELL_TEMPLATE.trim(), "<!-- CELL_CONTENT -->", content);
+          })
           .join(""),
       ),
     )
     .join("");
 
-  return replaceToken(TABLE_TEMPLATE.trim(), "<!-- TABLE_HEADERS -->", headers).replace(
+  const table = replaceToken(TABLE_TEMPLATE.trim(), "<!-- TABLE_HEADERS -->", headers).replace(
     "<!-- TABLE_ROWS -->",
     () => tableRows,
   );
+  return body.length === 0
+    ? `${table}<div class="cssv-empty" role="status">Header only: no data rows found.</div>`
+    : table;
 }
