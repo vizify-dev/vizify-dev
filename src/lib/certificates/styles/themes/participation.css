@@ -1,0 +1,14 @@
+/* Participation: navy frame, gold notched border, white panel, badge seal. */
+:root{--paper:#252f64;--ink:#1b2159;--muted:#1b2159;--name-ink:#1b2159;--rule:#e6b35c;--seal:#a87b2e;--seal-fill:#fbf3e0;--display:"Marcellus","Playfair Display",serif;--script:"Great Vibes",cursive;--sig:"Mrs Saint Delafield",cursive;--pre:"This is to certify that";--pre-case:uppercase;--pt:30mm;--px:36mm;--pb:15mm}
+.cert-deco{background:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%201123%20794%22%20preserveAspectRatio%3D%22none%22%3E%3Crect%20width%3D%221123%22%20height%3D%22794%22%20fill%3D%22%23252f64%22%2F%3E%3Cpath%20d%3D%22M70%2C30%20H1053%20A40%2C40%200%200%200%201093%2C70%20V724%20A40%2C40%200%200%200%201053%2C764%20H70%20A40%2C40%200%200%200%2030%2C724%20V70%20A40%2C40%200%200%200%2070%2C30%20Z%22%20fill%3D%22%23fff%22%20stroke%3D%22%23e6b35c%22%20stroke-width%3D%223%22%2F%3E%3Cpath%20d%3D%22M72%2C46%20H1051%20A26%2C26%200%200%200%201077%2C72%20V722%20A26%2C26%200%200%200%201051%2C748%20H72%20A26%2C26%200%200%200%2046%2C722%20V72%20A26%2C26%200%200%200%2072%2C46%20Z%22%20fill%3D%22none%22%20stroke%3D%22%23e6b35c%22%20stroke-width%3D%221.6%22%2F%3E%3Ccircle%20cx%3D%2230%22%20cy%3D%2230%22%20r%3D%227%22%20fill%3D%22%23e6b35c%22%2F%3E%3Ccircle%20cx%3D%221093%22%20cy%3D%2230%22%20r%3D%227%22%20fill%3D%22%23e6b35c%22%2F%3E%3Ccircle%20cx%3D%2230%22%20cy%3D%22764%22%20r%3D%227%22%20fill%3D%22%23e6b35c%22%2F%3E%3Ccircle%20cx%3D%221093%22%20cy%3D%22764%22%20r%3D%227%22%20fill%3D%22%23e6b35c%22%2F%3E%3C%2Fsvg%3E") center/100% 100% no-repeat}
+.cert-org{margin-bottom:9mm;color:#1b2159;font-size:11pt;letter-spacing:.06em;text-transform:none}
+.cert-title{display:block}
+.cert-title-main,.cert-title-sub{display:inline;font-size:41pt;font-weight:400;letter-spacing:0;text-transform:none;color:#1b2159}
+.cert-title-sub{margin-left:.3em;text-transform:lowercase}
+.cert-pre{margin-top:8mm;color:#b08d4f;font-size:11pt;letter-spacing:.06em}
+.cert-name{min-width:200mm;border-bottom-width:.6mm;font-size:64pt;line-height:1.1}
+.cert-reason{max-width:190mm;margin-top:7mm;font-size:11pt;line-height:1.5;color:#1b2159}
+.cert-sign-value{color:#8a6418;font-size:30pt}
+.cert-sign-label{border-top:.5mm solid #e6b35c;color:#1b2159;font-size:10pt;letter-spacing:0;text-transform:none}
+.cert-meta{gap:14mm;font-size:9.5pt;color:#1b2159}
+.cert-meta .v{font-weight:600}

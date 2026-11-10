@@ -1,0 +1,35 @@
+*{box-sizing:border-box}
+:root{--page:#e9ecf2;--paper:#fffdf7;--ink:#2b2b2b;--muted:#6f6a5d;--name-ink:#8a6418;--rule:#b8862b;--seal:#b8862b;--display:"Playfair Display",Georgia,serif;--script:"Great Vibes","Brush Script MT",cursive;--sig:"Mrs Saint Delafield","Great Vibes",cursive;--body:"Hanken Grotesk",system-ui,sans-serif;--pre:"This certificate is proudly presented to";--pre-case:uppercase;--pt:26mm;--px:28mm;--pb:16mm;--shadow:0 10px 30px rgba(20,30,60,.18)}
+body{margin:0;padding:24px;background:var(--page);color:var(--ink);font:14px/1.4 var(--body)}
+h1{margin:0 0 16px;font-size:22px;font-weight:700}
+h1 small{margin-left:8px;font-size:13px;font-weight:400;opacity:.65}
+.certs{display:grid;gap:28px;justify-content:start}
+.cert{position:relative;width:297mm;height:210mm;overflow:hidden;background:var(--paper);box-shadow:var(--shadow);zoom:var(--fit,.55);color:var(--ink);font-family:var(--body)}
+.cert-deco{position:absolute;inset:0;pointer-events:none}
+.cert-frame{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;padding:var(--pt) var(--px) var(--pb);text-align:center}
+.cert-org{margin:0 0 4mm;color:var(--muted);font-size:12pt;font-weight:700;letter-spacing:.25em;text-transform:uppercase}
+.cert-org:empty{display:none}
+.cert-title{margin:0;font-family:var(--display);font-weight:700;line-height:1.05;color:var(--ink)}
+.cert-title-main,.cert-title-sub{display:block}
+.cert-title-main{font-size:40pt;letter-spacing:.06em;text-transform:uppercase}
+.cert-title-sub{font-size:18pt;letter-spacing:.2em;text-transform:uppercase}
+.cert-pre{margin:7mm 0 2mm;color:var(--muted);font-size:11pt;letter-spacing:.16em;text-transform:var(--pre-case)}
+.cert-pre::before{content:var(--pre)}
+.cert-name{min-width:170mm;margin:0;padding:0 10mm 1mm;border-bottom:.35mm solid var(--rule);color:var(--name-ink);font-family:var(--script);font-size:48pt;font-weight:400;line-height:1.2}
+.cert-divider{display:none}
+.cert-reason{max-width:205mm;margin:6mm 0 0;font-size:12.5pt;line-height:1.55}
+.cert-reason:empty{display:none}
+.cert-reason strong{font-weight:700}
+.cert-foot{display:flex;align-items:flex-end;justify-content:space-between;width:100%;margin-top:auto}
+.cert-sign{display:flex;flex-direction:column;align-items:center;width:68mm}
+.cert-sign.is-empty{visibility:hidden}
+.cert-sign-value{min-height:12mm;white-space:nowrap;padding:0 3mm;font-family:var(--sig);font-size:28pt;line-height:1}
+.cert-sign-label{width:100%;padding-top:1.5mm;border-top:.3mm solid var(--ink);color:var(--muted);font-size:9pt;letter-spacing:.1em;text-transform:uppercase}
+.cert-seal{flex:none;width:29mm;height:auto;color:var(--seal)}
+.cert-seal--medal{width:23mm}
+.cert-meta{display:flex;justify-content:center;gap:10mm;margin:5mm 0 0;color:var(--muted);font-size:9pt}
+.cert-meta:empty{display:none}
+.cert-meta .k{margin-right:2mm}
+.cert-meta .v{color:var(--ink);font-weight:700}
+.msg{max-width:520px;padding:16px 20px;border:1px solid #ffbdad;border-radius:8px;background:#ffebe6;color:#bf2600}
+.msg p{margin:0 0 6px}.msg small{color:#5e6c84}
