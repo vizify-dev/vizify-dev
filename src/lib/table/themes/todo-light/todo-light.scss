@@ -1,0 +1,127 @@
+@use "sass:list";
+
+// Clean List — flat white rows, ring checkbox, coloured status dots, red-flagged rows.
+// Generic: dots/colours apply by cell value (data-v), so any CSV still renders cleanly.
+
+$ink: #4a5568;
+$muted: #a3abb8;
+$line: #eceef1;
+$ring: #cfd5df;
+$accent: #35c6e0;
+$danger: #e55b5b;
+$danger-bg: #fff1f1;
+
+// tone: (color, show-dot, values)
+$tones: (
+  "green": (#5fd35f, true, ("approved", "active", "done", "paid", "completed")),
+  "cyan": (#35c6e0, true, ("on track", "canceled", "in review")),
+  "yellow": (#f0c93c, true, ("awaiting approval", "awating approval", "pending", "in progress")),
+  "red": ($danger, true, ("rejected", "overdue", "failed", "blocked")),
+  "grey": ($muted, false, ("waiting", "n/a", "draft")),
+);
+
+$flagged: "rejected", "overdue", "failed", "blocked";
+
+body {
+  margin: 0;
+  padding: 40px;
+  background: #f7f7f8;
+  color: $ink;
+  font-family: "Roboto", "Hanken Grotesk", system-ui, sans-serif;
+
+  @media (max-width: 640px) {
+    padding: 12px;
+  }
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  background: #fff;
+  font-size: 14px;
+  box-shadow: 0 1px 2px rgba(20, 30, 50, 0.04);
+}
+
+th {
+  padding: 18px 16px;
+  border-bottom: 1px solid $line;
+  background: transparent;
+  color: $muted;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-align: left;
+  text-transform: uppercase;
+
+  &:hover { color: $ink; }
+}
+
+td {
+  height: 64px;
+  padding: 0 16px;
+  border-bottom: 1px solid $line;
+  color: $ink;
+  vertical-align: middle;
+  white-space: nowrap;
+}
+
+th:first-child,
+td:first-child { padding-left: 20px; }
+
+th:first-child::before,
+td:first-child::before {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  margin-right: 16px;
+  border: 2px solid $ring;
+  border-radius: 50%;
+  box-sizing: border-box;
+  content: "";
+  vertical-align: middle;
+}
+
+th:first-child::before { margin-right: 14px; }
+td:first-child { font-weight: 500; }
+
+tbody tr:hover td { background: #fafbfc; }
+table td.cssv-dup { background: transparent !important; }
+tbody tr:hover td.cssv-dup { background: #fafbfc !important; }
+
+@each $name, $cfg in $tones {
+  $color: list.nth($cfg, 1);
+  $dot: list.nth($cfg, 2);
+
+  @each $val in list.nth($cfg, 3) {
+    td[data-v="#{$val}" i] {
+      color: $color;
+
+      @if $dot {
+        &::before {
+          display: inline-block;
+          width: 8px;
+          height: 8px;
+          margin-right: 8px;
+          border-radius: 50%;
+          background: currentColor;
+          content: "";
+          vertical-align: 1px;
+        }
+      }
+    }
+  }
+}
+
+@each $val in $flagged {
+  tbody tr:has(td[data-v="#{$val}" i]) td {
+    background: $danger-bg;
+
+    &:first-child { box-shadow: inset 4px 0 0 $danger; }
+  }
+}
+
+.cssv-pager button.on {
+  border-color: $accent;
+  background: $accent;
+  color: #fff;
+}
