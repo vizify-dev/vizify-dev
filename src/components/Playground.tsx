@@ -13,24 +13,37 @@ import ResizeHandle from "@/components/ResizeHandle";
 import Select from "@/components/Select";
 import ViewSwitch, { type View } from "@/components/ViewSwitch";
 import { DEFAULT_CSV } from "@/lib/table/defaults";
+import { copyText, download, printHtml } from "@/lib/export";
 import { fileToPhoto } from "@/lib/resume/photo";
 import { buildDocument } from "@/lib/table/preview";
 import { buildResumeDocument } from "@/lib/resume";
+
 import {
   DEFAULT_RESUME_CSV,
   isResumeSample,
   type ThemeOption,
 } from "@/lib/resume/resume";
-import { persist, restore, savePhoto, saveSidebar, type Work } from "@/lib/storage";
+import { persist, restore, savePhoto, saveSidebar, VIEWS, type Work } from "@/lib/storage";
 import { withTools } from "@/lib/table/tools";
 import type { Theme } from "@/lib/table/themes";
-
+import { boardThemeOptions } from "@/lib/jiraboard/board-themes";
+import { buildBoardDocument } from "@/lib/jiraboard/render";
+import { BOARD_CSV } from "@/lib/jiraboard/sample";
+import { buildCardsDocument } from "@/lib/cards/render";
+import { CARDS_CSV, LEGACY_CARDS_CSV } from "@/lib/cards/sample";
+import { cardsThemeOptions } from "@/lib/cards/themes";
+import { buildIdCardDocument, ID_CARD_THEMES } from "@/lib/cards";
+import { buildCertificatesDocument } from "@/lib/certificates/render";
+import { CERTIFICATES_CSV } from "@/lib/certificates/sample";
+import { certificatesThemeOptions } from "@/lib/certificates/themes";
+import AuthButton from "@/components/AuthButton";
+import { authClient } from "@/lib/auth-client";
 const CSV_ACCEPT = ".csv,text/csv,text/plain";
 const SIDEBAR_DEFAULT = 440;
 const SIDEBAR_MIN = 280;
 const PREVIEW_MIN = 360;
 const AUTOSAVE_MS = 500;
-
+const CARD_THEME_OPTIONS = [...ID_CARD_THEMES, ...cardsThemeOptions];
 type SaveStatus = "Not saved" | "Saved";
 
 export default function Playground({
@@ -40,13 +53,19 @@ export default function Playground({
   themes: Theme[];
   resumeThemes: ThemeOption[];
 }) {
+  const { data: session } = authClient.useSession();
+  const userId = session?.user.id;
   const [view, setView] = useState<View>("table");
   const [data, setData] = useState<Work>({
     table: { csv: DEFAULT_CSV, css: themes[0]?.css ?? "" },
     resume: { csv: DEFAULT_RESUME_CSV, css: resumeThemes[0]?.css ?? "" },
+    board: { csv: BOARD_CSV, css: boardThemeOptions[0]?.css ?? "" },
+    cards: { csv: CARDS_CSV, css: cardsThemeOptions[0]?.css ?? "" },
+    certificates: { csv: CERTIFICATES_CSV, css: certificatesThemeOptions[0]?.css ?? "" },
   });
   const [photo, setPhoto] = useState("");
   const [loaded, setLoaded] = useState(false);
+  const [cloudReadyUserId, setCloudReadyUserId] = useState<string | null>(null);
   const [status, setStatus] = useState<SaveStatus>("Not saved");
   const [dataCollapsed, setDataCollapsed] = useState(false);
   const [cssCollapsed, setCssCollapsed] = useState(false);
@@ -54,7 +73,16 @@ export default function Playground({
   const fileInput = useRef<HTMLInputElement>(null);
 
   const { csv, css } = data[view];
-  const themeList: ThemeOption[] = view === "table" ? themes : resumeThemes;
+  const themeList: ThemeOption[] =
+    view === "table"
+      ? themes
+      : view === "resume"
+        ? resumeThemes
+        : view === "board"
+          ? boardThemeOptions
+          : view === "cards"
+            ? CARD_THEME_OPTIONS
+            : certificatesThemeOptions;
   const theme = themeList.find((t) => t.css === css);
   const resumeLayout =
     theme?.id === "resume-graphic"
@@ -64,23 +92,38 @@ export default function Playground({
         : theme?.id === "resume-uiux"
           ? "uiux"
           : undefined;
-
+  useEffect(() => {
+    if (!userId) return;
+    fetch("/api/work")
+      .then((r) => (r.ok ? r.json() : []))
+      .then((rows: { view: string; csv: string; css: string }[]) => {
+        setData((prev) => {
+          const next = { ...prev };
+          for (const p of rows) {
+            if (p.view in next) next[p.view as View] = { csv: p.csv, css: p.css };
+          }
+          return next;
+        });
+      })
+      .finally(() => setCloudReadyUserId(userId));
+  }, [userId]);
   // Restore saved work after mount (avoids SSR hydration mismatch).
   useEffect(() => {
     const saved = restore();
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    setData((current) => ({
-      table: {
-        csv: saved.work.table?.csv ?? current.table.csv,
-        css: saved.work.table?.css ?? current.table.css,
-      },
-      resume: {
-        csv: saved.work.resume?.csv ?? current.resume.csv,
-        css: saved.work.resume?.css ?? current.resume.css,
-      },
-    }));
+    setData((prev) => {
+      const next = { ...prev };
+      for (const v of VIEWS) {
+        const r = saved.work[v];
+        if (r) next[v] = { csv: r.csv ?? prev[v].csv, css: r.css ?? prev[v].css };
+      }
+      if (saved.work.cards?.csv?.replace(/\r\n/g, "\n") === LEGACY_CARDS_CSV) {
+        next.cards = { ...next.cards, csv: CARDS_CSV };
+      }
+      return next;
+    });
+    if (Object.keys(saved.work).length > 0) setStatus("Saved");
     if (saved.view) setView(saved.view);
-    if (saved.work.table || saved.work.resume) setStatus("Saved");
     if (saved.sidebar) setSidebarWidth(saved.sidebar);
     if (saved.photo) setPhoto(saved.photo);
     setLoaded(true);
@@ -89,13 +132,18 @@ export default function Playground({
   // Autosave shortly after the user stops typing, once saved values were restored.
   useEffect(() => {
     if (!loaded) return;
-    const t = setTimeout(
-      () => setStatus(persist(view, csv, css) ? "Saved" : "Not saved"),
-      AUTOSAVE_MS,
-    );
+    if (userId && cloudReadyUserId !== userId) return; // don't overwrite cloud data with defaults
+    const t = setTimeout(async () => {
+      if (!userId) return setStatus(persist(view, csv, css) ? "Saved" : "Not saved");
+      const r = await fetch("/api/work", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ view, csv, css }),
+      });
+      setStatus(r.ok ? "Saved" : "Not saved");
+    }, AUTOSAVE_MS);
     return () => clearTimeout(t);
-  }, [view, csv, css, loaded]);
-
+  }, [view, csv, css, loaded, userId, cloudReadyUserId]);
   function resizeSidebar(width: number) {
     const max = Math.max(SIDEBAR_MIN, window.innerWidth - PREVIEW_MIN);
     const next = Math.round(Math.min(Math.max(width, SIDEBAR_MIN), max));
@@ -111,25 +159,28 @@ export default function Playground({
   }
   const setCsv = update("csv");
   const setCss = update("css");
-  const onCsvChange = setCsv;
-  const onCssChange = setCss;
 
   const doc = useMemo(
-    () => {
-      const document =
-        view === "table"
-          ? withTools(buildDocument(csv, css))
-          : buildResumeDocument(csv, css, photo, resumeLayout);
-      return document.replace(/\r\n?/g, "\n");
-    },
-    [view, csv, css, photo, resumeLayout],
+    () =>
+      view === "table"
+        ? withTools(buildDocument(csv, css))
+        : view === "board"
+          ? buildBoardDocument(csv, css, theme?.id)
+          : view === "cards"
+            ? theme?.id.startsWith("id-")
+              ? buildIdCardDocument(csv, css)
+              : buildCardsDocument(csv, css)
+            : view === "certificates"
+              ? buildCertificatesDocument(csv, css, theme?.id)
+              : buildResumeDocument(csv, css, photo, resumeLayout),
+    [view, csv, css, photo, resumeLayout, theme?.id],
   );
 
   async function onUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     e.target.value = "";
     if (!file) return;
-    onCsvChange(await file.text());
+    setCsv(await file.text());
   }
 
   async function onPhoto(file: File) {
@@ -144,26 +195,37 @@ export default function Playground({
 
   function onRemovePhoto() {
     setPhoto("");
-    setStatus(savePhoto("") ? "Saved" : "Not saved");
+    savePhoto("");
   }
 
   // PDF uses a static copy: all rows, no script.
   const staticDoc = () =>
     view === "table"
       ? buildDocument(csv, css, false)
-      : buildResumeDocument(csv, css, photo, resumeLayout);
+      : view === "board"
+        ? buildBoardDocument(csv, css, theme?.id, false)
+        : view === "cards"
+          ? theme?.id.startsWith("id-")
+            ? buildIdCardDocument(csv, css)
+            : buildCardsDocument(csv, css, false)
+          : view === "certificates"
+            ? buildCertificatesDocument(csv, css, theme?.id, false)
+            : buildResumeDocument(csv, css, photo, resumeLayout);
 
   return (
-    <div className="flex h-dvh flex-col overflow-hidden bg-sunken">
-      <header className="flex min-h-[56px] shrink-0 flex-wrap items-center gap-[8px] border-b border-line bg-surface px-[10px] py-[8px] sm:px-[16px] lg:h-[56px] lg:flex-nowrap lg:gap-[12px]">
+    <div className="flex h-screen flex-col bg-sunken">
+      <header className="flex h-[56px] shrink-0 items-center gap-[12px] border-b border-line bg-surface px-[16px] py-[8px]">
         <Logo />
-        <div className="hidden h-[24px] w-px shrink-0 bg-line lg:block" />
-        <div className="hidden min-w-0 items-center gap-[10px] lg:flex">
+        <div className="h-[24px] w-px shrink-0 bg-line" />
+        <div className="flex min-w-0 items-center gap-[10px]">
           <span className="whitespace-nowrap text-[15px] font-semibold text-ink">Untitled project</span>
           <span className="whitespace-nowrap font-mono text-[12px] text-ink3">{status}</span>
         </div>
-        <ViewSwitch value={view} onChange={setView} />
-        <div className="hidden min-w-px flex-1 lg:block" />
+        <div className="hidden h-[24px] w-px shrink-0 bg-line md:block" />
+        <div className="hidden md:block">
+          <ViewSwitch value={view} onChange={setView} />
+        </div>
+        <div className="min-w-px flex-1" />
 
         <input ref={fileInput} type="file" accept={CSV_ACCEPT} hidden onChange={onUpload} />
         <Button onClick={() => fileInput.current?.click()}>
@@ -174,20 +236,23 @@ export default function Playground({
           <SaveIcon />
           Save
         </Button>
-        <ExportMenu view={view} html={doc} csv={csv} staticHtml={staticDoc()} />
-        <Button variant="ghost" disabled title="Accounts aren't available in the client-only MVP">
-          Sign in
-        </Button>
+        <ExportMenu
+          onDownloadHtml={() => download(doc, "text/html", `vizify-${view}.html`)}
+          onDownloadCsv={() => download(csv, "text/csv;charset=utf-8", `vizify-${view}.csv`)}
+          onDownloadPdf={() => printHtml(staticDoc(), { fitResumeToPage: view === "resume" })}
+          onCopyHtml={() => copyText(doc)}
+        />
+        <AuthButton />
       </header>
 
-      <main className="flex min-h-0 flex-1 flex-col gap-[8px] overflow-y-auto p-[8px] lg:flex-row lg:gap-0 lg:overflow-hidden">
+      <main className="flex min-h-0 flex-1 flex-col gap-[8px] p-[8px] md:flex-row md:gap-0">
         <div
           style={{ "--sidebar-w": `${sidebarWidth}px` } as React.CSSProperties}
-          className="flex min-h-[480px] w-full shrink-0 flex-col gap-[8px] sm:min-h-[560px] lg:min-h-0 lg:w-(--sidebar-w) lg:flex-none"
+          className="flex min-h-0 w-full flex-1 flex-col gap-[8px] md:w-(--sidebar-w) md:flex-none"
         >
           <EditorPane
             label="DATA"
-            filename={view === "table" ? "data.csv" : "resume.csv"}
+            filename={`${view === "table" ? "data" : view}.csv`}
             action={
               view === "resume" ? (
                 <PhotoButton hasPhoto={photo !== ""} onPick={onPhoto} onRemove={onRemovePhoto} />
@@ -197,7 +262,7 @@ export default function Playground({
             value={csv}
             collapsed={dataCollapsed}
             onToggle={() => setDataCollapsed((c) => !c)}
-            onChange={onCsvChange}
+            onChange={setCsv}
           />
           <EditorPane
             label="CSS"
@@ -229,7 +294,7 @@ export default function Playground({
             value={css}
             collapsed={cssCollapsed}
             onToggle={() => setCssCollapsed((c) => !c)}
-            onChange={onCssChange}
+            onChange={setCss}
           />
         </div>
 
@@ -240,7 +305,7 @@ export default function Playground({
           onReset={() => resizeSidebar(SIDEBAR_DEFAULT)}
         />
 
-        <section className="flex min-h-[65vh] min-w-px shrink-0 flex-col overflow-clip rounded-[12px] bg-surface lg:min-h-0 lg:flex-1">
+        <section className="flex min-h-0 min-w-px flex-1 flex-col overflow-clip rounded-[12px] bg-surface">
           <div className="flex h-[40px] shrink-0 items-center justify-between gap-[12px] border-b border-line bg-paper px-[16px] font-mono text-[12px] text-ink3">
             <span className="font-medium tracking-[0.72px]">PREVIEW</span>
             <span className="flex shrink-0 items-center gap-[6px]">
@@ -249,12 +314,7 @@ export default function Playground({
             </span>
           </div>
           {/* Sandboxed without allow-same-origin: only our injected scripts run, isolated from the app. */}
-          <iframe
-            title="Preview"
-            sandbox="allow-scripts"
-            srcDoc={loaded ? doc : ""}
-            className="min-h-0 flex-1 bg-white"
-          />
+          <iframe title="Preview" sandbox="allow-scripts" srcDoc={doc} className="min-h-0 flex-1 bg-white" />
         </section>
       </main>
     </div>
