@@ -1,0 +1,8 @@
+:root{--page:#0b1020;--ink:#fff;--h1:#fff;--sub:rgba(255,255,255,.68);--lane:rgba(255,255,255,.07);--lane-t:rgba(255,255,255,.92);--lane-r:20px;--lane-pad:10px;--lane-b:1px solid rgba(255,255,255,.14);--card:rgba(255,255,255,.1);--card-r:14px;--card-b:1px solid rgba(255,255,255,.18);--shadow:0 10px 30px rgba(0,0,0,.25);--gap:10px;--blur:blur(18px);--t-size:14px;--t-weight:700;--t-case:none;--chip-r:999px;--chip-case:none;--pill:rgba(255,255,255,.18);--pill-ink:#fff}
+body{background:radial-gradient(60% 50% at 15% 10%,#7c3aed 0%,transparent 60%),radial-gradient(50% 50% at 85% 20%,#06b6d4 0%,transparent 55%),radial-gradient(60% 60% at 60% 100%,#ec4899 0%,transparent 55%),#0b1020;background-attachment:fixed}
+h1{font-size:28px;font-weight:700;letter-spacing:-.02em}
+.lane h2::before{content:"";width:10px;height:10px;border-radius:50%;background:var(--accent);box-shadow:0 0 12px var(--accent)}
+.card:hover{filter:none;transform:translateY(-2px);background:rgba(255,255,255,.16)}
+.title{font-weight:500}
+.board-tools input{border-color:rgba(255,255,255,.3);background:rgba(255,255,255,.1);color:#fff}
+.board-tools input::placeholder{color:rgba(255,255,255,.65)}

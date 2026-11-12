@@ -26,7 +26,7 @@ export default function ResizeHandle({ value, min, onChange, onReset }: Props) {
       aria-valuemin={min}
       tabIndex={0}
       data-dragging={dragging || undefined}
-      className="group hidden w-[8px] shrink-0 cursor-col-resize touch-none select-none justify-center focus:outline-none md:flex"
+      className="group hidden w-[8px] shrink-0 cursor-col-resize touch-none select-none justify-center focus:outline-none lg:flex"
       onPointerDown={(e) => {
         e.currentTarget.setPointerCapture(e.pointerId);
         start.current = { x: e.clientX, width: value };

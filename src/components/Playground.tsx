@@ -123,15 +123,15 @@ export default function Playground({
   const onCsvChange = setCsv;
   const onCssChange = setCss;
 
-  const doc = useMemo(
-    () =>
+  const doc = useMemo(() => {
+    const document =
       view === "table"
         ? withTools(buildDocument(csv, css))
         : view === "board"
           ? buildBoardDocument(csv, css, theme?.id)
-          : buildResumeDocument(csv, css, photo, resumeLayout),
-    [view, csv, css, photo, resumeLayout, theme?.id],
-  );
+          : buildResumeDocument(csv, css, photo, resumeLayout);
+    return document.replace(/\r\n?/g, "\n");
+  }, [view, csv, css, photo, resumeLayout, theme?.id]);
 
   async function onUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -164,16 +164,16 @@ export default function Playground({
         : buildResumeDocument(csv, css, photo, resumeLayout);
 
   return (
-    <div className="flex h-screen flex-col bg-sunken">
-      <header className="flex h-[56px] shrink-0 items-center gap-[12px] border-b border-line bg-surface px-[16px] py-[8px]">
+    <div className="flex h-dvh flex-col overflow-hidden bg-sunken">
+      <header className="flex min-h-[56px] shrink-0 flex-wrap items-center gap-[8px] border-b border-line bg-surface px-[10px] py-[8px] sm:px-[16px] lg:h-[56px] lg:flex-nowrap lg:gap-[12px]">
         <Logo />
-        <div className="h-[24px] w-px shrink-0 bg-line" />
-        <div className="flex min-w-0 items-center gap-[10px]">
+        <div className="hidden h-[24px] w-px shrink-0 bg-line lg:block" />
+        <div className="hidden min-w-0 items-center gap-[10px] lg:flex">
           <span className="whitespace-nowrap text-[15px] font-semibold text-ink">Untitled project</span>
           <span className="whitespace-nowrap font-mono text-[12px] text-ink3">{status}</span>
         </div>
         <ViewSwitch value={view} onChange={setView} />
-        <div className="min-w-px flex-1" />
+        <div className="hidden min-w-px flex-1 lg:block" />
 
         <input ref={fileInput} type="file" accept={CSV_ACCEPT} hidden onChange={onUpload} />
         <Button onClick={() => fileInput.current?.click()}>
@@ -190,10 +190,10 @@ export default function Playground({
         </Button>
       </header>
 
-      <main className="flex min-h-0 flex-1 flex-col gap-[8px] p-[8px] md:flex-row md:gap-0">
+      <main className="flex min-h-0 flex-1 flex-col gap-[8px] overflow-y-auto p-[8px] lg:flex-row lg:gap-0 lg:overflow-hidden">
         <div
           style={{ "--sidebar-w": `${sidebarWidth}px` } as React.CSSProperties}
-          className="flex min-h-0 w-full flex-1 flex-col gap-[8px] md:w-(--sidebar-w) md:flex-none"
+          className="flex min-h-[480px] w-full shrink-0 flex-col gap-[8px] sm:min-h-[560px] lg:min-h-0 lg:w-(--sidebar-w) lg:flex-none"
         >
           <EditorPane
             label="DATA"
@@ -250,7 +250,7 @@ export default function Playground({
           onReset={() => resizeSidebar(SIDEBAR_DEFAULT)}
         />
 
-        <section className="flex min-h-0 min-w-px flex-1 flex-col overflow-clip rounded-[12px] bg-surface">
+        <section className="flex min-h-[65vh] min-w-px shrink-0 flex-col overflow-clip rounded-[12px] bg-surface lg:min-h-0 lg:flex-1">
           <div className="flex h-[40px] shrink-0 items-center justify-between gap-[12px] border-b border-line bg-paper px-[16px] font-mono text-[12px] text-ink3">
             <span className="font-medium tracking-[0.72px]">PREVIEW</span>
             <span className="flex shrink-0 items-center gap-[6px]">
@@ -259,7 +259,12 @@ export default function Playground({
             </span>
           </div>
           {/* Sandboxed without allow-same-origin: only our injected scripts run, isolated from the app. */}
-          <iframe title="Preview" sandbox="allow-scripts" srcDoc={doc} className="min-h-0 flex-1 bg-white" />
+          <iframe
+            title="Preview"
+            sandbox="allow-scripts"
+            srcDoc={loaded ? doc : ""}
+            className="min-h-0 flex-1 bg-white"
+          />
         </section>
       </main>
     </div>
