@@ -24,6 +24,9 @@ import {
 import { persist, restore, savePhoto, saveSidebar, type Work } from "@/lib/storage";
 import { withTools } from "@/lib/table/tools";
 import type { Theme } from "@/lib/table/themes";
+import { boardThemeOptions } from "@/lib/jiraboard/board-themes";
+import { buildBoardDocument } from "@/lib/jiraboard/render";
+import { BOARD_CSV } from "@/lib/jiraboard/sample";
 
 const CSV_ACCEPT = ".csv,text/csv,text/plain";
 const SIDEBAR_DEFAULT = 440;
@@ -44,6 +47,7 @@ export default function Playground({
   const [data, setData] = useState<Work>({
     table: { csv: DEFAULT_CSV, css: themes[0]?.css ?? "" },
     resume: { csv: DEFAULT_RESUME_CSV, css: resumeThemes[0]?.css ?? "" },
+    board: { csv: BOARD_CSV, css: boardThemeOptions[0]?.css ?? "" },
   });
   const [photo, setPhoto] = useState("");
   const [loaded, setLoaded] = useState(false);
@@ -54,7 +58,8 @@ export default function Playground({
   const fileInput = useRef<HTMLInputElement>(null);
 
   const { csv, css } = data[view];
-  const themeList: ThemeOption[] = view === "table" ? themes : resumeThemes;
+  const themeList: ThemeOption[] =
+    view === "table" ? themes : view === "resume" ? resumeThemes : boardThemeOptions;
   const theme = themeList.find((t) => t.css === css);
   const resumeLayout =
     theme?.id === "resume-graphic"
@@ -78,9 +83,13 @@ export default function Playground({
         csv: saved.work.resume?.csv ?? current.resume.csv,
         css: saved.work.resume?.css ?? current.resume.css,
       },
+      board: {
+        csv: saved.work.board?.csv ?? current.board.csv,
+        css: saved.work.board?.css ?? current.board.css,
+      },
     }));
     if (saved.view) setView(saved.view);
-    if (saved.work.table || saved.work.resume) setStatus("Saved");
+    if (saved.work.table || saved.work.resume || saved.work.board) setStatus("Saved");
     if (saved.sidebar) setSidebarWidth(saved.sidebar);
     if (saved.photo) setPhoto(saved.photo);
     setLoaded(true);
@@ -114,16 +123,15 @@ export default function Playground({
   const onCsvChange = setCsv;
   const onCssChange = setCss;
 
-  const doc = useMemo(
-    () => {
-      const document =
-        view === "table"
-          ? withTools(buildDocument(csv, css))
+  const doc = useMemo(() => {
+    const document =
+      view === "table"
+        ? withTools(buildDocument(csv, css))
+        : view === "board"
+          ? buildBoardDocument(csv, css, theme?.id)
           : buildResumeDocument(csv, css, photo, resumeLayout);
-      return document.replace(/\r\n?/g, "\n");
-    },
-    [view, csv, css, photo, resumeLayout],
-  );
+    return document.replace(/\r\n?/g, "\n");
+  }, [view, csv, css, photo, resumeLayout, theme?.id]);
 
   async function onUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -151,7 +159,9 @@ export default function Playground({
   const staticDoc = () =>
     view === "table"
       ? buildDocument(csv, css, false)
-      : buildResumeDocument(csv, css, photo, resumeLayout);
+      : view === "board"
+        ? buildBoardDocument(csv, css, theme?.id, false)
+        : buildResumeDocument(csv, css, photo, resumeLayout);
 
   return (
     <div className="flex h-dvh flex-col overflow-hidden bg-sunken">
@@ -187,7 +197,7 @@ export default function Playground({
         >
           <EditorPane
             label="DATA"
-            filename={view === "table" ? "data.csv" : "resume.csv"}
+            filename={view === "table" ? "data.csv" : view === "board" ? "board.csv" : "resume.csv"}
             action={
               view === "resume" ? (
                 <PhotoButton hasPhoto={photo !== ""} onPick={onPhoto} onRemove={onRemovePhoto} />
