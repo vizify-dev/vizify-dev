@@ -5,3 +5,66 @@ body {
   color: #1f2837;
   font-family: "Hanken Grotesk", system-ui, sans-serif;
 }
+
+@media (max-width: 640px) {
+  body {
+    padding: 16px;
+  }
+}
+
+.cssv-scroll {
+  max-width: 100%;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+}
+
+.cssv-scroll > table {
+  width: max-content;
+  min-width: 100%;
+  table-layout: auto;
+}
+
+.cssv-scroll th,
+.cssv-scroll td {
+  vertical-align: top;
+}
+
+.cssv-scroll th {
+  max-width: 20rem;
+  overflow-wrap: anywhere;
+  white-space: normal;
+}
+
+.cssv-empty {
+  margin: 16px 0;
+  color: #5f6a7f;
+  font: 14px system-ui, sans-serif;
+}
+
+.cssv-cell {
+  appearance: none;
+  display: block;
+  width: max-content;
+  max-width: 260px;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  overflow: hidden;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  cursor: pointer;
+}
+
+.cssv-cell.cssv-expanded {
+  display: block;
+  width: max-content;
+  max-width: 480px;
+  overflow: visible;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}

@@ -39,7 +39,12 @@ export default function ExportMenu({ view, html, csv, staticHtml }: ExportMenuPr
           : undefined
       }
       onDownloadCsv={() => download(csv, "text/csv;charset=utf-8", `${baseName}.csv`)}
-      onDownloadPdf={() => printHtml(staticHtml, { fitResumeToPage: view === "resume" })}
+      onDownloadPdf={() =>
+        printHtml(staticHtml, {
+          fitResumeToPage: view === "resume",
+          fitTableWidth: view === "table",
+        })
+      }
       onCopyHtml={() => copyText(files.html)}
     />
   );

@@ -1,0 +1,2 @@
+:root{--page:#fff;--ink:#111;--h1:#111;--sub:#555;--lane:#fff;--lane-t:#111;--lane-r:0;--lane-pad:10px;--lane-b:1px solid #111;--card:#fff;--card-r:0;--card-b:1px solid #111;--shadow:none;--gap:10px;--t-weight:700;--pill:#111;--pill-ink:#fff;--chip-r:0}
+.card:hover{filter:none;transform:none;background:#f5f5f5}
