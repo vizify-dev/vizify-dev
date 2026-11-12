@@ -7,19 +7,40 @@ const nextConfig: NextConfig = {
     rules: {
       "*.html": {
         condition: {
-          path: /src\/lib\/(?:resume\/templates|table\/(?:tools\/(?:bar|script)|preview\/(?:document|interactive\.script|table|header-cell|row|data-cell|header-break))|jiraboard\/(?:templates\/[^/]+|runtime\/board\.script))\.html$/,
+          path: /src\/lib\/(?:resume\/templates|table\/(?:tools\/(?:bar|script)|preview\/(?:document|interactive\.script|table|header-cell|row|data-cell|header-break))|cards\/(?:templates\/[^/]+|runtime\/cards\.script)|jiraboard\/(?:templates\/[^/]+|runtime\/board\.script))\.html$/,
         },
         type: "text",
       },
       "*.css": {
         condition: {
-          path: /src\/lib\/(?:table\/(?:tools\/bar|preview\/(?:base|interactive|print))|jiraboard\/styles\/.*)\.css$/,
+          any: [
+            {
+              all: [
+                {
+                  path: /src\/lib\/table\/(tools\/bar|preview\/(base|interactive|print))\.css$/,
+                },
+                { query: "?raw" },
+              ],
+            },
+            {
+              all: [
+                { path: /src\/lib\/cards\/styles\/.*\.css$/ },
+                { query: "?raw" },
+              ],
+            },
+            {
+              all: [
+                { path: /src\/lib\/jiraboard\/styles\/.*\.css$/ },
+                { query: "?raw" },
+              ],
+            },
+          ],
         },
         type: "text",
       },
       "*.txt": {
         condition: {
-          path: /src\/lib\/(?:table\/(?:tools\/runtime|preview\/interactive\.runtime)|jiraboard\/runtime\/board\.runtime)\.generated\.txt$/,
+          path: /src\/lib\/(?:table\/(?:tools\/runtime|preview\/interactive\.runtime)|cards\/runtime\/cards\.runtime|jiraboard\/runtime\/board\.runtime)\.generated\.txt$/,
         },
         type: "text",
       },
@@ -27,7 +48,7 @@ const nextConfig: NextConfig = {
         condition: {
           all: [
             {
-              path: /src\/lib\/table\/(tools\/runtime|preview\/interactive\.runtime)\.ts$/,
+              path: /src\/lib\/(?:table\/(tools\/runtime|preview\/interactive\.runtime)|cards\/runtime\/cards\.runtime|jiraboard\/runtime\/board\.runtime)\.ts$/,
             },
             { query: "?raw" },
           ],
