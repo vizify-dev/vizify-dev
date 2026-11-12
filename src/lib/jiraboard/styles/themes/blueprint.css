@@ -1,0 +1,7 @@
+:root{--page:#0a2540;--ink:#d6e4ff;--h1:#fff;--sub:#7da2d6;--lane:rgba(255,255,255,.03);--lane-t:#9cc3ff;--lane-r:4px;--lane-pad:10px;--lane-b:1px dashed rgba(156,195,255,.45);--card:rgba(10,37,64,.92);--card-r:2px;--card-b:1px solid rgba(156,195,255,.5);--shadow:none;--gap:10px;--t-size:12px;--t-weight:700;--t-case:uppercase;--chip-r:2px;--pill:transparent;--pill-ink:#9cc3ff}
+body{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;background:linear-gradient(rgba(156,195,255,.08) 1px,transparent 1px) 0 0/24px 24px,linear-gradient(90deg,rgba(156,195,255,.08) 1px,transparent 1px) 0 0/24px 24px,#0a2540}
+h1{font-size:18px;font-weight:700;text-transform:uppercase;letter-spacing:.14em;padding-bottom:10px;border-bottom:1px solid rgba(156,195,255,.5)}
+.lane h2::before{content:"";width:8px;height:8px;background:var(--accent)}
+.chip{border:1px solid currentColor;line-height:16px}
+.pts{border:1px solid #9cc3ff}
+.card:hover{filter:none;transform:none;border-color:#fff}

@@ -1,3 +1,57 @@
 @page {
+  size: A4 landscape;
   margin: 12mm;
+}
+
+body {
+  padding: 24px;
+}
+
+.cssv-scroll {
+  overflow: visible;
+}
+
+.cssv-scroll > table {
+  width: max-content;
+  min-width: 0;
+  table-layout: auto;
+  border-collapse: collapse;
+  font-size: 11px;
+}
+
+.cssv-scroll th {
+  max-width: 20rem;
+  overflow-wrap: anywhere;
+  white-space: normal;
+}
+
+.cssv-cell {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  min-width: 48px;
+  max-width: 200px;
+  overflow: hidden;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  text-overflow: clip;
+}
+
+thead {
+  display: table-header-group;
+}
+
+tr {
+  break-inside: avoid;
+}
+
+.cssv-part + .cssv-part {
+  break-before: page;
+  page-break-before: always;
+}
+
+.cssv-part-label {
+  margin: 0 0 8px;
+  color: #5f6a7f;
+  font: 11px system-ui, sans-serif;
 }
