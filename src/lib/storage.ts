@@ -1,13 +1,19 @@
 import type { View } from "@/components/ViewSwitch";
 
-export const VIEWS: View[] = ["table", "resume"];
+export const VIEWS: View[] = ["table", "resume", "idcard"];
+
 export type Work = Record<View, { csv: string; css: string }>;
-export type Restored = Partial<Record<View, { csv: string | null; css: string | null }>>;
+
+export type Restored = Partial<
+  Record<View, { csv: string | null; css: string | null }>
+>;
 
 const KEYS: Record<View, { csv: string; css: string }> = {
   table: { csv: "vizify:csv", css: "vizify:css" },
   resume: { csv: "vizify:resume:csv", css: "vizify:resume:css" },
+  idcard: { csv: "vizify:idcard:csv", css: "vizify:idcard:css" },
 };
+
 const VIEW_KEY = "vizify:view";
 const SIDEBAR_KEY = "vizify:sidebar";
 const PHOTO_KEY = "vizify:resume:photo";
@@ -53,18 +59,27 @@ export function restore(): {
   let view: View | null = null;
   let sidebar: number | null = null;
   let photo = "";
+
   try {
     for (const currentView of VIEWS) {
       const csv = localStorage.getItem(KEYS[currentView].csv);
       const css = localStorage.getItem(KEYS[currentView].css);
-      if (csv !== null || css !== null) work[currentView] = { csv, css };
+
+      if (csv !== null || css !== null) {
+        work[currentView] = { csv, css };
+      }
     }
+
     const savedView = localStorage.getItem(VIEW_KEY);
-    if (savedView === "table" || savedView === "resume") view = savedView;
+    if (savedView === "table" || savedView === "resume" || savedView === "idcard") {
+      view = savedView;
+    }
+
     sidebar = Number(localStorage.getItem(SIDEBAR_KEY)) || null;
     photo = localStorage.getItem(PHOTO_KEY) ?? "";
   } catch {
     // localStorage unavailable; fall back to defaults.
   }
+
   return { work, view, sidebar, photo };
 }

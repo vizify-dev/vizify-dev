@@ -13,7 +13,7 @@ const nextConfig: NextConfig = {
       },
       "*.css": {
         condition: {
-          path: /src\/lib\/(?:table\/(?:tools\/bar|preview\/(?:base|interactive|print))|jiraboard\/styles\/.*)\.css$/,
+          path: /src\/lib\/(?:table\/(?:tools\/bar|preview\/(?:base|interactive|print))|jiraboard\/styles\/.*|cards\/styles\/.*)\.css$/,
         },
         type: "text",
       },
@@ -35,8 +35,11 @@ const nextConfig: NextConfig = {
         loaders: [require.resolve("./scripts/ts-to-text-loader.cjs")],
         as: "*.js",
       },
+      
+      
     },
   },
 };
+
 
 export default nextConfig;

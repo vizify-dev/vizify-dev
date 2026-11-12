@@ -1,14 +1,21 @@
 "use client";
 
-export type View = "table" | "resume";
+export type View = "table" | "resume" | "idcard";
 
 const OPTIONS: { value: View; label: string }[] = [
   { value: "table", label: "Table" },
   { value: "resume", label: "Resume" },
+  { value: "idcard", label: "ID Card" },
 ];
 
 /** Segmented control for choosing how the data is rendered. */
-export default function ViewSwitch({ value, onChange }: { value: View; onChange: (v: View) => void }) {
+export default function ViewSwitch({
+  value,
+  onChange,
+}: {
+  value: View;
+  onChange: (v: View) => void;
+}) {
   return (
     <div
       role="radiogroup"
