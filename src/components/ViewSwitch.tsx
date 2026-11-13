@@ -9,6 +9,7 @@ const OPTIONS: { value: View; label: string }[] = [
   { value: "resume", label: "Resume" },
   { value: "board", label: "Jira Board" },
   { value: "cards", label: "ID Cards" },
+  { value: "certificates", label: "Certificates" },
 ];
 
 /** Segmented control for choosing how the data is rendered. */
