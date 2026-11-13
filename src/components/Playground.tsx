@@ -30,6 +30,9 @@ import { BOARD_CSV } from "@/lib/jiraboard/sample";
 import { buildCardsDocument } from "@/lib/cards/render";
 import { CARDS_CSV, LEGACY_CARDS_CSV } from "@/lib/cards/sample";
 import { cardsThemeOptions, migrateLegacyCardsThemeCss } from "@/lib/cards/themes";
+import { buildCertificatesDocument } from "@/lib/certificates/render";
+import { CERTIFICATES_CSV } from "@/lib/certificates/sample";
+import { certificatesThemeOptions } from "@/lib/certificates/themes";
 
 const CSV_ACCEPT = ".csv,text/csv,text/plain";
 const SIDEBAR_DEFAULT = 440;
@@ -52,6 +55,7 @@ export default function Playground({
     resume: { csv: DEFAULT_RESUME_CSV, css: resumeThemes[0]?.css ?? "" },
     board: { csv: BOARD_CSV, css: boardThemeOptions[0]?.css ?? "" },
     cards: { csv: CARDS_CSV, css: cardsThemeOptions[0]?.css ?? "" },
+    certificates: { csv: CERTIFICATES_CSV, css: certificatesThemeOptions[0]?.css ?? "" },
   });
   const [photo, setPhoto] = useState("");
   const [loaded, setLoaded] = useState(false);
@@ -69,7 +73,9 @@ export default function Playground({
         ? resumeThemes
         : view === "board"
           ? boardThemeOptions
-          : cardsThemeOptions;
+          : view === "cards"
+            ? cardsThemeOptions
+            : certificatesThemeOptions;
   const theme = themeList.find((t) => t.css === css);
   const themeId = theme?.id;
   const resumeLayout =
@@ -105,9 +111,19 @@ export default function Playground({
             : (saved.work.cards?.csv ?? current.cards.csv),
         css: migrateLegacyCardsThemeCss(saved.work.cards?.css ?? current.cards.css),
       },
+      certificates: {
+        csv: saved.work.certificates?.csv ?? current.certificates.csv,
+        css: saved.work.certificates?.css ?? current.certificates.css,
+      },
     }));
     if (saved.view) setView(saved.view);
-    if (saved.work.table || saved.work.resume || saved.work.board || saved.work.cards)
+    if (
+      saved.work.table ||
+      saved.work.resume ||
+      saved.work.board ||
+      saved.work.cards ||
+      saved.work.certificates
+    )
       setStatus("Saved");
     if (saved.sidebar) setSidebarWidth(saved.sidebar);
     if (saved.photo) setPhoto(saved.photo);
@@ -151,7 +167,9 @@ export default function Playground({
             ? buildBoardDocument(csv, css, themeId)
             : view === "cards"
               ? buildCardsDocument(csv, css, true, themeId)
-              : buildResumeDocument(csv, css, photo, resumeLayout);
+              : view === "certificates"
+                ? buildCertificatesDocument(csv, css, themeId)
+                : buildResumeDocument(csv, css, photo, resumeLayout);
       return document.replace(/\r\n?/g, "\n");
     },
     [view, csv, css, photo, resumeLayout, themeId],
@@ -187,7 +205,9 @@ export default function Playground({
         ? buildBoardDocument(csv, css, themeId, false)
         : view === "cards"
           ? buildCardsDocument(csv, css, false, themeId)
-        : buildResumeDocument(csv, css, photo, resumeLayout);
+          : view === "certificates"
+            ? buildCertificatesDocument(csv, css, themeId, false)
+            : buildResumeDocument(csv, css, photo, resumeLayout);
 
   return (
     <div className="flex h-dvh flex-col overflow-hidden bg-sunken">
