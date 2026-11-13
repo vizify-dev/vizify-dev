@@ -1,0 +1,11 @@
+(() => {
+    const input = document.querySelector(".cards-tools input");
+    const cards = Array.from(document.querySelectorAll(".id-card"));
+    input === null || input === void 0 ? void 0 : input.addEventListener("input", () => {
+        const query = input.value.trim().toLowerCase();
+        cards.forEach((card) => {
+            var _a;
+            card.hidden = !!query && !((_a = card.textContent) !== null && _a !== void 0 ? _a : "").toLowerCase().includes(query);
+        });
+    });
+})();
