@@ -1,0 +1,54 @@
+import { buildDocument } from "@/lib/table/preview";
+import { parseCsv } from "@/lib/csv-parser";
+import type { ThemeOption } from "@/lib/resume/resume";
+
+/** Columns the ID card themes read, in this order: Photo, Name, Role, Company, Tagline, Website, ID, Expires, Phone, Email. */
+export const DEFAULT_ID_CARD_CSV = "Photo,Name,Role,Company,Tagline,Website,ID,Expires,Phone,Email\nhttps://i.pravatar.cc/500?img=12,Tarcisio Ribeiro,Engineer CEO,Alto Qi,Build smart solutions.,altoqi.com.br,DD06031995,18 Sep 2029,+91 98765 43210,tarcisio@example.com\nhttps://i.pravatar.cc/500?img=33,Joao Vitor,Systems Analyst,Alto Qi,Build smart solutions.,altoqi.com.br,DD06031996,18 Sep 2029,+91 98765 43211,joao@example.com\nhttps://i.pravatar.cc/500?img=47,Marija Cigoja,Sales Manager,DS Group,Quality you can trust.,dsgroup.example,DS-1042,01 Jan 2030,+91 98765 43212,marija@example.com\nhttps://i.pravatar.cc/500?img=15,Randi Pratama Putra,Leader,Fiqtuals,Design with intent.,fiqtuals.example,FQ-0007,30 Jun 2028,+62 812 3456 789,randi@example.com\nhttps://i.pravatar.cc/500?img=59,Ivan Maric,Installation Technician,DS Group,Quality you can trust.,dsgroup.example,DS-1043,01 Jan 2030,+91 98765 43213,ivan@example.com\n";
+
+export const ID_CARD_THEMES: ThemeOption[] = [
+  { id: "id-clean", name: "Clean (green)", css: "/* Columns: Photo, Name, Role, Company, Tagline, Website, ID, Expires, Phone, Email */\ntable td.cssv-dup{background:none!important}\ntable,tbody{display:block;border:0}\nthead{display:none}\ntbody{display:grid;grid-template-columns:repeat(auto-fill,320px);gap:32px;justify-content:center}\ntr{display:block;position:relative;width:320px;height:480px;overflow:hidden;isolation:isolate}\ntd{position:absolute;display:none;margin:0;padding:0;border:0;z-index:1}\ntd img{display:block;width:100%;height:100%;object-fit:cover}\n\nbody{background:#1b1b1d}\ntr{--accent:#19d38a;background:#f4f4f2;border-radius:16px;color:#3b3b3b}\ntd:nth-child(1){display:block;left:0;top:0;width:100%;height:290px;z-index:0}\ntd:nth-child(1) img{filter:grayscale(1);object-position:top}\ntd:nth-child(1):empty{background:#d9d9d6}\ntr::before{content:\"\";position:absolute;inset:0;z-index:1;background:#f4f4f2;clip-path:polygon(0 52%,100% 74%,100% 100%,0 100%)}\ntr::after{content:\"\";position:absolute;inset:0;z-index:2;pointer-events:none;background:url(\"data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 320 480' preserveAspectRatio='none'><polygon points='320,285 320,355 250,340' fill='%2319d38a' opacity='.5'/><g fill='none' stroke='%2319d38a' stroke-width='1.2'><path d='M130 0L250 130L320 50'/><path d='M190 0L320 150'/><path d='M250 130L320 210'/></g></svg>\") center/100% 100% no-repeat}\ntd:nth-child(2){display:block;left:24px;bottom:108px;width:240px;font-size:26px;font-weight:500;line-height:1.1;z-index:3}\ntd:nth-child(3){display:block;left:24px;top:376px;font-size:16px;color:var(--accent);z-index:3}\ntd:nth-child(4){display:block;right:22px;bottom:18px;text-align:center;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;z-index:3}\ntd:nth-child(4)::before{content:\"\";display:block;width:26px;height:24px;margin:0 auto 4px;background:var(--accent);clip-path:polygon(50% 0,100% 100%,0 100%)}\ntd:nth-child(5){display:block;left:24px;bottom:44px;width:150px;font-size:15px;line-height:1.25;z-index:3}\ntd:nth-child(6){display:block;left:24px;bottom:22px;font-size:10px;color:#777;z-index:3}\n" },
+  { id: "id-dark", name: "Dark", css: "/* Columns: Photo, Name, Role, Company, Tagline, Website, ID, Expires, Phone, Email */\ntable td.cssv-dup{background:none!important}\ntable,tbody{display:block;border:0}\nthead{display:none}\ntbody{display:grid;grid-template-columns:repeat(auto-fill,320px);gap:32px;justify-content:center}\ntr{display:block;position:relative;width:320px;height:480px;overflow:hidden;isolation:isolate}\ntd{position:absolute;display:none;margin:0;padding:0;border:0;z-index:1}\ntd img{display:block;width:100%;height:100%;object-fit:cover}\n\nbody{background:#2b2c2e}\ntr{background:#3b3c3b;border-radius:22px;color:#fff;box-shadow:0 24px 48px #0006}\ntr::before{content:\"\";position:absolute;inset:0;z-index:0;background:linear-gradient(225deg,#5e5f5d 0,#5e5f5d 36%,transparent 36.1%)}\ntd:nth-child(1){display:block;right:0;bottom:0;width:78%;height:72%;z-index:0}\ntd:nth-child(1) img{object-position:top}\ntd:nth-child(1):empty{background:#555}\ntd:nth-child(2){display:block;left:24px;top:36px;width:55%;font-size:32px;line-height:1.05;font-weight:300;letter-spacing:.02em}\ntd:nth-child(3){display:block;left:24px;top:124px;font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:#d6d3c4}\ntd:nth-child(3)::after{content:\"\";display:block;width:34px;height:2px;margin-top:10px;background:#d6d3c4}\ntd:nth-child(7){display:block;left:24px;bottom:44px;font-size:12px;font-weight:700;text-shadow:0 1px 6px #0008}\ntd:nth-child(7)::before{content:\"EMPLOYEE ID: \"}\ntd:nth-child(8){display:block;left:24px;bottom:26px;font-size:12px;text-shadow:0 1px 6px #0008}\ntd:nth-child(8)::before{content:\"Expires: \"}\n" },
+  { id: "id-pattern", name: "Pattern (orange)", css: "/* Columns: Photo, Name, Role, Company, Tagline, Website, ID, Expires, Phone, Email */\ntable td.cssv-dup{background:none!important}\ntable,tbody{display:block;border:0}\nthead{display:none}\ntbody{display:grid;grid-template-columns:repeat(auto-fill,320px);gap:32px;justify-content:center}\ntr{display:block;position:relative;width:320px;height:480px;overflow:hidden;isolation:isolate}\ntd{position:absolute;display:none;margin:0;padding:0;border:0;z-index:1}\ntd img{display:block;width:100%;height:100%;object-fit:cover}\n\nbody{background:#e6e7ea}\ntr{--accent:#f0a62a;background:#fff;border-radius:16px;box-shadow:0 16px 36px #0002}\ntr::before{content:\"\";position:absolute;inset:0;z-index:0;background:url(\"data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='44' height='44'><path d='M5 40V5h30v26H16V16h10' fill='none' stroke='%23f0a62a' stroke-width='6' stroke-linecap='square'/></svg>\") 0 0/44px 44px;clip-path:polygon(0 28%,55% 0,100% 0,100% 50%,50% 64%,0 74%)}\ntr::after{content:\"\";position:absolute;left:0;right:0;bottom:0;height:140px;background:var(--accent);z-index:0}\ntd:nth-child(1){display:block;left:55px;top:90px;width:210px;height:210px;border-radius:50%;border:5px solid #fff;overflow:hidden;background:#e5e5e5}\ntd:nth-child(4){display:block;left:20px;top:18px;font-size:12px;font-weight:800;color:#0e6b7a;letter-spacing:.06em;text-transform:uppercase}\ntd:nth-child(2){display:block;left:22px;bottom:70px;width:48%;font-size:17px;font-weight:700;line-height:1.15;color:#fff}\ntd:nth-child(3){display:block;left:22px;bottom:42px;font-size:14px;color:#ffffffd9}\ntd:nth-child(9){display:block;right:18px;bottom:78px;width:40%;font-size:11px;font-weight:700;color:#fff}\ntd:nth-child(10){display:block;right:18px;bottom:34px;width:40%;font-size:10px;font-weight:700;color:#fff;word-break:break-all}\ntd:nth-child(9)::before{content:\"Phone Number\";display:block;font-size:8px;font-weight:400}\ntd:nth-child(10)::before{content:\"Email Address\";display:block;font-size:8px;font-weight:400}\n" },
+  { id: "id-duo", name: "Duo (yellow/black)", css: "/* Columns: Photo, Name, Role, Company, Tagline, Website, ID, Expires, Phone, Email */\ntable td.cssv-dup{background:none!important}\ntable,tbody{display:block;border:0}\nthead{display:none}\ntbody{display:grid;grid-template-columns:repeat(auto-fill,320px);gap:32px;justify-content:center}\ntr{display:block;position:relative;width:320px;height:480px;overflow:hidden;isolation:isolate}\ntd{position:absolute;display:none;margin:0;padding:0;border:0;z-index:1}\ntd img{display:block;width:100%;height:100%;object-fit:cover}\n\nbody{background:#c9c9c7}\ntr{--accent:#f5b000;height:440px;background:#f3f3f3;border-radius:14px;box-shadow:0 16px 36px #0003}\ntr::before{content:\"\";position:absolute;left:34px;top:56px;width:62px;height:290px;background:var(--accent);z-index:0}\ntr::after{content:\"\";position:absolute;left:50%;top:14px;width:60px;height:10px;margin-left:-30px;border-radius:5px;background:#bdbdbb;z-index:0}\ntd:nth-child(1){display:block;left:34px;top:56px;width:252px;height:290px;mix-blend-mode:multiply}\ntd:nth-child(1) img{filter:grayscale(1);object-position:top}\ntd:nth-child(1):empty{background:#d0d0d0}\ntd:nth-child(4){display:flex;align-items:center;justify-content:center;left:34px;top:346px;width:64px;height:64px;box-sizing:border-box;padding:6px;text-align:center;font-size:10px;font-weight:800;letter-spacing:.08em;line-height:1.1;text-transform:uppercase;color:var(--accent);box-shadow:inset 0 0 0 80px #111}\ntd:nth-child(2){display:block;left:112px;top:358px;width:176px;font-size:16px;font-weight:700;color:#222}\ntd:nth-child(3){display:block;left:112px;top:382px;width:176px;font-size:11px;color:#777}\n" }
+];
+
+/** Print: keep each card whole and keep backgrounds when saving as PDF. */
+const PRINT_RULES = `
+@media print{
+  body{padding:0}
+  tbody{gap:8mm}
+  tr{break-inside:avoid;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+}`;
+
+/** Static document (all cards, no script, no pager). */
+export function buildIdCardDocument(csv: string, css: string): string {
+  const [headers = [], ...rows] = parseCsv(csv);
+  const columns: string[][] = [
+    ["photo", "image", "avatar", "picture"],
+    ["name", "full name", "student name", "employee name"],
+    ["role", "title", "designation", "position", "job title"],
+    ["company", "organization", "organisation", "school", "institute", "college", "event"],
+    ["tagline", "department", "dept", "class", "team", "batch"],
+    ["website", "web site", "url"],
+    ["id", "employee id", "emp id", "roll no", "roll number", "member id", "badge id"],
+    ["expires", "valid till", "valid until", "expiry", "valid thru"],
+    ["phone", "mobile", "contact", "phone number"],
+    ["email", "e-mail", "email address"],
+  ] as const;
+  const headerNames = headers.map((header) => header.trim().toLowerCase());
+  const indexes = columns.map((aliases) =>
+    headerNames.findIndex((header) => aliases.includes(header)),
+  );
+
+  if (indexes[1] < 0) return buildDocument(csv, css + PRINT_RULES, false);
+
+  const quote = (value: string) => `"${value.replace(/"/g, '""')}"`;
+  const idCardCsv = [
+    ["Photo", "Name", "Role", "Company", "Tagline", "Website", "ID", "Expires", "Phone", "Email"],
+    ...rows.map((row) => indexes.map((index) => (index < 0 ? "" : row[index] ?? ""))),
+  ]
+    .map((row) => row.map(quote).join(","))
+    .join("\n");
+
+  return buildDocument(idCardCsv, css + PRINT_RULES, false);
+}
