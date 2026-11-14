@@ -26,3 +26,136 @@ body[data-layout="uiux"]{padding:0;background:#fff}
 }
 @page{size:A4 portrait;margin:0}
 @media print{body{padding:0;background:#fff}}
+/* 1. Headings: narrower tracking so ATS reads them as words */
+.r-sec h2 {
+  margin: 0 0 10px;
+  font-size: 12.5px;
+  font-weight: 700;
+  letter-spacing: 0.06em;   /* was 0.14em */
+  text-transform: uppercase;
+  break-after: avoid;
+}
+
+/* 2. Dates pushed to the right edge */
+.r-line {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 4px 16px;            /* was 4px 32px, wrap kept */
+  flex-wrap: wrap;
+}
+
+/* 3. About Me left-aligned */
+.r-text {
+  margin: 0;
+  text-align: left;         /* was justify */
+}
+
+/* 4. Header divider aligned with body content */
+.r-head {
+  padding: 40px 56px 0;
+  text-align: center;
+  border-bottom: 0;         /* was 2px solid */
+}
+.r-head::after {
+  content: "";
+  display: block;
+  height: 2px;
+  margin: 18px 0 0;         /* uses the same 56px side padding as the body */
+  background: #8b9099;
+}
+
+/* 5. Skills: grid instead of CSS columns (fixes the offset first column) */
+.r-skills {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2px 24px;
+}
+.r-skills li { margin: 0; }
+@media (max-width: 600px) {
+  .r-skills { grid-template-columns: repeat(2, 1fr); }
+}
+
+/* 6. Cleaner page breaks in the PDF */
+@media print {
+  .r-entry { break-inside: avoid; }
+}
+
+/* Shared by ALL themes: same body text size */
+html body .resume:not(.resume--graphic):not(.resume--uiux):not(.resume--executive) {
+  .r-text, .r-sub, .r-bullets li, .r-list li, .r-skills li {
+    font-size: 14px !important;
+    line-height: 1.55 !important;
+  }
+  .r-title { font-size: 14.5px !important; }
+  .r-date  { font-size: 13px !important; }
+}
+
+/* Print only: no card chrome, any theme */
+@media print {
+  html body { padding: 0; background: #fff; }
+  html body .resume {
+    width: 100%;
+    max-width: none;
+    margin: 0;
+    height: auto !important;
+    min-height: 0 !important;
+    overflow: visible !important;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+  }
+  html body .r-entry,
+  html body .r-sec h2 { break-inside: avoid; break-after: avoid; }
+}
+
+.resume {
+  min-width: 0;
+}
+
+.resume .r-sec,
+.resume .r-entry,
+.resume .r-line,
+.resume .r-id,
+.resume .r-contact li,
+.resume .r-clist li {
+  min-width: 0;
+}
+
+.resume h1,
+.resume .r-role,
+.resume .r-title,
+.resume .r-sub,
+.resume .r-date,
+.resume .r-text,
+.resume .r-bullets li,
+.resume .r-list li,
+.resume .r-skills li,
+.resume .r-contact li,
+.resume .r-clist li {
+  overflow-wrap: anywhere;
+}
+
+html body .resume .r-date {
+  white-space: normal;
+}
+
+.resume .r-photo {
+  max-width: 100%;
+}
+
+@media (max-width: 760px) {
+  body {
+    padding: 12px;
+  }
+
+  html body .resume {
+    width: 100%;
+    max-width: 794px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+}
