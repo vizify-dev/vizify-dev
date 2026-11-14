@@ -1,33 +1,36 @@
+export const SAMPLE_PHOTO_SRC = "/images/resume-sample.jpeg";
+
 export const SAMPLE_SIDEBAR = `section,title,subtitle,date,details
-Name,Mike Richard,Marketing Manager,,
-Contact,,,,+99 123 456 789
-Contact,,,,hello@yourname.com
-Contact,,,,"12 Street, City/Country"
-Contact,,,,www.yourname.com
-Profile,,,,"Marketing manager with 8 years of experience building brands and leading campaigns. Skilled at turning data into strategy and teams into results."
-Education,Master of Marketing,City University,2013 - 2015,
-Education,Bachelor of Business,State College,2009 - 2013,
-Skills,,,,Brand Strategy|Public Relations|Social Media|Content Marketing|Campaign Planning|Team Leadership|Analytics
-Work Experience,AB Development,Marketing Manager,2019 - Present,"Led a team of 12 across brand, content and growth.|Grew qualified leads by 38% in one year.|Cut campaign costs by 15% with data-driven budgeting."
-Work Experience,Blue Agency,Senior Marketer,2015 - 2019,"Managed 20+ client accounts across retail and tech.|Launched an award-winning social campaign."
-References,Amay Newton,Company Name / Position,,Phone: +99 123 456 789|Email: amay@yourname.com
-References,Olivia May,Company Name / Position,,Phone: +99 987 654 321|Email: olivia@yourname.com
+Name,Lorna Alvarado,Sales Representative,,
+Photo,,,,${SAMPLE_PHOTO_SRC}
+Contact,,,,+123-456-7890
+Contact,,,,hello@reallygreatsite.com
+Contact,,,,"123 Anywhere St., Any City"
+About Me,,,,"Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat."
+Education,Borcelle University,Bachelor of Business Management,2020 - 2023,
+Education,Wardiere University,Bachelor of Business Management,2016 - 2020,
+Education,Borcelle University,Bachelor of Business Management,2012 - 2016,
+Skills,,,,Management Skills|Creativity|Digital Marketing|Negotiation|Critical Thinking|Leadership
+Languages,,,,English|Spanish
+Experience,Product Design Manager,Arrowai Industries,2016 - 2020,"Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nunc sit amet sem nec risus egestas accumsan. In enim nunc, tincidunt ut quam eget, luctus sollicitudin neque."
+Experience,Marketing Manager,Arrowai Industries,2019 - 2020,"Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nunc sit amet sem nec risus egestas accumsan. In enim nunc, tincidunt ut quam eget, luctus sollicitudin neque."
+Experience,Marketing Manager,Arrowai Industries,2017 - 2019,"Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nunc sit amet sem nec risus egestas accumsan. In enim nunc, tincidunt ut quam eget, luctus sollicitudin neque."
+Experience,Marketing Manager,Arrowai Industries,2016 - 2017,"Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nunc sit amet sem nec risus egestas accumsan. In enim nunc, tincidunt ut quam eget, luctus sollicitudin neque."
+References,Harumi Kobayashi,Wardiere Inc. / CEO,,Phone: +123-456-7890|Email: hello@reallygreatsite.com
+References,Bailey Dupont,Wardiere Inc. / CEO,,Phone: +123-456-7890|Email: hello@reallygreatsite.com
 `;
 
 export const SAMPLE_EXECUTIVE = `section,title,subtitle,date,details
-Name,Alexander Smith,Software Engineer,,
-Contact,,,,+1 555 456 7890
-Contact,,,,alex.smith@example.com
-Contact,,,,www.alex-smith.dev
-Contact,,,,"Tech City, Los Angeles"
-Summary,,,,"Software engineer with 5+ years of experience in systems architecture and innovative solutions. Adept at improving efficiency and scalability, with a record of delivering projects that cut processing time by 40%."
-Work Experience,Lead Software Engineer,Digital Innovations Inc,Jun 2021 - Present,"Led a team of 6 engineers building a high-traffic web platform.|Adopted Django and REST APIs, improving system reliability by 35%.|Mentored junior developers and ran code reviews."
-Work Experience,Software Engineer,CloudTech Solutions,Jul 2018 - May 2021,"Built 8 cloud-based applications from design to release.|Streamlined deployment with CI/CD, cutting release time by 25%."
-Projects,E-commerce Platform,,,A scalable solution for online retail.
-Projects,Health Tracking App,,,A mobile app for monitoring daily health metrics.
-Education,Master of Science in Software Engineering,Stanford University,Sep 2016 - Jun 2018,
-Skills,,,,System Architecture|Java & Python|REST APIs|Agile & Scrum|Problem Solving|Leadership
-Languages,,,,English|Spanish
+Name,Rachel Collins,Marketing Coordinator,,
+Contact,,,,hello@reallygreatsite.com
+Contact,,,,123-456-7890
+Contact,,,,@reallygreatsite
+Professional Summary,,,,"Motivated Marketing Coordinator with hands-on experience in social media management and email campaigns gained through a marketing internship at a regional retail brand. Known for fast learning, strong writing skills, and close attention to brand consistency. Eager to apply organizational and content skills to help a growing company build its digital presence."
+Work Experience,Marketing Coordinator,Creative Lab | Any City,March 2023 - Present,"Launched and managed 12 monthly email campaigns, growing the subscriber list by 28% and lifting average open rate to 34%.|Coordinated a cross-functional content calendar across 4 social platforms, increasing engagement by 41% over two quarters.|Managed a $35K paid social budget, generating a 19% increase in qualified leads."
+Work Experience,Marketing Assistant,Impact Inc | Any City,June 2021 - February 2023,"Wrote and edited copy for 50+ email and social campaigns, maintaining a consistent brand voice across channels.|Streamlined the content approval process, cutting turnaround time from 5 days to 2.|Tracked campaign performance, presenting weekly insights to a 6-person marketing team."
+Education,Bachelor of Arts,Communication | South University, May 2021,
+Skills,,,,Email Marketing|Social Media Strategy|Analytics|Content Calendar Management|Copywriting|Campaign Budgeting
+Certification,,,,"Content Marketing Certification, North Academy | 2023"
 `;
 
 export const SAMPLE_GRAPHIC = `section,title,subtitle,date,details
@@ -44,19 +47,14 @@ Professional Experience,Graphic Designer,Ryn-x Company,January 2020 - March 2022
 `;
 
 export const SAMPLE_UIUX = `section,title,subtitle,date,details
-Name,Riya Menon,Passionate UI/UX Designer,,
-Contact,,,,riya.menon@example.com
-Contact,,,,+91 98765 43210
-Contact,,,,"Munnar, Idukki, Kerala"
-About Me,,,,"A passionate UI/UX designer with 1 year of experience crafting creative and innovative design systems. I thrive on turning ideas into friendly, user-focused solutions and draw inspiration from nature's harmony to deliver intuitive, visually appealing designs."
-Education,Higher Secondary School - Bio-Maths,"Model Residential School, Ernakulam",2017 - 2019,
-Education,"B.Tech, Aeronautical Engineering","Jawaharlal College of Engineering, Palakkad",2019 - 2023,
-Education,Software Developer,"KKM Soft, Trivandrum, 6 month course",Sep 2023 - Feb 2024,
-Skills,,,,Figma|Framer|Prototyping|Design Systems|User Research|HTML & CSS
-Experience,"GALTech, Thrissur",Video Editor and UI/UX Designer internship,Mar 2024 - Jun 2024,
-Experience,Jr. UI/UX Designer,"Tisser Technologies, Kottayam",Jul 2024 - Present,
-Experience,"Freelance, UI/UX Designer",,2022 - 2023,
-Projects,Online Travel & Rooms Booking Website,,,"Frontend design using HTML, CSS and JavaScript."
-Projects,Teeth Aligner Reminder,,,"A reminder mobile app design in Figma, with responsive screens made in Framer."
-Projects,Real Estate Website,,,"A flat and house rental and buying website, designed in Figma and Framer."
+Name,Katie Lawson,"User-Centered | Problem Solver | Detail-Oriented",,
+Photo,,,,${SAMPLE_PHOTO_SRC}
+Contact,,,,katie.lawson@example.com
+Contact,,,,+1 555 014 2860
+Contact,,,,"Portland, Oregon"
+About Me,,,,"Creative and detail-oriented UI/UX designer who turns complex problems into clear, approachable digital experiences. I combine thoughtful research, purposeful visual design, and close collaboration to make products easier and more enjoyable to use."
+Education,Bachelor of Fine Arts in Graphic Design,"Silverdale Academy",2020 - 2024,
+Skills,,,,User Research|Wireframing|Prototyping|Figma|Interaction Design|Usability Testing
+Work Experience,UI/UX Designer,"Brightside Studio | Portland, OR",2023 - Present,"Designed accessible web and mobile experiences from early research through polished, interactive prototypes.|Partnered with product and engineering teams to improve task completion and reduce user friction."
+Work Experience,Junior UI/UX Designer,"Northstar Creative | Portland, OR",2021 - 2023,"Created wireframes, user flows, and responsive interface designs for client projects.|Ran usability sessions and translated feedback into clear, prioritized design updates."
 `;
