@@ -145,7 +145,8 @@ export function printHtml(
         resume.style.setProperty("overflow", "visible", "important");
         const pageHeight = (297 * 96) / 25.4;
         const contentHeight = Math.max(resume.offsetHeight, resume.scrollHeight);
-        resume.style.zoom = String(Math.min(1, (pageHeight * 0.92) / contentHeight));
+        const fitRatio = resume.classList.contains("resume--uiux") ? 0.86 : 0.92;
+        resume.style.zoom = String(Math.min(1, (pageHeight * fitRatio) / contentHeight));
       }
     }
     if (fitTableWidth) splitWideTable(win.document);

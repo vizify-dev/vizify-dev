@@ -1,0 +1,529 @@
+$paper: #fffdf0;
+$blue: #0752ad;
+$orange: #f34b20;
+$yellow: #ffda27;
+$ink: #38383a;
+
+body[data-layout="uiux"] {
+  padding: 0;
+  background: $paper;
+}
+
+.resume--uiux {
+  position: relative;
+  isolation: isolate;
+  width: 100%;
+  max-width: 794px;
+  min-height: 1123px;
+  margin: 0 auto;
+  padding: 42px 44px 62px;
+  background: $paper;
+  color: $ink;
+  font-family: "Montserrat", "Arial", sans-serif;
+
+  .r-head {
+    position: relative;
+    display: grid;
+    grid-template-columns: 290px minmax(0, 1fr);
+    gap: 30px;
+    min-height: 352px;
+    padding: 0;
+    text-align: left;
+    border: 0;
+  }
+
+  .r-head::before {
+    position: absolute;
+    z-index: 0;
+    top: 24px;
+    left: 3px;
+    width: 270px;
+    height: 276px;
+    background: $blue;
+    content: "";
+    clip-path: polygon(3% 0, 97% 3%, 100% 96%, 5% 100%, 0 7%);
+  }
+
+  .r-head::after {
+    display: none;
+  }
+
+  .r-head .r-contact {
+    display: none;
+  }
+
+  .r-photo {
+    display: block;
+    position: relative;
+    z-index: 1;
+    grid-column: 1;
+    grid-row: 1;
+    width: 264px;
+    height: 270px;
+    margin: 12px 0 0 14px;
+    border: 9px solid $paper;
+    object-fit: cover;
+    transform: rotate(-2deg);
+    box-shadow: 0 0 0 4px $blue;
+  }
+
+  .r-id {
+    position: relative;
+    z-index: 1;
+    grid-column: 2;
+    grid-row: 1;
+    align-self: start;
+    min-width: 0;
+    padding-top: 40px;
+  }
+
+  .r-id h1 {
+    margin: 0 0 15px;
+    color: $orange;
+    font-family: "Roboto Slab", Georgia, serif;
+    font-size: 69px;
+    font-weight: 800;
+    letter-spacing: -0.07em;
+    line-height: 0.96;
+    text-shadow: 5px 4px 0 $blue;
+    overflow-wrap: anywhere;
+  }
+
+  .r-role {
+    display: block;
+    margin: 0 0 18px;
+    padding: 11px 14px;
+    background: $blue;
+    color: #fff;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.025em;
+    line-height: 1.4;
+  }
+
+  .r-uiux-stickers {
+    position: absolute;
+    z-index: 3;
+    inset: 0;
+    pointer-events: none;
+  }
+
+  .r-uiux-photo-label {
+    position: absolute;
+    top: 291px;
+    left: 5px;
+    width: 274px;
+    padding: 8px 12px;
+    background: $blue;
+    color: #fff;
+    font-family: "Roboto Slab", Georgia, serif;
+    font-size: 19px;
+    font-weight: 700;
+    text-align: center;
+    transform: rotate(-1deg);
+  }
+
+  .r-uiux-paperclip {
+    position: absolute;
+    top: -12px;
+    left: 226px;
+    width: 45px;
+    height: 94px;
+    border: 6px solid $orange;
+    border-bottom-color: transparent;
+    border-radius: 28px 28px 18px 18px;
+    transform: rotate(38deg);
+  }
+
+  .r-uiux-paperclip::after {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    width: 18px;
+    height: 67px;
+    border: 4px solid $orange;
+    border-bottom-color: transparent;
+    border-radius: 15px 15px 10px 10px;
+    content: "";
+  }
+
+  .r-uiux-grid {
+    display: grid;
+    grid-template-columns: 280px minmax(0, 1fr);
+    grid-template-areas:
+      "contact about"
+      "contact education"
+      "experience experience"
+      "projects projects"
+      "skills skills";
+    align-items: start;
+    gap: 18px 34px;
+  }
+
+  .r-sec {
+    min-width: 0;
+    margin: 0;
+  }
+
+  .r-sec h2 {
+    margin: 0 0 10px;
+    color: $blue;
+    font-family: "Roboto Slab", Georgia, serif;
+    font-size: 25px;
+    font-weight: 800;
+    letter-spacing: -0.035em;
+    line-height: 1.1;
+    text-transform: none;
+  }
+
+  .r-sec[data-s="contact"] {
+    display: block;
+    grid-area: contact;
+    align-self: start;
+    min-height: 160px;
+    margin-top: 0;
+    padding: 18px 17px;
+    background: $orange;
+    color: #fff;
+  }
+
+  .r-sec[data-s="contact"] h2 {
+    display: none;
+  }
+
+  .r-clist {
+    display: grid;
+    gap: 12px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .r-clist li {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1.35;
+    overflow-wrap: anywhere;
+  }
+
+  .r-clist svg {
+    flex: 0 0 16px;
+    width: 16px;
+    height: 16px;
+  }
+
+  .r-sec[data-s="about"] {
+    grid-area: about;
+    padding-top: 5px;
+  }
+
+  .r-sec[data-s="about"] h2 {
+    display: none;
+  }
+
+  .r-text,
+  .r-sub,
+  .r-bullets li,
+  .r-list li,
+  .r-skills li {
+    font-size: 12px;
+    line-height: 1.55;
+  }
+
+  .r-sec[data-s="about"] .r-text {
+    font-size: 13px;
+    line-height: 1.65;
+  }
+
+  .r-sec[data-s="education"] {
+    grid-area: education;
+    padding: 18px 20px;
+    border: 7px dotted $paper;
+    border-radius: 12px;
+    background: $yellow;
+    color: $blue;
+  }
+
+  .r-sec[data-s="education"] h2 {
+    margin-bottom: 12px;
+  }
+
+  .r-sec[data-s="education"] .r-entry + .r-entry {
+    margin-top: 11px;
+  }
+
+  .r-sec[data-s="education"] .r-title {
+    color: $blue;
+    font-size: 14px;
+    font-weight: 800;
+  }
+
+  .r-sec[data-s="education"] .r-sub,
+  .r-sec[data-s="education"] .r-date {
+    color: $blue;
+    font-size: 11px;
+    font-style: italic;
+  }
+
+  .r-sec[data-s="experience"] {
+    display: grid;
+    grid-area: experience;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 13px 28px;
+    padding-top: 2px;
+  }
+
+  .r-sec[data-s="experience"] h2 {
+    position: relative;
+    grid-column: 1 / -1;
+    margin: 0 0 2px;
+    padding: 10px 52px 10px 22px;
+    border-radius: 999px;
+    background: $blue;
+    color: $yellow;
+    font-size: 24px;
+    letter-spacing: 0;
+  }
+
+  .r-sec[data-s="experience"] h2::before {
+    position: absolute;
+    top: 4px;
+    right: 22px;
+    width: 18px;
+    height: 8px;
+    border: 3px solid $yellow;
+    border-bottom: 0;
+    border-radius: 5px 5px 0 0;
+    content: "";
+  }
+
+  .r-sec[data-s="experience"] h2::after {
+    position: absolute;
+    top: 12px;
+    right: 17px;
+    width: 29px;
+    height: 21px;
+    border: 3px solid $yellow;
+    border-radius: 4px;
+    content: "";
+  }
+
+  .r-sec[data-s="experience"] .r-entry {
+    min-width: 0;
+  }
+
+  .r-sec[data-s="experience"] .r-title {
+    color: $orange;
+    font-size: 14px;
+    font-weight: 800;
+  }
+
+  .r-sec[data-s="experience"] .r-date,
+  .r-sec[data-s="experience"] .r-sub {
+    font-size: 11px;
+    font-style: italic;
+  }
+
+  .r-bullets {
+    margin: 5px 0 0;
+    padding-left: 17px;
+  }
+
+  .r-sec[data-s="projects"] {
+    grid-area: projects;
+  }
+
+  .r-sec[data-s="skills"] {
+    position: relative;
+    display: grid;
+    grid-area: skills;
+    grid-template-columns: 150px minmax(0, 1fr);
+    align-items: center;
+    gap: 15px;
+    min-height: 148px;
+    padding: 24px 36px;
+    background: $yellow;
+    color: $blue;
+  }
+
+  .r-sec[data-s="skills"] h2 {
+    margin: 0;
+    font-size: 34px;
+  }
+
+  .r-skills {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 7px 22px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .r-skills li {
+    position: relative;
+    padding-left: 18px;
+    color: $blue;
+    font-size: 13px;
+    font-weight: 700;
+  }
+
+  .r-skills li::before {
+    position: absolute;
+    top: 0.45em;
+    left: 0;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: $blue;
+    content: "";
+  }
+
+  .r-sec[data-s="skills"]::after {
+    position: absolute;
+    right: 20px;
+    bottom: -16px;
+    width: 74px;
+    height: 74px;
+    background: $blue;
+    content: "";
+    filter: drop-shadow(5px 5px 0 $orange);
+    clip-path: polygon(50% 0, 61% 34%, 98% 35%, 68% 57%, 79% 94%, 50% 71%, 20% 94%, 31% 57%, 2% 35%, 39% 34%);
+  }
+
+  .r-uiux-socials {
+    display: none;
+  }
+}
+
+.resume--uiux::after {
+  position: absolute;
+  z-index: 2;
+  bottom: 1px;
+  left: 22px;
+  color: $blue;
+  content: "〰〰〰";
+  font-family: Georgia, serif;
+  font-size: 54px;
+  font-weight: 700;
+  letter-spacing: -0.3em;
+  line-height: 1;
+  text-shadow: 3px 3px 0 $yellow;
+  transform: rotate(-10deg);
+  pointer-events: none;
+}
+
+@media (max-width: 760px) {
+  .resume--uiux {
+    width: 100%;
+    min-height: 0;
+    padding: 24px 18px 50px;
+
+    .r-head {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 12px;
+      min-height: 0;
+      padding-bottom: 16px;
+    }
+
+    .r-head::before {
+      top: 8px;
+      left: 7px;
+      width: 180px;
+      height: 185px;
+    }
+
+    .r-head:not(:has(.r-photo))::before,
+    .r-head:not(:has(.r-photo)) .r-uiux-photo-label,
+    .r-head:not(:has(.r-photo)) .r-uiux-paperclip {
+      display: none;
+    }
+
+    .r-photo {
+      grid-column: 1;
+      grid-row: 1;
+      width: 170px;
+      height: 176px;
+      margin: 12px 0 0 14px;
+    }
+
+    .r-id {
+      grid-column: 1;
+      grid-row: 2;
+      padding-top: 8px;
+    }
+
+    .r-head:not(:has(.r-photo)) .r-id {
+      grid-row: 1;
+      padding-top: 0;
+    }
+
+    .r-id h1 {
+      font-size: clamp(46px, 13vw, 66px);
+    }
+
+    .r-uiux-photo-label {
+      top: 170px;
+      left: 0;
+      width: 185px;
+      font-size: 15px;
+    }
+
+    .r-uiux-paperclip {
+      top: -10px;
+      left: 132px;
+      transform: rotate(38deg) scale(0.75);
+      transform-origin: top left;
+    }
+
+    .r-uiux-grid {
+      grid-template-columns: minmax(0, 1fr);
+      grid-template-areas:
+        "about"
+        "contact"
+        "education"
+        "experience"
+        "projects"
+        "skills";
+      gap: 16px;
+    }
+
+    .r-sec[data-s="contact"] {
+      margin-top: 0;
+    }
+
+    .r-sec[data-s="experience"] {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 12px;
+    }
+
+    .r-sec[data-s="experience"] h2 {
+      grid-column: 1;
+    }
+
+    .r-sec[data-s="skills"] {
+      grid-template-columns: minmax(0, 1fr);
+      padding: 20px;
+    }
+
+    .r-sec[data-s="skills"] h2 {
+      font-size: 30px;
+    }
+
+    .r-sec[data-s="skills"]::after {
+      right: 5px;
+      width: 44px;
+      height: 44px;
+    }
+  }
+}
+
+@media print {
+  .resume--uiux {
+    margin: 0;
+  }
+}
