@@ -57,10 +57,12 @@ export default function Playground({
   const themeList: ThemeOption[] = view === "table" ? themes : resumeThemes;
   const theme = themeList.find((t) => t.css === css);
   const resumeLayout =
-    theme?.id === "resume-graphic"
-      ? "graphic"
-      : theme?.id === "resume-sidebar"
-        ? "sidebar"
+  theme?.id === "resume-graphic"
+    ? "graphic"
+    : theme?.id === "resume-sidebar"
+      ? "sidebar"
+      : theme?.id === "resume-executive"
+        ? "executive"
         : theme?.id === "resume-uiux"
           ? "uiux"
           : undefined;
