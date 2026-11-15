@@ -147,6 +147,17 @@ html body .resume .r-date {
   max-width: 100%;
 }
 
+.resume .r-sec[data-s="awards"] .r-title {
+  font-weight: 400 !important;
+  white-space: nowrap;
+}
+
+@media (max-width: 480px) {
+  .resume .r-sec[data-s="awards"] .r-title {
+    white-space: normal;
+  }
+}
+
 @media (max-width: 760px) {
   body {
     padding: 12px;

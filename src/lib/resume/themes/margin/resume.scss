@@ -103,6 +103,11 @@
     font-size: 11.5px;
     text-align: justify;
   }
+
+  .r-sec[data-s="awards"] .r-title {
+    grid-column: 1 / -1;
+    grid-row: 1;
+  }
   
   .r-skills {
     margin: 0;
