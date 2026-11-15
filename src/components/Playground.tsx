@@ -12,10 +12,13 @@ import PhotoButton from "@/components/PhotoButton";
 import ResizeHandle from "@/components/ResizeHandle";
 import Select from "@/components/Select";
 import ViewSwitch, { type View } from "@/components/ViewSwitch";
+import { parseCsv } from "@/lib/csv-parser";
 import { DEFAULT_CSV } from "@/lib/table/defaults";
+import { FEATURES } from "@/lib/features";
 import { fileToPhoto } from "@/lib/resume/photo";
 import { buildDocument } from "@/lib/table/preview";
 import { buildResumeDocument } from "@/lib/resume";
+import { importCandidateResumes } from "@/lib/resume/import-csv";
 import {
   DEFAULT_RESUME_CSV,
   isResumeSample,
@@ -40,11 +43,18 @@ export default function Playground({
   themes: Theme[];
   resumeThemes: ThemeOption[];
 }) {
-  const [view, setView] = useState<View>("table");
+  const [view, setView] = useState<View>(
+    FEATURES.table ? "table" : "resume",
+  );
   const [data, setData] = useState<Work>({
     table: { csv: DEFAULT_CSV, css: themes[0]?.css ?? "" },
     resume: { csv: DEFAULT_RESUME_CSV, css: resumeThemes[0]?.css ?? "" },
   });
+  const [selectedThemeIds, setSelectedThemeIds] = useState<Record<View, string>>({
+    table: themes[0]?.id ?? "",
+    resume: resumeThemes[0]?.id ?? "",
+  });
+  const [candidateIndex, setCandidateIndex] = useState(0);
   const [photo, setPhoto] = useState("");
   const [loaded, setLoaded] = useState(false);
   const [status, setStatus] = useState<SaveStatus>("Not saved");
@@ -55,7 +65,10 @@ export default function Playground({
 
   const { csv, css } = data[view];
   const themeList: ThemeOption[] = view === "table" ? themes : resumeThemes;
-  const theme = themeList.find((t) => t.css === css);
+  const theme =
+    themeList.find((t) => t.id === selectedThemeIds[view]) ??
+    themeList.find((t) => t.css === css) ??
+    themeList[0];
   const resumeLayout =
     theme?.id === "resume-graphic"
       ? "graphic"
@@ -64,10 +77,39 @@ export default function Playground({
         : theme?.id === "resume-uiux"
           ? "uiux"
           : undefined;
+  const candidates = useMemo(
+    () => (view === "resume" ? importCandidateResumes(csv) : null),
+    [csv, view],
+  );
+
+  const activeCandidateIndex =
+    candidates && candidates.length > 0
+      ? Math.min(candidateIndex, candidates.length - 1)
+      : 0;
+
+  const resumeCsv = candidates?.[activeCandidateIndex]?.csv ?? csv;
+
+  const resumePhoto = useMemo(
+    () =>
+      parseCsv(resumeCsv).find(
+        (row) => row[0]?.trim().toLowerCase() === "photo",
+      )?.[4]?.trim() ?? "",
+    [resumeCsv],
+  );
+
+  const previewPhoto = photo;
 
   // Restore saved work after mount (avoids SSR hydration mismatch).
   useEffect(() => {
     const saved = restore();
+    const savedResumeTheme =
+      resumeThemes.find((theme) => theme.id === saved.work.resume?.themeId) ??
+      resumeThemes.find((theme) => theme.css === saved.work.resume?.css);
+
+    const plainTheme =
+      resumeThemes.find((theme) => theme.id === "resume-classic") ??
+      resumeThemes[0];
+
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setData((current) => ({
       table: {
@@ -79,22 +121,38 @@ export default function Playground({
         css: saved.work.resume?.css ?? current.resume.css,
       },
     }));
-    if (saved.view) setView(saved.view);
+    setSelectedThemeIds({
+      table:
+        themes.find((theme) => theme.id === saved.work.table?.themeId)?.id ??
+        themes.find((theme) => theme.css === saved.work.table?.css)?.id ??
+        themes[0]?.id ??
+        "",
+      resume:
+        savedResumeTheme?.id ?? plainTheme?.id ?? resumeThemes[0]?.id ?? "",
+    });
+    if (saved.view && (FEATURES.table || saved.view !== "table")) {
+      setView(saved.view);
+    }
     if (saved.work.table || saved.work.resume) setStatus("Saved");
     if (saved.sidebar) setSidebarWidth(saved.sidebar);
     if (saved.photo) setPhoto(saved.photo);
     setLoaded(true);
-  }, []);
+  }, [themes, resumeThemes]);
 
   // Autosave shortly after the user stops typing, once saved values were restored.
   useEffect(() => {
     if (!loaded) return;
     const t = setTimeout(
-      () => setStatus(persist(view, csv, css) ? "Saved" : "Not saved"),
+      () =>
+        setStatus(
+          persist(view, csv, css, selectedThemeIds[view])
+            ? "Saved"
+            : "Not saved",
+        ),
       AUTOSAVE_MS,
     );
     return () => clearTimeout(t);
-  }, [view, csv, css, loaded]);
+  }, [view, csv, css, selectedThemeIds, loaded]);
 
   function resizeSidebar(width: number) {
     const max = Math.max(SIDEBAR_MIN, window.innerWidth - PREVIEW_MIN);
@@ -119,16 +177,17 @@ export default function Playground({
       const document =
         view === "table"
           ? withTools(buildDocument(csv, css))
-          : buildResumeDocument(csv, css, photo, resumeLayout);
+          : buildResumeDocument(resumeCsv, css, previewPhoto, resumeLayout);
       return document.replace(/\r\n?/g, "\n");
     },
-    [view, csv, css, photo, resumeLayout],
+    [view, csv, resumeCsv, css, previewPhoto, resumeLayout],
   );
 
   async function onUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     e.target.value = "";
     if (!file) return;
+    if (view === "resume") setCandidateIndex(0);
     onCsvChange(await file.text());
   }
 
@@ -151,7 +210,7 @@ export default function Playground({
   const staticDoc = () =>
     view === "table"
       ? buildDocument(csv, css, false)
-      : buildResumeDocument(csv, css, photo, resumeLayout);
+      : buildResumeDocument(resumeCsv, css, previewPhoto, resumeLayout);
 
   return (
     <div className="flex h-dvh flex-col overflow-hidden bg-sunken">
@@ -162,7 +221,7 @@ export default function Playground({
           <span className="whitespace-nowrap text-[15px] font-semibold text-ink">Untitled project</span>
           <span className="whitespace-nowrap font-mono text-[12px] text-ink3">{status}</span>
         </div>
-        <ViewSwitch value={view} onChange={setView} />
+        {FEATURES.table && <ViewSwitch value={view} onChange={setView} />}
         <div className="hidden min-w-px flex-1 lg:block" />
 
         <input ref={fileInput} type="file" accept={CSV_ACCEPT} hidden onChange={onUpload} />
@@ -170,14 +229,30 @@ export default function Playground({
           <UploadIcon />
           Upload
         </Button>
-        <Button onClick={() => setStatus(persist(view, csv, css) ? "Saved" : "Not saved")}>
-          <SaveIcon />
-          Save
-        </Button>
+        {FEATURES.auth && (
+          <Button
+            onClick={() =>
+              setStatus(
+                persist(view, csv, css, selectedThemeIds[view])
+                  ? "Saved"
+                  : "Not saved",
+              )
+            }
+          >
+            <SaveIcon />
+            Save
+          </Button>
+        )}
         <ExportMenu view={view} html={doc} csv={csv} staticHtml={staticDoc()} />
-        <Button variant="ghost" disabled title="Accounts aren't available in the client-only MVP">
-          Sign in
-        </Button>
+        {FEATURES.auth && (
+          <Button
+            variant="ghost"
+            disabled
+            title="Accounts aren't available in the client-only MVP"
+          >
+            Sign in
+          </Button>
+        )}
       </header>
 
       <main className="flex min-h-0 flex-1 flex-col gap-[8px] overflow-y-auto p-[8px] lg:flex-row lg:gap-0 lg:overflow-hidden">
@@ -190,7 +265,26 @@ export default function Playground({
             filename={view === "table" ? "data.csv" : "resume.csv"}
             action={
               view === "resume" ? (
-                <PhotoButton hasPhoto={photo !== ""} onPick={onPhoto} onRemove={onRemovePhoto} />
+                <div className="flex items-center gap-[6px]">
+                  {candidates && candidates.length > 1 && (
+                    <Select
+                      label="Candidate"
+                      value={String(activeCandidateIndex)}
+                      display={`Candidate: ${candidates[activeCandidateIndex]?.name ?? ""}`}
+                      onChange={(value) => setCandidateIndex(Number(value))}
+                      options={candidates.map((candidate, index) => ({
+                        value: String(index),
+                        label: candidate.name,
+                      }))}
+                    />
+                  )}
+                  <PhotoButton
+                    hasPhoto={photo !== "" || Boolean(resumePhoto)}
+                    canRemove={photo !== ""}
+                    onPick={onPhoto}
+                    onRemove={onRemovePhoto}
+                  />
+                </div>
               ) : undefined
             }
             language="plaintext"
@@ -210,6 +304,10 @@ export default function Playground({
                 onChange={(id) => {
                   const nextTheme = themeList.find((t) => t.id === id);
                   if (!nextTheme) return;
+                  setSelectedThemeIds((current) => ({
+                    ...current,
+                    [view]: id,
+                  }));
                   setCss(nextTheme.css);
                   if (view === "resume" && nextTheme.sample && isResumeSample(csv)) {
                     setCsv(nextTheme.sample);
