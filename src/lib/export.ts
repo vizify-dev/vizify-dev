@@ -64,23 +64,33 @@ export function separateHtmlAssets(
 /**
  * Splits wide tables into printable column groups, keeping the first column in each group.
  */
-function splitWideTable(doc: Document, maxWidth = 980): void {
-  const table = doc.querySelector<HTMLTableElement>(".cssv-scroll > table");
-  const originalContainer = table?.parentElement;
-  const headerRow = table?.tHead?.rows[0];
-  if (!table || !originalContainer || !headerRow) return;
+export function groupPrintableColumns(
+  columnWidths: number[],
+  tableWidth: number,
+  maxWidth = 980,
+): number[][] {
+  const dataColumns = Array.from({ length: Math.max(0, columnWidths.length - 1) }, (_, index) =>
+    index + 1,
+  );
+  if (dataColumns.length === 0 || tableWidth <= maxWidth) return [dataColumns];
 
-  const columnWidths = Array.from(headerRow.cells, (cell) => cell.getBoundingClientRect().width);
-  if (columnWidths.reduce((total, width) => total + width, 0) <= maxWidth) return;
-
-  const firstColumnWidth = columnWidths[0] ?? 0;
+  const firstColumnWidth = Math.min(
+    columnWidths[0] && columnWidths[0] > 0 ? columnWidths[0] : maxWidth / 5,
+    maxWidth / 3,
+  );
+  const fallbackWidth = (tableWidth - firstColumnWidth) / dataColumns.length;
+  const maxDataColumnWidth = maxWidth - firstColumnWidth;
   const groups: number[][] = [];
   let group: number[] = [];
   let groupWidth = firstColumnWidth;
 
-  for (let column = 1; column < columnWidths.length; column += 1) {
-    const width = columnWidths[column] ?? 0;
-    if (group.length > 0 && groupWidth + width > maxWidth) {
+  for (const column of dataColumns) {
+    const measuredWidth = columnWidths[column];
+    const width = Math.min(
+      measuredWidth && measuredWidth > 0 ? measuredWidth : fallbackWidth,
+      maxDataColumnWidth,
+    );
+    if (group.length > 0 && (groupWidth + width > maxWidth || group.length >= 5)) {
       groups.push(group);
       group = [];
       groupWidth = firstColumnWidth;
@@ -89,11 +99,43 @@ function splitWideTable(doc: Document, maxWidth = 980): void {
     groupWidth += width;
   }
   if (group.length > 0) groups.push(group);
-  if (groups.length < 2) return;
+  return groups;
+}
+
+function splitWideTable(doc: Document, maxWidth = 980): void {
+  const table = doc.querySelector<HTMLTableElement>(".cssv-scroll > table");
+  const originalContainer = table?.parentElement;
+  const headerRow = table?.tHead?.rows[0];
+  if (!table || !originalContainer || !headerRow) return;
+
+  const columnWidths = Array<number>(headerRow.cells.length).fill(0);
+  for (const row of Array.from(table.rows)) {
+    Array.from(row.cells).forEach((cell, column) => {
+      columnWidths[column] = Math.max(
+        columnWidths[column] ?? 0,
+        cell.getBoundingClientRect().width,
+      );
+    });
+  }
+
+  const measuredTableWidth = Math.max(
+    table.scrollWidth,
+    table.getBoundingClientRect().width,
+    columnWidths.reduce((total, width) => total + width, 0),
+  );
+  const tableWidth = measuredTableWidth > 0 ? measuredTableWidth : maxWidth + 1;
+  const groups = groupPrintableColumns(columnWidths, tableWidth, maxWidth);
+  if (groups.length < 2) {
+    table.style.width = "100%";
+    table.style.tableLayout = "fixed";
+    return;
+  }
 
   groups.forEach((columns, index) => {
     const includedColumns = new Set([0, ...columns]);
     const partTable = table.cloneNode(true) as HTMLTableElement;
+    partTable.style.width = "100%";
+    partTable.style.tableLayout = "fixed";
 
     for (const row of Array.from(partTable.rows)) {
       Array.from(row.cells).forEach((cell, column) => {

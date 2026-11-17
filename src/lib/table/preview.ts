@@ -39,7 +39,7 @@ export function buildDocument(csv: string, css: string, interactive = true): str
     "/* INTERACTIVE_CSS */": interactive ? INTERACTIVE_CSS : "",
     "/* THEME_CSS */": safeCss,
     "/* PRINT_CSS */": interactive ? "" : PRINT_CSS,
-    "<!-- TABLE -->": csvToHtmlTable(csv),
+    "<!-- TABLE -->": csvToHtmlTable(csv, interactive),
     "<!-- SCRIPT -->": interactive ? INTERACTIVE_SCRIPT : "",
   };
   return Object.entries(values).reduce(
