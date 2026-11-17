@@ -11,8 +11,8 @@ import PHOTO_HTML from "./templates/photo.html";
 import META_ROW_HTML from "./templates/meta-row.html";
 import FOOT_HTML from "./templates/foot.html";
 import ERROR_HTML from "./templates/error.html";
-import INTERACTIVE_CSS from "./styles/interactive.css?raw";
-import PRINT_CSS from "./styles/print.css?raw";
+import INTERACTIVE_CSS from "./styles/interactive.css";
+import PRINT_CSS from "./styles/print.css";
 import SCRIPT_HTML from "./runtime/cards.script.html";
 import RUNTIME from "./runtime/cards.runtime.generated.txt";
 

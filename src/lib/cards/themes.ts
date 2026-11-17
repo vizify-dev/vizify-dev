@@ -1,15 +1,15 @@
 import type { ThemeOption } from "@/lib/resume/resume";
-import BASE_CSS from "./styles/base.css?raw";
-import CORPORATE_CSS from "./styles/themes/corporate.css?raw";
-import MIDNIGHT_GOLD_CSS from "./styles/themes/midnight-gold.css?raw";
-import CAMPUS_CSS from "./styles/themes/campus.css?raw";
-import MINIMAL_MONO_CSS from "./styles/themes/minimal-mono.css?raw";
-import GRADIENT_POP_CSS from "./styles/themes/gradient-pop.css?raw";
-import ECO_GREEN_CSS from "./styles/themes/eco-green.css?raw";
-import CLEAN_CSS from "./styles/themes/clean.css?raw";
-import DARK_CSS from "./styles/themes/dark.css?raw";
-import DUO_CSS from "./styles/themes/duo.css?raw";
-import PATTERN_CSS from "./styles/themes/pattern.css?raw";
+import BASE_CSS from "./styles/base.css";
+import CORPORATE_CSS from "./styles/themes/corporate.css";
+import MIDNIGHT_GOLD_CSS from "./styles/themes/midnight-gold.css";
+import CAMPUS_CSS from "./styles/themes/campus.css";
+import MINIMAL_MONO_CSS from "./styles/themes/minimal-mono.css";
+import GRADIENT_POP_CSS from "./styles/themes/gradient-pop.css";
+import ECO_GREEN_CSS from "./styles/themes/eco-green.css";
+import CLEAN_CSS from "./styles/themes/clean.css";
+import DARK_CSS from "./styles/themes/dark.css";
+import DUO_CSS from "./styles/themes/duo.css";
+import PATTERN_CSS from "./styles/themes/pattern.css";
 
 export const LEGACY_CARD_THEME_IDS: string[] = [
   "cards-clean",
