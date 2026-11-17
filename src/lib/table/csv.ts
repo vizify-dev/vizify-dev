@@ -22,7 +22,7 @@ function replaceToken(template: string, token: string, value: string): string {
 }
 
 /** Converts raw CSV into a semantic HTML table. The first row becomes the header. */
-export function csvToHtmlTable(csv: string): string {
+export function csvToHtmlTable(csv: string, interactiveCells = true): string {
   const rows = parseCsv(csv, "auto");
   if (rows.length === 0) {
     return '<div class="cssv-empty" role="status">No data yet. Upload a CSV to get started.</div>';
@@ -51,8 +51,11 @@ export function csvToHtmlTable(csv: string): string {
         "<!-- ROW_CELLS -->",
         pad(row)
           .map((value) => {
+            const escapedValue = escapeHtml(value);
             const content = value
-              ? `<button class="cssv-cell" type="button" aria-expanded="false" title="Show full cell text">${escapeHtml(value)}</button>`
+              ? interactiveCells
+                ? `<button class="cssv-cell" type="button" aria-expanded="false" title="Show full cell text">${escapedValue}</button>`
+                : `<span class="cssv-cell">${escapedValue}</span>`
               : "";
             return replaceToken(
               replaceToken(
