@@ -8,7 +8,8 @@
     "prebuild": "prisma generate && node scripts/build-table-tools-runtime.mjs",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "test": "vitest run"
   },
   "dependencies": {
     "@headlessui/react": "^2.2.10",
@@ -17,7 +18,7 @@
     "@prisma/client": "^7.10.1",
     "better-auth": "^1.7.14",
     "dotenv": "^18.0.9",
-    "next": "16.4.2",
+    "next": "16.4.6",
     "pg": "^8.23.1",
     "react": "19.3.0",
     "react-dom": "19.3.0",
@@ -29,11 +30,13 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
-    "eslint-config-next": "16.4.2",
+    "eslint-config-next": "16.4.6",
     "prisma": "^7.10.1",
     "sass": "^1.106.1",
     "tailwindcss": "^4",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vite": "^8.3.6",
+    "vitest": "^5.1.0"
   },
   "packageManager": "pnpm@10.29.3"
 }

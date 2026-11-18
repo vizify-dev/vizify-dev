@@ -1,0 +1,6 @@
+:root{--page:#12081f;--ink:#fff;--muted:rgba(255,255,255,.7);--card:#1b1030;--c1:#ff3d9a;--c2:#7a5cff;--on:#fff;--radius:5mm;--shadow:0 10px 30px rgba(122,92,255,.35)}
+h1{color:#fff}
+.id-card{background:linear-gradient(180deg,#1b1030,#2a1550)}
+.id-photo{border-color:#1b1030;box-shadow:0 0 0 .6mm #ff3d9a}
+.id-role{color:#ff9ad0}
+.id-foot{border-top-color:rgba(255,255,255,.25)}

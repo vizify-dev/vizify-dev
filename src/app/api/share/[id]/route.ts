@@ -1,4 +1,3 @@
-import { buildIdCardDocument } from "@/lib/cards";
 import { buildCardsDocument } from "@/lib/cards/render";
 import { buildCertificatesDocument } from "@/lib/certificates/render";
 import { buildBoardDocument } from "@/lib/jiraboard/render";
@@ -46,9 +45,7 @@ function renderProject(project: {
     case "board":
       return buildBoardDocument(project.csv, project.css, project.themeId ?? undefined, false);
     case "cards":
-      return project.themeId?.startsWith("id-")
-        ? buildIdCardDocument(project.csv, project.css)
-        : buildCardsDocument(project.csv, project.css, false);
+      return buildCardsDocument(project.csv, project.css, false, project.themeId ?? undefined);
     case "certificates":
       return buildCertificatesDocument(project.csv, project.css, project.themeId ?? undefined, false);
   }

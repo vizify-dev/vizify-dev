@@ -1,0 +1,2 @@
+:root{--page:linear-gradient(135deg,#4f46e5,#9333ea 55%,#ec4899);--ink:#fff;--h1:#fff;--sub:rgba(255,255,255,.75);--lane:rgba(255,255,255,.14);--lane-t:rgba(255,255,255,.85);--lane-r:16px;--lane-pad:10px;--lane-b:1px solid rgba(255,255,255,.25);--card:rgba(255,255,255,.2);--card-r:12px;--card-b:1px solid rgba(255,255,255,.3);--shadow:0 8px 24px rgba(0,0,0,.15);--gap:10px;--blur:blur(14px);--pill:rgba(255,255,255,.25);--pill-ink:#fff}
+.card:hover{filter:none;background:rgba(255,255,255,.3)}

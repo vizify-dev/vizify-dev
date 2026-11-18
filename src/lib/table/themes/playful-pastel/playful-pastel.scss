@@ -67,32 +67,9 @@ td {
     border-radius: 22px 0 0 22px;
     font-weight: 700;
     font-size: 15px;
-
-    &::before {
-      content: "📋";
-      display: inline-grid;
-      place-items: center;
-      width: 44px;
-      height: 44px;
-      margin-right: 14px;
-      vertical-align: middle;
-      border-radius: 50%;
-      background: #e0f0ff;
-      font-size: 20px;
-    }
   }
 
   &:last-child { border-radius: 0 22px 22px 0; }
-}
-
-tr[data-status="in-progress"] td:first-child::before {
-  content: "💡";
-  background: #fff1dc;
-}
-
-tr[data-status="done"] td:first-child::before {
-  content: "✅";
-  background: #e3f6ea;
 }
 
 .status-pill {

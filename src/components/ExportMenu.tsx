@@ -19,7 +19,7 @@ export default function ExportMenu({ view, html, csv, staticHtml }: ExportMenuPr
       separateHtmlAssets(
         html,
         `${baseName}.css`,
-        view === "table" ? `${baseName}.js` : undefined,
+        view !== "resume" ? `${baseName}.js` : undefined,
       ),
     [baseName, html, view],
   );
@@ -29,7 +29,7 @@ export default function ExportMenu({ view, html, csv, staticHtml }: ExportMenuPr
       onDownloadHtml={() => download(files.html, "text/html", `${baseName}.html`)}
       onDownloadCss={() => download(files.css, "text/css;charset=utf-8", `${baseName}.css`)}
       onDownloadJavascript={
-        view === "table"
+        view !== "resume"
           ? () =>
               download(
                 files.javascript,
@@ -39,7 +39,12 @@ export default function ExportMenu({ view, html, csv, staticHtml }: ExportMenuPr
           : undefined
       }
       onDownloadCsv={() => download(csv, "text/csv;charset=utf-8", `${baseName}.csv`)}
-      onDownloadPdf={() => printHtml(staticHtml, { fitResumeToPage: view === "resume" })}
+      onDownloadPdf={() =>
+        printHtml(staticHtml, {
+          fitResumeToPage: view === "resume",
+          fitTableWidth: view === "table",
+        })
+      }
       onCopyHtml={() => copyText(files.html)}
     />
   );

@@ -1,0 +1,6 @@
+:root{--page:#f4f4f5;--ink:#111;--muted:#6b6b6b;--card:#fff;--c1:#111;--c2:#111;--on:#fff;--radius:2mm;--shadow:0 1px 3px rgba(0,0,0,.12);--photo-r:0}
+.id-top{height:14mm;background:#111;letter-spacing:.18em}
+.id-photo{margin-top:4mm;border:.3mm solid #111;background:#e5e5e5}
+.id-initials{color:#111}
+.id-role{color:#111;text-transform:uppercase;letter-spacing:.12em;font-size:6.5pt}
+.id-card{border:.3mm solid #111}

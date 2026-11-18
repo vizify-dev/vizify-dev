@@ -74,42 +74,12 @@ td {
   &:first-child {
     border-radius: 16px 0 0 16px;
     font-weight: 500;
-
-    &::before {
-      content: "○";
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      width: 36px;
-      height: 36px;
-      margin-right: 14px;
-      vertical-align: middle;
-      font-size: 16px;
-      border-radius: 50%;
-      border: 1.5px solid #7dd3fc;
-      color: #0ea5e9;
-      background: #f0f9ff;
-    }
   }
 
   &:last-child { border-radius: 0 16px 16px 0; }
 }
 
 tbody tr:hover td { background: rgba(255, 255, 255, 0.9); }
-
-tr[data-status="done"] td:first-child::before {
-  content: "✓";
-  border-color: #86efac;
-  color: #16a34a;
-  background: #f0fdf4;
-}
-
-tr[data-status="in-progress"] td:first-child::before {
-  content: "◔";
-  border-color: #c4b5fd;
-  color: #7c3aed;
-  background: #faf5ff;
-}
 
 .status-pill::before {
   content: "";

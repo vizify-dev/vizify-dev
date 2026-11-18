@@ -14,7 +14,7 @@ import Select from "@/components/Select";
 import TableEditor from "@/components/TableEditor";
 import ViewSwitch, { type View } from "@/components/ViewSwitch";
 import { DEFAULT_CSV } from "@/lib/table/defaults";
-import { copyText, download, printHtml } from "@/lib/export";
+import { copyText } from "@/lib/export";
 import { fileToPhoto } from "@/lib/resume/photo";
 import { buildDocument } from "@/lib/table/preview";
 import { buildResumeDocument } from "@/lib/resume";
@@ -42,8 +42,7 @@ import { buildBoardDocument } from "@/lib/jiraboard/render";
 import { BOARD_CSV } from "@/lib/jiraboard/sample";
 import { buildCardsDocument } from "@/lib/cards/render";
 import { CARDS_CSV, LEGACY_CARDS_CSV } from "@/lib/cards/sample";
-import { cardsThemeOptions } from "@/lib/cards/themes";
-import { buildIdCardDocument, ID_CARD_THEMES } from "@/lib/cards";
+import { cardsThemeOptions, migrateLegacyCardsThemeCss } from "@/lib/cards/themes";
 import { buildCertificatesDocument } from "@/lib/certificates/render";
 import { CERTIFICATES_CSV } from "@/lib/certificates/sample";
 import { certificatesThemeOptions } from "@/lib/certificates/themes";
@@ -63,7 +62,7 @@ const SIDEBAR_MIN = 280;
 const PREVIEW_MIN = 360;
 const AUTOSAVE_MS = 500;
 const CLOUD_AUTOSAVE_MS = 1500;
-const CARD_THEME_OPTIONS = [...ID_CARD_THEMES, ...cardsThemeOptions];
+const CARD_THEME_OPTIONS = cardsThemeOptions;
 const EDIT_LABELS: Record<View, string> = {
   table: "Edit table",
   resume: "Edit resume data",
@@ -185,6 +184,7 @@ export default function Playground({
             ? CARD_THEME_OPTIONS
             : certificatesThemeOptions;
   const theme = themeList.find((t) => t.css === css);
+  const themeId = theme?.id;
   const resumeLayout =
     theme?.id === "resume-graphic"
       ? "graphic"
@@ -267,10 +267,16 @@ export default function Playground({
       const next = { ...prev };
       for (const v of VIEWS) {
         const r = saved.work[v];
-        if (r) next[v] = { csv: r.csv ?? prev[v].csv, css: r.css ?? prev[v].css };
-      }
-      if (saved.work.cards?.csv?.replace(/\r\n/g, "\n") === LEGACY_CARDS_CSV) {
-        next.cards = { ...next.cards, csv: CARDS_CSV };
+        if (!r) continue;
+        const csv =
+          v === "cards" && r.csv?.replace(/\r\n/g, "\n") === LEGACY_CARDS_CSV
+            ? CARDS_CSV
+            : (r.csv ?? prev[v].csv);
+        const css = r.css ?? prev[v].css;
+        next[v] = {
+          csv,
+          css: v === "cards" ? migrateLegacyCardsThemeCss(css) : css,
+        };
       }
       return next;
     });
@@ -560,19 +566,20 @@ export default function Playground({
   const setCss = update("css");
 
   const doc = useMemo(
-    () =>
-      view === "table"
-        ? withTools(buildDocument(csv, css))
-        : view === "board"
-          ? buildBoardDocument(csv, css, theme?.id)
-          : view === "cards"
-            ? theme?.id.startsWith("id-")
-              ? buildIdCardDocument(csv, css)
-              : buildCardsDocument(csv, css)
-            : view === "certificates"
-              ? buildCertificatesDocument(csv, css, theme?.id)
-              : buildResumeDocument(csv, css, photo, resumeLayout),
-    [view, csv, css, photo, resumeLayout, theme?.id],
+    () => {
+      const document =
+        view === "table"
+          ? withTools(buildDocument(csv, css))
+          : view === "board"
+            ? buildBoardDocument(csv, css, themeId)
+            : view === "cards"
+              ? buildCardsDocument(csv, css, true, themeId)
+              : view === "certificates"
+                ? buildCertificatesDocument(csv, css, themeId)
+                : buildResumeDocument(csv, css, photo, resumeLayout);
+      return document.replace(/\r\n?/g, "\n");
+    },
+    [view, csv, css, photo, resumeLayout, themeId],
   );
   const previewDoc = useMemo(
     () => (user ? withEditing(doc, scrollY) : doc),
@@ -680,20 +687,18 @@ export default function Playground({
     view === "table"
       ? buildDocument(csv, css, false)
       : view === "board"
-        ? buildBoardDocument(csv, css, theme?.id, false)
+        ? buildBoardDocument(csv, css, themeId, false)
         : view === "cards"
-          ? theme?.id.startsWith("id-")
-            ? buildIdCardDocument(csv, css)
-            : buildCardsDocument(csv, css, false)
+          ? buildCardsDocument(csv, css, false, themeId)
           : view === "certificates"
-            ? buildCertificatesDocument(csv, css, theme?.id, false)
+            ? buildCertificatesDocument(csv, css, themeId, false)
             : buildResumeDocument(csv, css, photo, resumeLayout);
 
   return (
-    <div className="flex h-screen flex-col bg-sunken">
-      <header className="flex h-[56px] shrink-0 items-center gap-[10px] border-b border-line bg-surface px-[16px]">
+    <div className="flex h-dvh flex-col overflow-hidden bg-sunken">
+      <header className="flex min-h-[56px] shrink-0 flex-wrap items-center gap-[8px] border-b border-line bg-surface px-[10px] py-[8px] sm:px-[16px] lg:h-[56px] lg:flex-nowrap lg:gap-[12px]">
         <Logo />
-        <div className="h-[24px] w-px shrink-0 bg-line" />
+        <div className="hidden h-[24px] w-px shrink-0 bg-line lg:block" />
 
         <div className="flex min-w-0 items-center gap-[8px]">
           <ProjectTitle value={projectName} onCommit={renameProject} />
@@ -711,17 +716,14 @@ export default function Playground({
         </div>
 
         <div className="hidden h-[24px] w-px shrink-0 bg-line md:block" />
-        <div className="hidden md:block">
-          <ViewSwitch
-            value={view}
-            onChange={(nextView) => {
-              setScrollY(0);
-              setView(nextView);
-            }}
-          />
-        </div>
-
-        <div className="min-w-px flex-1" />
+        <ViewSwitch
+          value={view}
+          onChange={(nextView) => {
+            setScrollY(0);
+            setView(nextView);
+          }}
+        />
+        <div className="hidden min-w-px flex-1 lg:block" />
 
         <input ref={fileInput} type="file" accept={CSV_ACCEPT} hidden onChange={onUpload} />
 
@@ -806,10 +808,10 @@ export default function Playground({
         </Button>
 
         <ExportMenu
-          onDownloadHtml={() => download(doc, "text/html", `vizify-${view}.html`)}
-          onDownloadCsv={() => download(csv, "text/csv;charset=utf-8", `vizify-${view}.csv`)}
-          onDownloadPdf={() => printHtml(staticDoc(), { fitResumeToPage: view === "resume" })}
-          onCopyHtml={() => copyText(doc)}
+          view={view}
+          html={doc}
+          csv={csv}
+          staticHtml={staticDoc()}
         />
         <AuthButton
           key={authRequestKey}
@@ -827,10 +829,10 @@ export default function Playground({
         />
       </header>
 
-      <main className="flex min-h-0 flex-1 flex-col gap-[8px] p-[8px] md:flex-row md:gap-0">
+      <main className="flex min-h-0 flex-1 flex-col gap-[8px] overflow-y-auto p-[8px] lg:flex-row lg:gap-0 lg:overflow-hidden">
         <div
           style={{ "--sidebar-w": `${sidebarWidth}px` } as React.CSSProperties}
-          className="flex min-h-0 w-full flex-1 flex-col gap-[8px] md:w-(--sidebar-w) md:flex-none"
+          className="flex min-h-[480px] w-full shrink-0 flex-col gap-[8px] sm:min-h-[560px] lg:min-h-0 lg:w-(--sidebar-w) lg:flex-none"
         >
           <EditorPane
             label="DATA"
@@ -895,7 +897,7 @@ export default function Playground({
           onReset={() => resizeSidebar(SIDEBAR_DEFAULT)}
         />
 
-        <section className="flex min-h-0 min-w-px flex-1 flex-col overflow-clip rounded-[12px] bg-surface">
+        <section className="flex min-h-[65vh] min-w-px shrink-0 flex-col overflow-clip rounded-[12px] bg-surface lg:min-h-0 lg:flex-1">
           <div className="flex h-[40px] shrink-0 items-center justify-between gap-[12px] border-b border-line bg-paper px-[16px] font-mono text-[12px] text-ink3">
             <span className="font-medium tracking-[0.72px]">PREVIEW</span>
             <span className="hidden sm:block">{user ? "Click any text to edit" : "Sign in to edit"}</span>

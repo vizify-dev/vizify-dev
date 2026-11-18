@@ -11,6 +11,12 @@ const INTERACTIVE_SCRIPT = INTERACTIVE_SCRIPT_HTML.replace(
   () => INTERACTIVE_RUNTIME,
 );
 
+const LEGACY_ROW_MARKER_SIGNATURES = [
+  'content: "○";',
+  "box-shadow: 0 0 10px #60a5fa;",
+  'content: "📋";',
+];
+
 function replace(template: string, token: string, value: string): string {
   return template.replace(token, () => value);
 }
@@ -21,7 +27,13 @@ function replace(template: string, token: string, value: string): string {
  */
 
 export function buildDocument(csv: string, css: string, interactive = true): string {
-  const safeCss = css.replace(/<\/style/gi, "<\\/style");
+  const hasLegacyRowMarkers = LEGACY_ROW_MARKER_SIGNATURES.some((signature) =>
+    css.includes(signature),
+  );
+  const themeCss = hasLegacyRowMarkers
+    ? `${css}\n.cssv-scroll > table tbody td:first-child::before { content: none !important; display: none !important; }`
+    : css;
+  const safeCss = themeCss.replace(/<\/style/gi, "<\\/style");
   const values: Record<string, string> = {
     "/* BASE_CSS */": BASE_CSS,
     "/* INTERACTIVE_CSS */": interactive ? INTERACTIVE_CSS : "",

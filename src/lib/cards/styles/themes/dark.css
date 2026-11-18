@@ -1,0 +1,22 @@
+/* Columns: Photo, Name, Role, Company, Tagline, Website, ID, Expires, Phone, Email */
+table td.cssv-dup{background:none!important}
+table,tbody{display:block;border:0}
+thead{display:none}
+tbody{display:grid;grid-template-columns:repeat(auto-fill,320px);gap:32px;justify-content:center}
+tr{display:block;position:relative;width:320px;height:480px;overflow:hidden;isolation:isolate}
+td{position:absolute;display:none;margin:0;padding:0;border:0;z-index:1}
+td img{display:block;width:100%;height:100%;object-fit:cover}
+
+body{background:#2b2c2e}
+tr{background:#3b3c3b;border-radius:22px;color:#fff;box-shadow:0 24px 48px #0006}
+tr::before{content:"";position:absolute;inset:0;z-index:0;background:linear-gradient(225deg,#5e5f5d 0,#5e5f5d 36%,transparent 36.1%)}
+td:nth-child(1){display:block;right:0;bottom:0;width:78%;height:72%;z-index:0}
+td:nth-child(1) img{object-position:top}
+td:nth-child(1):empty{background:#555}
+td:nth-child(2){display:block;left:24px;top:36px;width:55%;font-size:32px;line-height:1.05;font-weight:300;letter-spacing:.02em}
+td:nth-child(3){display:block;left:24px;top:124px;font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:#d6d3c4}
+td:nth-child(3)::after{content:"";display:block;width:34px;height:2px;margin-top:10px;background:#d6d3c4}
+td:nth-child(7){display:block;left:24px;bottom:44px;font-size:12px;font-weight:700;text-shadow:0 1px 6px #0008}
+td:nth-child(7)::before{content:"EMPLOYEE ID: "}
+td:nth-child(8){display:block;left:24px;bottom:26px;font-size:12px;text-shadow:0 1px 6px #0008}
+td:nth-child(8)::before{content:"Expires: "}

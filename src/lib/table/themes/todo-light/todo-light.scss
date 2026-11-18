@@ -1,0 +1,440 @@
+@use "sass:list";
+
+$ink: #27344a;
+$muted: #738197;
+$line: #e4e9f1;
+$green: #288c6c;
+$green-soft: #e0f5e9;
+$cream: #f8f9fd;
+$coral: #df6671;
+$coral-soft: #fff0f1;
+$ring: #c8d3df;
+
+$tones: (
+  "green": ($green, true, ("approved", "active", "done", "paid", "completed")),
+  "amber": (
+    #a87516,
+    true,
+    ("awaiting approval", "awaiting", "pending", "in progress", "in_progress", "in-progress")
+  ),
+  "coral": ($coral, true, ("rejected", "overdue", "failed", "blocked", "yesterday")),
+  "muted": ($muted, false, ("waiting", "n/a", "draft", "to do", "low")),
+);
+
+$flagged: "rejected", "overdue", "failed", "blocked", "yesterday";
+
+:root {
+  --vz-title: "My tasks";
+}
+
+html {
+  min-height: 100%;
+  background:
+    radial-gradient(circle at 8% 5%, rgba(125, 111, 240, 0.1), transparent 27%),
+    radial-gradient(circle at 92% 18%, rgba(49, 180, 191, 0.1), transparent 24%),
+    radial-gradient(circle at 80% 95%, rgba(244, 171, 120, 0.08), transparent 28%),
+    $cream;
+}
+
+body {
+  box-sizing: border-box;
+  width: min(1320px, calc(100% - 48px));
+  min-height: 100vh;
+  margin: 0 auto;
+  padding: 28px 0 20px;
+  color: $ink;
+  font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+
+  .vz-bar {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 24px;
+    margin-bottom: 24px;
+  }
+
+  .vz-title {
+    margin: 0;
+    color: #26344a;
+    font-size: clamp(32px, 3.2vw, 44px);
+    font-weight: 690;
+    letter-spacing: 0.035em;
+    line-height: 0.98;
+    text-transform: uppercase;
+    white-space: nowrap;
+
+    &::before {
+      display: block;
+      margin-bottom: 14px;
+      color: #7568d8;
+      content: "Make room for your best work.";
+      font-size: 12px;
+      font-weight: 650;
+      letter-spacing: 0.01em;
+      line-height: 1.2;
+      text-transform: none;
+    }
+  }
+
+  .vz-bar .vz-title:empty {
+    display: block;
+
+    &::after {
+      content: var(--vz-title);
+      display: block;
+      margin-top: 5px;
+      color: #26344a;
+      font-size: clamp(32px, 3.2vw, 44px);
+      font-weight: 690;
+      letter-spacing: 0.035em;
+      line-height: 0.98;
+      text-transform: uppercase;
+    }
+  }
+
+  .vz-search {
+    width: min(310px, 35%);
+    max-width: 310px;
+    height: 42px;
+    padding: 0 13px;
+    border: 1px solid #dfe5ee;
+    border-radius: 7px;
+    background: #fff;
+    color: $muted;
+
+    &:focus-within {
+      border-color: #62aaa0;
+      box-shadow: 0 0 0 3px rgba(40, 140, 108, 0.12);
+    }
+
+    input {
+      color: #435048;
+      font-size: 12px;
+    }
+
+    kbd {
+      border-color: $line;
+      border-radius: 5px;
+      color: $muted;
+    }
+  }
+}
+
+.cssv-scroll {
+  border: 1px solid #e0e6f0;
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: 0 16px 38px rgba(49, 66, 101, 0.08);
+}
+
+body:not(:has(.vz-bar)) .cssv-scroll::before {
+  display: block;
+  padding: 24px 24px 18px;
+  color: #26344a;
+  content: var(--vz-title);
+  font-size: clamp(28px, 3vw, 38px);
+  font-weight: 680;
+  letter-spacing: 0.035em;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.cssv-scroll > table {
+  border: 0;
+  border-radius: 14px;
+  border-spacing: 0;
+  background: #fff;
+  box-shadow: none;
+}
+
+th {
+  min-height: 43px;
+  padding: 14px 18px;
+  border-bottom: 1px solid $line;
+  background: #f0f5f8;
+  color: #63728a;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-align: left;
+  text-transform: uppercase;
+
+  &:hover {
+    color: $ink;
+  }
+}
+
+td {
+  height: 58px;
+  padding: 0 18px;
+  border-bottom: 1px solid #edf0ed;
+  color: #47544d;
+  font-size: 13px;
+  vertical-align: middle;
+  white-space: nowrap;
+
+  &:first-child {
+    font-weight: 500;
+  }
+}
+
+th:first-child,
+td:first-child {
+  padding-left: 20px;
+}
+
+.cssv-scroll .cssv-cell {
+  display: inline-block;
+  max-width: 320px;
+  vertical-align: middle;
+  line-height: 1.45;
+
+  &:focus-visible {
+    border-radius: 4px;
+    outline: 2px solid rgba(63, 117, 94, 0.45);
+    outline-offset: 3px;
+  }
+}
+
+th:first-child::before,
+td:first-child::before {
+  display: inline-block;
+  width: 15px;
+  height: 15px;
+  margin-right: 10px;
+  border: 1.5px solid $ring;
+  border-radius: 5px;
+  box-sizing: border-box;
+  content: "";
+  vertical-align: -2px;
+}
+
+tbody tr:nth-child(even) td {
+  background: #fafcff;
+}
+
+tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+tbody tr:hover td {
+  background: #f2fbf8;
+}
+
+table td.cssv-dup {
+  background: transparent !important;
+}
+
+tbody tr:hover td.cssv-dup {
+  background: #f2fbf8 !important;
+}
+
+td[data-v="pending" i],
+td[data-v="in progress" i],
+td[data-v="in_progress" i],
+td[data-v="in-progress" i],
+td[data-v="completed" i],
+td[data-v="done" i],
+td[data-v="to do" i],
+td[data-v="to_do" i],
+td[data-v="to-do" i] {
+  &::before {
+    display: none;
+  }
+
+  .cssv-cell {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    width: auto;
+    min-height: 25px;
+    padding: 3px 10px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 600;
+
+    &::before {
+      width: 6px;
+      height: 6px;
+      flex: 0 0 auto;
+      border-radius: 50%;
+      background: currentColor;
+      content: "";
+    }
+  }
+}
+
+td[data-v="pending" i] .cssv-cell,
+td[data-v="in progress" i] .cssv-cell,
+td[data-v="in_progress" i] .cssv-cell,
+td[data-v="in-progress" i] .cssv-cell {
+  background: #fff2d6;
+  color: #a87516;
+}
+
+td[data-v="completed" i] .cssv-cell,
+td[data-v="done" i] .cssv-cell {
+  background: $green-soft;
+  color: #267c5c;
+}
+
+td[data-v="in progress" i] .cssv-cell,
+td[data-v="in_progress" i] .cssv-cell,
+td[data-v="in-progress" i] .cssv-cell {
+  background: #e8e9ff;
+  color: #6157bf;
+}
+
+td[data-v="to do" i] .cssv-cell,
+td[data-v="to_do" i] .cssv-cell,
+td[data-v="to-do" i] .cssv-cell {
+  background: #eaf3fb;
+  color: #4d7395;
+}
+
+@each $name, $cfg in $tones {
+  $color: list.nth($cfg, 1);
+  $dot: list.nth($cfg, 2);
+
+  @each $value in list.nth($cfg, 3) {
+    td[data-v="#{$value}" i] {
+      color: $color;
+
+      @if $dot {
+        &::before {
+          display: inline-block;
+          width: 6px;
+          height: 6px;
+          margin-right: 7px;
+          border-radius: 50%;
+          background: currentColor;
+          content: "";
+          vertical-align: 1px;
+        }
+      }
+    }
+  }
+}
+
+td[data-v="pending" i]::before,
+td[data-v="in progress" i]::before,
+td[data-v="in_progress" i]::before,
+td[data-v="in-progress" i]::before,
+td[data-v="completed" i]::before,
+td[data-v="done" i]::before,
+td[data-v="to do" i]::before,
+td[data-v="to_do" i]::before,
+td[data-v="to-do" i]::before {
+  display: none;
+}
+
+@each $value in $flagged {
+  tbody tr:has(td[data-v="#{$value}" i]) td {
+    background: $coral-soft;
+
+    &:first-child {
+      box-shadow: inset 3px 0 0 $coral;
+    }
+  }
+}
+
+td[data-v="today" i] {
+  color: $green;
+}
+
+td[data-v="high" i],
+td[data-v="critical" i] {
+  color: $coral;
+}
+
+td[data-v="medium" i] {
+  color: #bd8219;
+}
+
+.cssv-sort {
+  width: 25px;
+  height: 25px;
+  margin-left: 6px;
+  border-radius: 6px;
+  color: #8793a7;
+  opacity: 0.85;
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease;
+}
+
+th:hover .cssv-sort {
+  color: #6157bf;
+}
+
+th[aria-sort="ascending"] .cssv-sort,
+th[aria-sort="descending"] .cssv-sort {
+  background: #e8e9ff;
+  color: #6157bf;
+}
+
+.cssv-stats {
+  border-color: $line;
+  border-radius: 9px;
+  background: #fff;
+  color: $ink;
+}
+
+.cssv-pager {
+  color: $muted;
+
+  button {
+    border-color: $line;
+    border-radius: 7px;
+    background: #fff;
+    color: $ink;
+
+    &:hover:not(:disabled) {
+      border-color: #b7c8bc;
+      background: #f3f7ff;
+    }
+
+    &:focus-visible {
+      outline-color: rgba(40, 140, 108, 0.5);
+    }
+  }
+}
+
+.cssv-pager button.on {
+  border-color: $green;
+  background: $green;
+  color: #fff;
+}
+
+@media (max-width: 680px) {
+  body {
+    width: calc(100% - 28px);
+    padding-top: 24px;
+
+    .vz-bar {
+      align-items: stretch;
+      flex-direction: column;
+      gap: 18px;
+      margin-bottom: 20px;
+    }
+
+    .vz-title {
+      font-size: clamp(34px, 9vw, 42px);
+    }
+
+    .vz-bar .vz-title:empty::after {
+      font-size: clamp(34px, 9vw, 42px);
+    }
+
+    .vz-search {
+      width: 100%;
+      max-width: none;
+    }
+  }
+
+  th,
+  td {
+    padding-right: 12px;
+    padding-left: 12px;
+  }
+}

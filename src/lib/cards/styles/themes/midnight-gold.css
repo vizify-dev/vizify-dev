@@ -1,0 +1,6 @@
+:root{--page:#0d0f14;--ink:#f5f0e1;--muted:#a09878;--card:#15181f;--c1:#d4af37;--c2:#8a6d1d;--on:#15181f;--radius:3mm;--shadow:0 8px 24px rgba(0,0,0,.5)}
+h1{color:#f5f0e1}
+.id-top{letter-spacing:.2em}
+.id-photo{border-color:#d4af37}
+.id-name{letter-spacing:.02em}
+.id-foot{border-top-color:rgba(212,175,55,.4)}

@@ -21,6 +21,7 @@
 /build
 /src/lib/table/tools/runtime.generated.txt
 /src/lib/table/preview/interactive.runtime.generated.txt
+/src/lib/cards/runtime/cards.runtime.generated.txt
 /src/lib/certificates/runtime/certificates.runtime.generated.txt
 
 # misc

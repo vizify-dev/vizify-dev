@@ -1,0 +1,4 @@
+:root{--page:#d9b382;--ink:#2b2b2b;--h1:#3b2a14;--sub:#5a4a35;--lane:transparent;--lane-t:#4a3520;--lane-r:0;--lane-pad:4px;--card-r:2px;--shadow:0 4px 10px rgba(0,0,0,.25);--gap:14px;--t-size:13px;--t-weight:700;--pill:rgba(0,0,0,.1);--pill-ink:#333}
+.card:nth-child(odd){transform:rotate(-1deg)}
+.card:nth-child(even){transform:rotate(1deg)}
+.card:hover{filter:none;transform:rotate(0) translateY(-2px)}
