@@ -1,11 +1,13 @@
-import { Hanken_Grotesk, JetBrains_Mono } from "next/font/google";
+import { Geist, JetBrains_Mono } from "next/font/google";
 
-export const hanken = Hanken_Grotesk({
-  variable: "--font-hanken",
+export const geist = Geist({
   subsets: ["latin"],
+  variable: "--font-geist",
+  display: "swap",
 });
 
 export const jetbrains = JetBrains_Mono({
-  variable: "--font-jetbrains",
   subsets: ["latin"],
+  variable: "--font-jetbrains",
+  display: "swap",
 });

@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { hanken, jetbrains } from "@/lib/fonts";
+import { geist, jetbrains } from "@/lib/fonts";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -11,9 +11,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="en"
-      className={`${hanken.variable} ${jetbrains.variable} h-full antialiased`}
+      className={`${geist.variable} ${jetbrains.variable} h-full`}
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col font-sans antialiased">{children}</body>
     </html>
   );
 }

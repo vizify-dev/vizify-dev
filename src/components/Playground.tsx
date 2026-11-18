@@ -13,7 +13,6 @@ import ResizeHandle from "@/components/ResizeHandle";
 import Select from "@/components/Select";
 import ViewSwitch, { type View } from "@/components/ViewSwitch";
 import { DEFAULT_CSV } from "@/lib/table/defaults";
-import { copyText, download, printHtml } from "@/lib/export";
 import { fileToPhoto } from "@/lib/resume/photo";
 import { buildDocument } from "@/lib/table/preview";
 import { buildResumeDocument } from "@/lib/resume";
@@ -23,7 +22,7 @@ import {
   isResumeSample,
   type ThemeOption,
 } from "@/lib/resume/resume";
-import { persist, restore, savePhoto, saveSidebar, VIEWS, type Work } from "@/lib/storage";
+import { persist, restore, savePhoto, saveSidebar, type Work } from "@/lib/storage";
 import { withTools } from "@/lib/table/tools";
 import type { Theme } from "@/lib/table/themes";
 import { boardThemeOptions } from "@/lib/jiraboard/board-themes";
@@ -31,19 +30,15 @@ import { buildBoardDocument } from "@/lib/jiraboard/render";
 import { BOARD_CSV } from "@/lib/jiraboard/sample";
 import { buildCardsDocument } from "@/lib/cards/render";
 import { CARDS_CSV, LEGACY_CARDS_CSV } from "@/lib/cards/sample";
-import { cardsThemeOptions } from "@/lib/cards/themes";
-import { buildIdCardDocument, ID_CARD_THEMES } from "@/lib/cards";
+import { cardsThemeOptions, migrateLegacyCardsThemeCss } from "@/lib/cards/themes";
 import { buildCertificatesDocument } from "@/lib/certificates/render";
 import { CERTIFICATES_CSV } from "@/lib/certificates/sample";
 import { certificatesThemeOptions } from "@/lib/certificates/themes";
-import AuthButton from "@/components/AuthButton";
-import { authClient } from "@/lib/auth-client";
 const CSV_ACCEPT = ".csv,text/csv,text/plain";
 const SIDEBAR_DEFAULT = 440;
 const SIDEBAR_MIN = 280;
 const PREVIEW_MIN = 360;
 const AUTOSAVE_MS = 500;
-const CARD_THEME_OPTIONS = [...ID_CARD_THEMES, ...cardsThemeOptions];
 type SaveStatus = "Not saved" | "Saved";
 
 export default function Playground({
@@ -53,8 +48,6 @@ export default function Playground({
   themes: Theme[];
   resumeThemes: ThemeOption[];
 }) {
-  const { data: session } = authClient.useSession();
-  const userId = session?.user.id;
   const [view, setView] = useState<View>("table");
   const [data, setData] = useState<Work>({
     table: { csv: DEFAULT_CSV, css: themes[0]?.css ?? "" },
@@ -65,7 +58,6 @@ export default function Playground({
   });
   const [photo, setPhoto] = useState("");
   const [loaded, setLoaded] = useState(false);
-  const [cloudReadyUserId, setCloudReadyUserId] = useState<string | null>(null);
   const [status, setStatus] = useState<SaveStatus>("Not saved");
   const [dataCollapsed, setDataCollapsed] = useState(false);
   const [cssCollapsed, setCssCollapsed] = useState(false);
@@ -81,9 +73,10 @@ export default function Playground({
         : view === "board"
           ? boardThemeOptions
           : view === "cards"
-            ? CARD_THEME_OPTIONS
+            ? cardsThemeOptions
             : certificatesThemeOptions;
   const theme = themeList.find((t) => t.css === css);
+  const themeId = theme?.id;
   const resumeLayout =
     theme?.id === "resume-graphic"
       ? "graphic"
@@ -92,37 +85,43 @@ export default function Playground({
         : theme?.id === "resume-uiux"
           ? "uiux"
           : undefined;
-  useEffect(() => {
-    if (!userId) return;
-    fetch("/api/work")
-      .then((r) => (r.ok ? r.json() : []))
-      .then((rows: { view: string; csv: string; css: string }[]) => {
-        setData((prev) => {
-          const next = { ...prev };
-          for (const p of rows) {
-            if (p.view in next) next[p.view as View] = { csv: p.csv, css: p.css };
-          }
-          return next;
-        });
-      })
-      .finally(() => setCloudReadyUserId(userId));
-  }, [userId]);
   // Restore saved work after mount (avoids SSR hydration mismatch).
   useEffect(() => {
     const saved = restore();
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    setData((prev) => {
-      const next = { ...prev };
-      for (const v of VIEWS) {
-        const r = saved.work[v];
-        if (r) next[v] = { csv: r.csv ?? prev[v].csv, css: r.css ?? prev[v].css };
-      }
-      if (saved.work.cards?.csv?.replace(/\r\n/g, "\n") === LEGACY_CARDS_CSV) {
-        next.cards = { ...next.cards, csv: CARDS_CSV };
-      }
-      return next;
-    });
-    if (Object.keys(saved.work).length > 0) setStatus("Saved");
+    setData((current) => ({
+      table: {
+        csv: saved.work.table?.csv ?? current.table.csv,
+        css: saved.work.table?.css ?? current.table.css,
+      },
+      resume: {
+        csv: saved.work.resume?.csv ?? current.resume.csv,
+        css: saved.work.resume?.css ?? current.resume.css,
+      },
+      board: {
+        csv: saved.work.board?.csv ?? current.board.csv,
+        css: saved.work.board?.css ?? current.board.css,
+      },
+      cards: {
+        csv:
+          saved.work.cards?.csv === LEGACY_CARDS_CSV
+            ? CARDS_CSV
+            : (saved.work.cards?.csv ?? current.cards.csv),
+        css: migrateLegacyCardsThemeCss(saved.work.cards?.css ?? current.cards.css),
+      },
+      certificates: {
+        csv: saved.work.certificates?.csv ?? current.certificates.csv,
+        css: saved.work.certificates?.css ?? current.certificates.css,
+      },
+    }));
+    if (
+      saved.work.table ||
+      saved.work.resume ||
+      saved.work.board ||
+      saved.work.cards ||
+      saved.work.certificates
+    )
+      setStatus("Saved");
     if (saved.view) setView(saved.view);
     if (saved.sidebar) setSidebarWidth(saved.sidebar);
     if (saved.photo) setPhoto(saved.photo);
@@ -132,18 +131,12 @@ export default function Playground({
   // Autosave shortly after the user stops typing, once saved values were restored.
   useEffect(() => {
     if (!loaded) return;
-    if (userId && cloudReadyUserId !== userId) return; // don't overwrite cloud data with defaults
-    const t = setTimeout(async () => {
-      if (!userId) return setStatus(persist(view, csv, css) ? "Saved" : "Not saved");
-      const r = await fetch("/api/work", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ view, csv, css }),
-      });
-      setStatus(r.ok ? "Saved" : "Not saved");
-    }, AUTOSAVE_MS);
+    const t = setTimeout(
+      () => setStatus(persist(view, csv, css) ? "Saved" : "Not saved"),
+      AUTOSAVE_MS,
+    );
     return () => clearTimeout(t);
-  }, [view, csv, css, loaded, userId, cloudReadyUserId]);
+  }, [view, csv, css, loaded]);
   function resizeSidebar(width: number) {
     const max = Math.max(SIDEBAR_MIN, window.innerWidth - PREVIEW_MIN);
     const next = Math.round(Math.min(Math.max(width, SIDEBAR_MIN), max));
@@ -161,19 +154,20 @@ export default function Playground({
   const setCss = update("css");
 
   const doc = useMemo(
-    () =>
-      view === "table"
-        ? withTools(buildDocument(csv, css))
-        : view === "board"
-          ? buildBoardDocument(csv, css, theme?.id)
-          : view === "cards"
-            ? theme?.id.startsWith("id-")
-              ? buildIdCardDocument(csv, css)
-              : buildCardsDocument(csv, css)
-            : view === "certificates"
-              ? buildCertificatesDocument(csv, css, theme?.id)
-              : buildResumeDocument(csv, css, photo, resumeLayout),
-    [view, csv, css, photo, resumeLayout, theme?.id],
+    () => {
+      const document =
+        view === "table"
+          ? withTools(buildDocument(csv, css))
+          : view === "board"
+            ? buildBoardDocument(csv, css, themeId)
+            : view === "cards"
+              ? buildCardsDocument(csv, css, true, themeId)
+              : view === "certificates"
+                ? buildCertificatesDocument(csv, css, themeId)
+                : buildResumeDocument(csv, css, photo, resumeLayout);
+      return document.replace(/\r\n?/g, "\n");
+    },
+    [view, csv, css, photo, resumeLayout, themeId],
   );
 
   async function onUpload(e: React.ChangeEvent<HTMLInputElement>) {
@@ -203,13 +197,11 @@ export default function Playground({
     view === "table"
       ? buildDocument(csv, css, false)
       : view === "board"
-        ? buildBoardDocument(csv, css, theme?.id, false)
+        ? buildBoardDocument(csv, css, themeId, false)
         : view === "cards"
-          ? theme?.id.startsWith("id-")
-            ? buildIdCardDocument(csv, css)
-            : buildCardsDocument(csv, css, false)
+          ? buildCardsDocument(csv, css, false, themeId)
           : view === "certificates"
-            ? buildCertificatesDocument(csv, css, theme?.id, false)
+            ? buildCertificatesDocument(csv, css, themeId, false)
             : buildResumeDocument(csv, css, photo, resumeLayout);
 
   return (
@@ -236,13 +228,7 @@ export default function Playground({
           <SaveIcon />
           Save
         </Button>
-        <ExportMenu
-          onDownloadHtml={() => download(doc, "text/html", `vizify-${view}.html`)}
-          onDownloadCsv={() => download(csv, "text/csv;charset=utf-8", `vizify-${view}.csv`)}
-          onDownloadPdf={() => printHtml(staticDoc(), { fitResumeToPage: view === "resume" })}
-          onCopyHtml={() => copyText(doc)}
-        />
-        <AuthButton />
+        <ExportMenu view={view} html={doc} csv={csv} staticHtml={staticDoc()} />
       </header>
 
       <main className="flex min-h-0 flex-1 flex-col gap-[8px] p-[8px] md:flex-row md:gap-0">
