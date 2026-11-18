@@ -30,6 +30,15 @@ import {
 import { persist, restore, savePhoto, saveSidebar, type Work } from "@/lib/storage";
 import { withTools } from "@/lib/table/tools";
 import type { Theme } from "@/lib/table/themes";
+import { boardThemeOptions } from "@/lib/jiraboard/board-themes";
+import { buildBoardDocument } from "@/lib/jiraboard/render";
+import { BOARD_CSV } from "@/lib/jiraboard/sample";
+import { buildCardsDocument } from "@/lib/cards/render";
+import { CARDS_CSV, LEGACY_CARDS_CSV } from "@/lib/cards/sample";
+import { cardsThemeOptions, migrateLegacyCardsThemeCss } from "@/lib/cards/themes";
+import { buildCertificatesDocument } from "@/lib/certificates/render";
+import { CERTIFICATES_CSV } from "@/lib/certificates/sample";
+import { certificatesThemeOptions } from "@/lib/certificates/themes";
 
 const CSV_ACCEPT = ".csv,text/csv,text/plain";
 const SIDEBAR_DEFAULT = 440;
@@ -54,6 +63,9 @@ export default function Playground({
       csv: DEFAULT_ID_CARD_CSV,
       css: ID_CARD_THEMES[0]?.css ?? "",
     },
+    board: { csv: BOARD_CSV, css: boardThemeOptions[0]?.css ?? "" },
+    cards: { csv: CARDS_CSV, css: cardsThemeOptions[0]?.css ?? "" },
+    certificates: { csv: CERTIFICATES_CSV, css: certificatesThemeOptions[0]?.css ?? "" },
   });
   const [photo, setPhoto] = useState("");
   const [loaded, setLoaded] = useState(false);
@@ -64,16 +76,20 @@ export default function Playground({
   const fileInput = useRef<HTMLInputElement>(null);
 
   const { csv, css } = data[view];
-
   const themeList: ThemeOption[] =
     view === "table"
       ? themes
       : view === "resume"
         ? resumeThemes
-        : ID_CARD_THEMES;
-
+        : view === "idcard"
+          ? ID_CARD_THEMES
+          : view === "board"
+            ? boardThemeOptions
+            : view === "cards"
+              ? cardsThemeOptions
+              : certificatesThemeOptions;
   const theme = themeList.find((t) => t.css === css);
-
+  const themeId = theme?.id;
   const resumeLayout =
     theme?.id === "resume-graphic"
       ? "graphic"
@@ -101,14 +117,33 @@ export default function Playground({
         csv: saved.work.idcard?.csv ?? current.idcard.csv,
         css: saved.work.idcard?.css ?? current.idcard.css,
       },
+      board: {
+        csv: saved.work.board?.csv ?? current.board.csv,
+        css: saved.work.board?.css ?? current.board.css,
+      },
+      cards: {
+        csv:
+          saved.work.cards?.csv?.replace(/\r\n/g, "\n") === LEGACY_CARDS_CSV
+            ? CARDS_CSV
+            : (saved.work.cards?.csv ?? current.cards.csv),
+        css: migrateLegacyCardsThemeCss(saved.work.cards?.css ?? current.cards.css),
+      },
+      certificates: {
+        csv: saved.work.certificates?.csv ?? current.certificates.csv,
+        css: saved.work.certificates?.css ?? current.certificates.css,
+      },
     }));
 
     if (saved.view) setView(saved.view);
-
-    if (saved.work.table || saved.work.resume || saved.work.idcard) {
+    if (
+      saved.work.table ||
+      saved.work.resume ||
+      saved.work.idcard ||
+      saved.work.board ||
+      saved.work.cards ||
+      saved.work.certificates
+    )
       setStatus("Saved");
-    }
-
     if (saved.sidebar) setSidebarWidth(saved.sidebar);
     if (saved.photo) setPhoto(saved.photo);
     setLoaded(true);
@@ -148,16 +183,24 @@ export default function Playground({
   const onCsvChange = setCsv;
   const onCssChange = setCss;
 
-  const doc = useMemo(() => {
-    const html =
-      view === "table"
-        ? withTools(buildDocument(csv, css))
-        : view === "resume"
-          ? buildResumeDocument(csv, css, photo, resumeLayout)
-          : buildIdCardDocument(csv, css);
-
-    return html.replace(/\r\n?/g, "\n");
-  }, [view, csv, css, photo, resumeLayout]);
+  const doc = useMemo(
+    () => {
+      const document =
+        view === "table"
+          ? withTools(buildDocument(csv, css))
+          : view === "idcard"
+            ? buildIdCardDocument(csv, css)
+            : view === "board"
+              ? buildBoardDocument(csv, css, themeId)
+              : view === "cards"
+                ? buildCardsDocument(csv, css, true, themeId)
+                : view === "certificates"
+                  ? buildCertificatesDocument(csv, css, themeId)
+                  : buildResumeDocument(csv, css, photo, resumeLayout);
+      return document.replace(/\r\n?/g, "\n");
+    },
+    [view, csv, css, photo, resumeLayout, themeId],
+  );
 
   async function onUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -187,9 +230,15 @@ export default function Playground({
   const staticDoc = () =>
     view === "table"
       ? buildDocument(csv, css, false)
-      : view === "resume"
-        ? buildResumeDocument(csv, css, photo, resumeLayout)
-        : buildIdCardDocument(csv, css);
+      : view === "idcard"
+        ? buildIdCardDocument(csv, css)
+        : view === "board"
+          ? buildBoardDocument(csv, css, themeId, false)
+          : view === "cards"
+            ? buildCardsDocument(csv, css, false, themeId)
+            : view === "certificates"
+              ? buildCertificatesDocument(csv, css, themeId, false)
+              : buildResumeDocument(csv, css, photo, resumeLayout);
 
   return (
     <div className="flex h-dvh flex-col overflow-hidden bg-sunken">
@@ -256,13 +305,7 @@ export default function Playground({
         >
           <EditorPane
             label="DATA"
-            filename={
-              view === "table"
-                ? "data.csv"
-                : view === "resume"
-                  ? "resume.csv"
-                  : "idcards.csv"
-            }
+            filename={`${view === "table" ? "data" : view}.csv`}
             action={
               view === "resume" ? (
                 <PhotoButton

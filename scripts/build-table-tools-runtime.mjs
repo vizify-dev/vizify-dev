@@ -9,6 +9,8 @@ const runtimePaths = [
   "../src/lib/table/tools/runtime.ts",
   "../src/lib/table/preview/interactive.runtime.ts",
   "../src/lib/jiraboard/runtime/board.runtime.ts",
+  "../src/lib/cards/runtime/cards.runtime.ts",
+  "../src/lib/certificates/runtime/certificates.runtime.ts",
 ];
 let hasErrors = false;
 
