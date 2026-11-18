@@ -1,0 +1,3 @@
+.cards-tools{margin:0 0 18px}
+.cards-tools input{font:inherit;width:260px;max-width:100%;padding:8px 12px;border:1px solid rgba(128,128,128,.4);border-radius:8px;background:rgba(128,128,128,.08);color:inherit}
+.id-card[hidden]{display:none}
