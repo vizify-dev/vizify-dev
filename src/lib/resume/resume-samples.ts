@@ -1,5 +1,9 @@
+export const SAMPLE_PHOTO_SRC =
+  "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 160 160'%3E%3Crect width='160' height='160' fill='%23e8d8c8'/%3E%3Ccircle cx='80' cy='58' r='30' fill='%23b87550'/%3E%3Cpath d='M25 160c4-40 24-61 55-61s51 21 55 61' fill='%233c5964'/%3E%3Cpath d='M49 57c2-25 16-39 34-39 21 0 33 16 32 40-7-8-16-13-30-13-12 0-23 4-36 12' fill='%233c302e'/%3E%3C/svg%3E";
+
 export const SAMPLE_SIDEBAR = `section,title,subtitle,date,details
 Name,Mike Richard,Marketing Manager,,
+Photo,,,,"${SAMPLE_PHOTO_SRC}"
 Contact,,,,+99 123 456 789
 Contact,,,,hello@yourname.com
 Contact,,,,"12 Street, City/Country"
@@ -45,6 +49,7 @@ Professional Experience,Graphic Designer,Ryn-x Company,January 2020 - March 2022
 
 export const SAMPLE_UIUX = `section,title,subtitle,date,details
 Name,Riya Menon,Passionate UI/UX Designer,,
+Photo,,,,"${SAMPLE_PHOTO_SRC}"
 Contact,,,,riya.menon@example.com
 Contact,,,,+91 98765 43210
 Contact,,,,"Munnar, Idukki, Kerala"

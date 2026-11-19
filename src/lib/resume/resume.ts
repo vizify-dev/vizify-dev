@@ -32,13 +32,13 @@ Additional Information,,,,"Certifications: Professional Design Engineer (PDE) Li
 const D = DEFAULT_RESUME_CSV;
 
 export const RESUME_THEME_DEFS: ThemeDefinition[] = [
-  { id: "resume-classic", name: "Plain", hint: "ATS-friendly", directory: "plain", sample: D },
-  { id: "resume-timeline", name: "Ledger", directory: "ledger", sample: D },
-  { id: "resume-editorial", name: "Margin", directory: "margin", sample: D, supportsPhoto: true },
+  { id: "resume-classic", name: "Plain", hint: "ATS-friendly", directory: "classic", sample: D },
+  { id: "resume-timeline", name: "Ledger", directory: "timeline", sample: D },
+  { id: "resume-editorial", name: "Margin", directory: "editorial", sample: D, supportsPhoto: true },
   {
     id: "resume-sidebar",
     name: "Midnight",
-    directory: "midnight",
+    directory: "sidebar",
     sample: SAMPLE_SIDEBAR,
     supportsPhoto: true,
   },
@@ -46,14 +46,14 @@ export const RESUME_THEME_DEFS: ThemeDefinition[] = [
     id: "resume-executive",
     name: "Boardroom",
     hint: "ATS-friendly",
-    directory: "boardroom",
+    directory: "executive",
     sample: SAMPLE_EXECUTIVE,
   },
   {
     id: "resume-graphic",
     name: "Terracotta",
     hint: "Creative",
-    directory: "terracotta",
+    directory: "graphic",
     sample: SAMPLE_GRAPHIC,
     supportsPhoto: true,
   },
@@ -61,7 +61,7 @@ export const RESUME_THEME_DEFS: ThemeDefinition[] = [
     id: "resume-uiux",
     name: "Pop",
     hint: "Creative",
-    directory: "pop",
+    directory: "uiux",
     sample: SAMPLE_UIUX,
     supportsPhoto: true,
   },
