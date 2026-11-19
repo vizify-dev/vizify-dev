@@ -1,9 +1,10 @@
 import { parseCsv } from "@/lib/csv-parser";
 import RESUME_TEMPLATES_HTML from "./templates.html";
+import { readWideResumeRows, type ResumeRow } from "./wide-format";
 
 const COLS = ["section", "title", "subtitle", "date", "details"] as const;
 type Col = (typeof COLS)[number];
-type Row = Record<Col, string>;
+type Row = ResumeRow;
 type ResumeLayout = "graphic" | "sidebar" | "uiux";
 
 const ESC: Record<string, string> = {
@@ -94,7 +95,10 @@ function readRows(csv: string): { rows: Row[]; missing: string[] } {
   if (table.length === 0) return { rows: [], missing: [] };
   const header = table[0].map((value) => value.trim().toLowerCase());
   const columnIndex = (column: Col) => header.indexOf(column);
-  if (columnIndex("section") < 0) return { rows: [], missing: ["section"] };
+  if (columnIndex("section") < 0) {
+    const rows = readWideResumeRows(table);
+    return rows ? { rows, missing: [] } : { rows: [], missing: ["section"] };
+  }
 
   const rows = table.slice(1).map(
     (row) =>
