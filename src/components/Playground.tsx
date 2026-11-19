@@ -82,7 +82,7 @@ export default function Playground({
   const resumeLayout =
     theme?.id === "resume-graphic"
       ? "graphic"
-      : theme?.id === "resume-sidebar"
+      : theme?.id === "resume-sidebar" || theme?.id === "resume-midnight"
         ? "sidebar"
         : theme?.id === "resume-uiux"
           ? "uiux"
