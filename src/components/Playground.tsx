@@ -188,7 +188,7 @@ export default function Playground({
     if (saved.sidebar) setSidebarWidth(saved.sidebar);
     if (saved.photo) setPhoto(saved.photo);
     // Don't restore the Table view while it's behind the feature flag.
-    if (saved.view && (FEATURES.table || saved.view !== "table")) setView(saved.view);
+    if (saved.view && FEATURES.table) setView(saved.view);
     setLoaded(true);
   }, [themes, resumeThemes]);
 
