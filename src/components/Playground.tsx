@@ -84,7 +84,7 @@ export default function Playground({
       ? "graphic"
       : theme?.id === "resume-sidebar"
         ? "sidebar"
-        : theme?.id === "resume-uiux"
+        : theme?.id === "resume-uiux" || theme?.id === "resume-pop"
           ? "uiux"
           : undefined;
 

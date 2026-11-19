@@ -31,6 +31,7 @@ export const RESUME_THEME_DEFS: ThemeDefinition[] = [
   { id: "resume-sidebar", name: "Sidebar", directory: "sidebar", sample: SAMPLE_SIDEBAR },
   { id: "resume-executive", name: "Executive", directory: "executive", sample: SAMPLE_EXECUTIVE },
   { id: "resume-graphic", name: "Graphic Designer", directory: "graphic", sample: SAMPLE_GRAPHIC },
+  { id: "resume-pop", name: "Pop", directory: "pop", sample: SAMPLE_UIUX },
   { id: "resume-uiux", name: "UI/UX Designer", directory: "uiux", sample: SAMPLE_UIUX },
 ];
 
