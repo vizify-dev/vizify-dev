@@ -1,10 +1,12 @@
 import { parseCsv } from "@/lib/csv-parser";
 import RESUME_TEMPLATES_HTML from "./templates.html";
+import { SAMPLE_PHOTO_SRC } from "./resume-samples";
+import { readWideResumeRows, type ResumeRow } from "./wide-format";
 
 const COLS = ["section", "title", "subtitle", "date", "details"] as const;
 type Col = (typeof COLS)[number];
-type Row = Record<Col, string>;
-type ResumeLayout = "graphic" | "sidebar" | "uiux";
+type Row = ResumeRow;
+type ResumeLayout = "graphic" | "sidebar" | "executive" | "uiux";
 
 const ESC: Record<string, string> = {
   "&": "&amp;",
@@ -15,12 +17,14 @@ const ESC: Record<string, string> = {
 };
 const esc = (value: string) => value.replace(/[&<>"']/g, (character) => ESC[character]);
 const split = (value: string) => value.split("|").map((item) => item.trim()).filter(Boolean);
-const safeSrc = (url: string) => (/^(https:\/\/|data:image\/)/i.test(url) ? url : "");
+const safeSrc = (url: string) =>
+  /^(https:\/\/|data:image\/)/i.test(url) || url === SAMPLE_PHOTO_SRC ? url : "";
 
 const KINDS: [string, RegExp][] = [
   ["about", /about|summary|profile|objective/],
   ["experience", /experience|employment|work/],
   ["education", /education|academic/],
+  ["awards", /award|certification/],
   ["skills", /skill/],
   ["languages", /language/],
   ["references", /reference/],
@@ -94,7 +98,10 @@ function readRows(csv: string): { rows: Row[]; missing: string[] } {
   if (table.length === 0) return { rows: [], missing: [] };
   const header = table[0].map((value) => value.trim().toLowerCase());
   const columnIndex = (column: Col) => header.indexOf(column);
-  if (columnIndex("section") < 0) return { rows: [], missing: ["section"] };
+  if (columnIndex("section") < 0) {
+    const rows = readWideResumeRows(table);
+    return rows ? { rows, missing: [] } : { rows: [], missing: ["section"] };
+  }
 
   const rows = table.slice(1).map(
     (row) =>
@@ -239,6 +246,13 @@ export function resumeToHtml(csv: string, photoOverride = "", layout?: ResumeLay
       CONTACT_SECTION: contactSection,
       BODY: renderedSections.map(({ html }) => html).join(""),
       SOCIALS: render("uiux-socials"),
+    });
+  }
+
+  if (layout === "executive") {
+    return render("article-executive", {
+      HEADER: head,
+      BODY: renderedSections.map(({ html }) => html).join(""),
     });
   }
 
