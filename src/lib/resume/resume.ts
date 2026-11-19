@@ -25,6 +25,7 @@ const D = DEFAULT_RESUME_CSV;
 
 export const RESUME_THEME_DEFS: ThemeDefinition[] = [
   { id: "resume-classic", name: "Classic", directory: "classic", sample: D },
+  { id: "resume-ledger", name: "Ledger", directory: "ledger", sample: D },
   { id: "resume-timeline", name: "Timeline", directory: "timeline", sample: D },
   { id: "resume-editorial", name: "Editorial", directory: "editorial", sample: D },
   { id: "resume-minimal", name: "Minimal", directory: "minimal", sample: D },
