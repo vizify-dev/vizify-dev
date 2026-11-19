@@ -22,7 +22,13 @@ describe("importCandidateResumes", () => {
       "",
     ]);
     expect(rows.find((row) => row[0] === "Skills")?.[4]).toBe("React|TypeScript");
-    expect(rows.find((row) => row[0] === "Work Experience")?.[4]).toBe("");
+    expect(rows.find((row) => row[0] === "Work Experience")).toEqual([
+      "Work Experience",
+      "Frontend Developer",
+      "BrightApps",
+      "2023-07 - Present",
+      "",
+    ]);
     expect(rows.find((row) => row[0] === "About Me")?.[4]).toContain(
       "Built responsive dashboards.",
     );
@@ -39,9 +45,23 @@ describe("importCandidateResumes", () => {
     expect(candidates).toHaveLength(1);
     const rows = parseCsv(candidates?.[0].csv ?? "");
     expect(rows[1]).toEqual(["Name", "Ananya Das", "UX / Product Designer", "", ""]);
+    expect(rows.find((row) => row[0] === "Education")).toEqual([
+      "Education",
+      "Bachelor of Design",
+      "National Institute of Design",
+      "2022",
+      "",
+    ]);
     expect(rows.find((row) => row[0] === "Work Experience")?.[4]).toBe(
       "Designed quick-start flows|reduced errors.",
     );
+    expect(rows.find((row) => row[0] === "Projects")).toEqual([
+      "Projects",
+      "",
+      "",
+      "",
+      "Portfolio",
+    ]);
     expect(rows.find((row) => row[0] === "Contact" && row[4] === "Kolkata, India")).toBeTruthy();
   });
 
