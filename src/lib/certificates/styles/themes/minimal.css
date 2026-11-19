@@ -1,0 +1,15 @@
+/* Minimal: white, left-aligned, black bar, no seal. */
+:root{--paper:#fff;--ink:#111;--muted:#777;--name-ink:#111;--rule:transparent;--display:"Hanken Grotesk",system-ui,sans-serif;--script:"Hanken Grotesk",system-ui,sans-serif;--sig:"Hanken Grotesk",system-ui,sans-serif;--pre:"This certificate is presented to";--pre-case:uppercase;--pt:24mm;--px:30mm;--pb:16mm}
+.cert::before{content:"";position:absolute;top:0;bottom:0;left:0;width:8mm;background:#111}
+.cert-frame{align-items:flex-start;text-align:left}
+.cert-org{letter-spacing:.4em;font-size:10pt}
+.cert-title{margin-top:4mm}
+.cert-title-main{font-size:42pt;font-weight:800;letter-spacing:-.02em;text-transform:none}
+.cert-title-sub{margin-top:1mm;color:#777;font-size:18pt;font-weight:500;letter-spacing:0;text-transform:none}
+.cert-pre{margin-top:12mm;font-size:9pt;letter-spacing:.2em}
+.cert-name{min-width:0;padding:0;border-bottom:none;font-size:42pt;font-weight:700;letter-spacing:-.02em}
+.cert-reason{max-width:190mm;margin-top:6mm;color:#333}
+.cert-sign-value{font-size:13pt;font-weight:600}
+.cert-sign-label{text-align:left}
+.cert-sign{align-items:flex-start}
+.cert-meta{justify-content:flex-start}
