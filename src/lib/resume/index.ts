@@ -1,10 +1,11 @@
 import { parseCsv } from "@/lib/csv-parser";
 import RESUME_TEMPLATES_HTML from "./templates.html";
+import { SAMPLE_PHOTO_SRC } from "./resume-samples";
 
 const COLS = ["section", "title", "subtitle", "date", "details"] as const;
 type Col = (typeof COLS)[number];
 type Row = Record<Col, string>;
-type ResumeLayout = "graphic" | "sidebar" | "uiux";
+type ResumeLayout = "graphic" | "sidebar" | "executive" | "uiux";
 
 const ESC: Record<string, string> = {
   "&": "&amp;",
@@ -15,12 +16,14 @@ const ESC: Record<string, string> = {
 };
 const esc = (value: string) => value.replace(/[&<>"']/g, (character) => ESC[character]);
 const split = (value: string) => value.split("|").map((item) => item.trim()).filter(Boolean);
-const safeSrc = (url: string) => (/^(https:\/\/|data:image\/)/i.test(url) ? url : "");
+const safeSrc = (url: string) =>
+  /^(https:\/\/|data:image\/)/i.test(url) || url === SAMPLE_PHOTO_SRC ? url : "";
 
 const KINDS: [string, RegExp][] = [
   ["about", /about|summary|profile|objective/],
   ["experience", /experience|employment|work/],
   ["education", /education|academic/],
+  ["awards", /award|certification/],
   ["skills", /skill/],
   ["languages", /language/],
   ["references", /reference/],
@@ -239,6 +242,13 @@ export function resumeToHtml(csv: string, photoOverride = "", layout?: ResumeLay
       CONTACT_SECTION: contactSection,
       BODY: renderedSections.map(({ html }) => html).join(""),
       SOCIALS: render("uiux-socials"),
+    });
+  }
+
+  if (layout === "executive") {
+    return render("article-executive", {
+      HEADER: head,
+      BODY: renderedSections.map(({ html }) => html).join(""),
     });
   }
 
