@@ -17,6 +17,7 @@ import { DEFAULT_CSV } from "@/lib/table/defaults";
 import { fileToPhoto } from "@/lib/resume/photo";
 import { buildDocument } from "@/lib/table/preview";
 import { buildResumeDocument } from "@/lib/resume";
+import { importCandidateResumes } from "@/lib/resume/import-csv";
 import {
   DEFAULT_RESUME_CSV,
   isResumeSample,
@@ -76,6 +77,10 @@ export default function Playground({
   const fileInput = useRef<HTMLInputElement>(null);
 
   const { csv, css } = data[view];
+  const resumeCsv = useMemo(
+    () => (view === "resume" ? (importCandidateResumes(csv)?.[0]?.csv ?? csv) : csv),
+    [view, csv],
+  );
   const themeList: ThemeOption[] =
     view === "table"
       ? themes
@@ -192,10 +197,10 @@ export default function Playground({
                 ? buildCardsDocument(csv, css, true, themeId)
                 : view === "certificates"
                   ? buildCertificatesDocument(csv, css, themeId)
-                  : buildResumeDocument(csv, css, photo, resumeLayout);
+                  : buildResumeDocument(resumeCsv, css, photo, resumeLayout);
       return document.replace(/\r\n?/g, "\n");
     },
-    [view, csv, css, photo, resumeLayout, themeId],
+    [view, csv, resumeCsv, css, photo, resumeLayout, themeId],
   );
 
   async function onUpload(e: React.ChangeEvent<HTMLInputElement>) {
@@ -234,7 +239,7 @@ export default function Playground({
             ? buildCardsDocument(csv, css, false, themeId)
             : view === "certificates"
               ? buildCertificatesDocument(csv, css, themeId, false)
-              : buildResumeDocument(csv, css, photo, resumeLayout);
+              : buildResumeDocument(resumeCsv, css, photo, resumeLayout);
 
   return (
     <div className="flex h-dvh flex-col overflow-hidden bg-sunken">
