@@ -13,7 +13,11 @@ $coral-soft: #fff0f2;
 $ring: #cbd4e3;
 
 $tones: (
-  "green": ($green, true, ("approved", "active", "done", "paid", "completed", "hot", "won")),
+  "green": (
+    $green,
+    true,
+    ("approved", "active", "done", "paid", "completed", "hot", "won", "gold", "platinum")
+  ),
   "amber": (
     #a56b12,
     true,
@@ -216,21 +220,32 @@ th:first-child::before {
 }
 
 td:first-child::before {
-  display: inline-grid;
+  display: none;
+}
+
+td:first-child .cssv-first-cell {
+  box-sizing: border-box;
+  display: grid;
+  grid-template-columns: 17px minmax(0, 1fr);
+  align-items: start;
+  gap: 11px;
+  width: 100%;
+}
+
+td:first-child .cssv-row-checkbox {
+  box-sizing: border-box;
+  display: grid;
   place-items: center;
   width: 17px;
   height: 17px;
-  margin-right: 11px;
+  margin-top: 1px;
   border: 1.5px solid $ring;
   border-radius: 5px;
   background: #fff;
   color: #fff;
-  box-sizing: border-box;
-  content: "";
   font-size: 10px;
   font-weight: 800;
   line-height: 1;
-  vertical-align: -3px;
   transition: background-color 140ms ease, border-color 140ms ease;
 }
 
@@ -245,6 +260,15 @@ td:first-child::before {
     outline: 2px solid rgba(63, 117, 94, 0.45);
     outline-offset: 3px;
   }
+}
+
+td:first-child .cssv-cell {
+  display: block;
+  width: auto;
+  min-width: 0;
+  max-width: 100%;
+  white-space: normal;
+  overflow-wrap: anywhere;
 }
 
 tbody tr:nth-child(even) td {
@@ -264,22 +288,26 @@ tbody tr:hover td:first-child {
 }
 
 tbody tr:has(td[data-v="done" i], td[data-v="completed" i], td[data-v="approved" i])
-  td:first-child::before {
+  td:first-child .cssv-row-checkbox {
   border-color: $green;
   background: $green;
-  content: "✓";
 }
 
 tbody tr:has(td[data-v="in progress" i], td[data-v="in-progress" i], td[data-v="pending" i])
-  td:first-child::before {
+  td:first-child .cssv-row-checkbox {
   border-color: #d7b86c;
   background: #fff8e6;
 }
 
 tbody tr:has(td[data-v="rejected" i], td[data-v="overdue" i], td[data-v="blocked" i])
-  td:first-child::before {
+  td:first-child .cssv-row-checkbox {
   border-color: $coral;
   background: $coral-soft;
+}
+
+tbody tr:has(td[data-v="done" i], td[data-v="completed" i], td[data-v="approved" i])
+  td:first-child .cssv-row-checkbox::after {
+  content: "✓";
 }
 
 table td.cssv-dup {
@@ -551,10 +579,6 @@ th[aria-sort="descending"] .cssv-sort {
     padding-right: 13px;
     padding-left: 13px;
   }
-
-  td:first-child::before {
-    margin-right: 8px;
-  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -562,7 +586,7 @@ th[aria-sort="descending"] .cssv-sort {
   .cssv-cell,
   .cssv-sort,
   .cssv-pager button,
-  td:first-child::before {
+  td:first-child .cssv-row-checkbox {
     transition: none;
   }
 }

@@ -50,13 +50,17 @@ export function csvToHtmlTable(csv: string, interactiveCells = true): string {
         ROW_TEMPLATE.trim(),
         "<!-- ROW_CELLS -->",
         pad(row)
-          .map((value) => {
+          .map((value, column) => {
             const escapedValue = escapeHtml(value);
             const content = value
               ? interactiveCells
                 ? `<button class="cssv-cell" type="button" aria-expanded="false" title="Show full cell text">${escapedValue}</button>`
                 : `<span class="cssv-cell">${escapedValue}</span>`
               : "";
+            const cellContent =
+              column === 0
+                ? `<span class="cssv-first-cell"><span class="cssv-row-checkbox" aria-hidden="true"></span>${content}</span>`
+                : content;
             return replaceToken(
               replaceToken(
                 DATA_CELL_TEMPLATE.trim(),
@@ -64,7 +68,7 @@ export function csvToHtmlTable(csv: string, interactiveCells = true): string {
                 escapeHtml(value.trim()),
               ),
               "<!-- CELL_CONTENT -->",
-              content,
+              cellContent,
             );
           })
           .join(""),
