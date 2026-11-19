@@ -30,6 +30,7 @@ export const RESUME_THEME_DEFS: ThemeDefinition[] = [
   { id: "resume-minimal", name: "Minimal", directory: "minimal", sample: D },
   { id: "resume-sidebar", name: "Sidebar", directory: "sidebar", sample: SAMPLE_SIDEBAR },
   { id: "resume-executive", name: "Executive", directory: "executive", sample: SAMPLE_EXECUTIVE },
+  { id: "resume-boardroom", name: "Boardroom", directory: "boardroom", sample: SAMPLE_EXECUTIVE },
   { id: "resume-graphic", name: "Graphic Designer", directory: "graphic", sample: SAMPLE_GRAPHIC },
   { id: "resume-uiux", name: "UI/UX Designer", directory: "uiux", sample: SAMPLE_UIUX },
 ];
