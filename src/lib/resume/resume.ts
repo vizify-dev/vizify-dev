@@ -1,7 +1,15 @@
 import { SAMPLE_GRAPHIC } from "./resume-samples";
 
 /** `sample` is the demo data shown when this theme is picked and the editor still holds a sample. */
-export type ThemeOption = { id: string; name: string; css: string; pro?: boolean; sample?: string };
+export type ThemeOption = {
+  id: string;
+  name: string;
+  hint?: string;
+  css: string;
+  pro?: boolean;
+  sample?: string;
+  supportsPhoto?: boolean;
+};
 export type ThemeDefinition = Omit<ThemeOption, "css"> & { directory: string };
 
 export const DEFAULT_RESUME_CSV = `section,title,subtitle,date,details
