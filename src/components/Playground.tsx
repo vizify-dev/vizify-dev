@@ -12,6 +12,8 @@ import PhotoButton from "@/components/PhotoButton";
 import ResizeHandle from "@/components/ResizeHandle";
 import Select from "@/components/Select";
 import ViewSwitch, { type View } from "@/components/ViewSwitch";
+import AuthButton from "@/components/AuthButton";
+import { useUser } from "@/app/hooks/useUser";
 import { DEFAULT_CSV } from "@/lib/table/defaults";
 import { fileToPhoto } from "@/lib/resume/photo";
 import { buildDocument } from "@/lib/table/preview";
@@ -21,7 +23,21 @@ import {
   isResumeSample,
   type ThemeOption,
 } from "@/lib/resume/resume";
-import { persist, restore, savePhoto, saveSidebar, type Work } from "@/lib/storage";
+import {
+  clearLocal,
+  persist,
+  restore,
+  savePhoto,
+  saveSidebar,
+  VIEWS,
+  type Work,
+} from "@/lib/storage";
+import {
+  getProject,
+  listProjects,
+  saveProject,
+  type CloudProject,
+} from "@/lib/cloud";
 import { withTools } from "@/lib/table/tools";
 import type { Theme } from "@/lib/table/themes";
 import { boardThemeOptions } from "@/lib/jiraboard/board-themes";
@@ -40,7 +56,7 @@ const SIDEBAR_MIN = 280;
 const PREVIEW_MIN = 360;
 const AUTOSAVE_MS = 500;
 
-type SaveStatus = "Not saved" | "Saved";
+type SaveStatus = "Not saved" | "Saving…" | "Saved";
 
 export default function Playground({
   themes,
@@ -64,6 +80,11 @@ export default function Playground({
   const [cssCollapsed, setCssCollapsed] = useState(false);
   const [sidebarWidth, setSidebarWidth] = useState(SIDEBAR_DEFAULT);
   const fileInput = useRef<HTMLInputElement>(null);
+  const { user } = useUser();
+  const userId = user?.id ?? null;
+  const [cloudReady, setCloudReady] = useState(false);
+  const projectIds = useRef<Partial<Record<View, string>>>({});
+  const dirty = useRef<Partial<Record<View, boolean>>>({});
 
   const { csv, css } = data[view];
   const themeList: ThemeOption[] =
@@ -132,13 +153,105 @@ export default function Playground({
 
   // Autosave shortly after the user stops typing, once saved values were restored.
   useEffect(() => {
-    if (!loaded) return;
+    if (!loaded || userId) return;
     const t = setTimeout(
       () => setStatus(persist(view, csv, css) ? "Saved" : "Not saved"),
       AUTOSAVE_MS,
     );
     return () => clearTimeout(t);
-  }, [view, csv, css, loaded]);
+  }, [view, csv, css, loaded, userId]);
+
+  // Load the user's latest project for each view after sign-in.
+  useEffect(() => {
+    if (!userId) return;
+    let cancelled = false;
+
+    (async () => {
+      try {
+        const list = await listProjects();
+        const latest = new Map<View, CloudProject>();
+        for (const project of list) {
+          if (VIEWS.includes(project.view) && !latest.has(project.view)) {
+            latest.set(project.view, project);
+          }
+        }
+
+        const full = await Promise.all(
+          [...latest.values()].map((project) => getProject(project.id)),
+        );
+        if (cancelled) return;
+
+        setData((previous) => {
+          const next = { ...previous };
+          for (const project of full) {
+            projectIds.current[project.view] = project.id;
+            next[project.view] = {
+              csv: project.csv ?? previous[project.view].csv,
+              css: project.css ?? previous[project.view].css,
+            };
+          }
+          return next;
+        });
+      } catch {
+        // Keep local data if cloud loading fails.
+      }
+      if (!cancelled) setCloudReady(true);
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [userId]);
+
+  async function cloudSave(
+    viewToSave: View,
+    csvToSave: string,
+    cssToSave: string,
+    themeIdToSave: string | null,
+  ) {
+    setStatus("Saving…");
+    try {
+      const project = await saveProject(
+        projectIds.current[viewToSave],
+        viewToSave,
+        csvToSave,
+        cssToSave,
+        themeIdToSave,
+      );
+      projectIds.current[viewToSave] = project.id;
+      dirty.current[viewToSave] = false;
+      setStatus("Saved");
+    } catch (error) {
+      setStatus("Not saved");
+      alert(error instanceof Error ? error.message : "Could not save");
+    }
+  }
+
+  // Autosave cloud projects after the user edits and cloud data is loaded.
+  useEffect(() => {
+    if (!userId || !cloudReady || !dirty.current[view]) return;
+    const timeout = setTimeout(
+      () => void cloudSave(view, csv, css, themeId ?? null),
+      1500,
+    );
+    return () => clearTimeout(timeout);
+  }, [userId, cloudReady, view, csv, css, themeId]);
+
+  function handleSignOut() {
+    clearLocal();
+    projectIds.current = {};
+    dirty.current = {};
+    setCloudReady(false);
+    setPhoto("");
+    setData({
+      table: { csv: DEFAULT_CSV, css: themes[0]?.css ?? "" },
+      resume: { csv: DEFAULT_RESUME_CSV, css: resumeThemes[0]?.css ?? "" },
+      board: { csv: BOARD_CSV, css: boardThemeOptions[0]?.css ?? "" },
+      cards: { csv: CARDS_CSV, css: cardsThemeOptions[0]?.css ?? "" },
+      certificates: { csv: CERTIFICATES_CSV, css: certificatesThemeOptions[0]?.css ?? "" },
+    });
+    setStatus("Not saved");
+  }
 
   function resizeSidebar(width: number) {
     const max = Math.max(SIDEBAR_MIN, window.innerWidth - PREVIEW_MIN);
@@ -149,6 +262,7 @@ export default function Playground({
 
   function update(field: "csv" | "css") {
     return (v: string) => {
+      dirty.current[view] = true;
       setStatus("Not saved");
       setData((d) => ({ ...d, [view]: { ...d[view], [field]: v } }));
     };
@@ -226,14 +340,18 @@ export default function Playground({
           <UploadIcon />
           Upload
         </Button>
-        <Button onClick={() => setStatus(persist(view, csv, css) ? "Saved" : "Not saved")}>
+        <Button
+          onClick={() =>
+            userId
+              ? void cloudSave(view, csv, css, themeId ?? null)
+              : setStatus(persist(view, csv, css) ? "Saved" : "Not saved")
+          }
+        >
           <SaveIcon />
           Save
         </Button>
         <ExportMenu view={view} html={doc} csv={csv} staticHtml={staticDoc()} />
-        <Button variant="ghost" disabled title="Accounts aren't available in the client-only MVP">
-          Sign in
-        </Button>
+        <AuthButton user={user} onSignOut={handleSignOut} />
       </header>
 
       <main className="flex min-h-0 flex-1 flex-col gap-[8px] overflow-y-auto p-[8px] lg:flex-row lg:gap-0 lg:overflow-hidden">
