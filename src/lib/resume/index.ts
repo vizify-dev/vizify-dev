@@ -1,6 +1,7 @@
 import { parseCsv } from "@/lib/csv-parser";
 import RESUME_TEMPLATES_HTML from "./templates.html";
 import { readWideResumeRows, type ResumeRow } from "./wide-format";
+import { safePhotoSrc } from "./photo";
 
 const COLS = ["section", "title", "subtitle", "date", "details"] as const;
 type Col = (typeof COLS)[number];
@@ -16,8 +17,6 @@ const ESC: Record<string, string> = {
 };
 const esc = (value: string) => value.replace(/[&<>"']/g, (character) => ESC[character]);
 const split = (value: string) => value.split("|").map((item) => item.trim()).filter(Boolean);
-const safeSrc = (url: string) => (/^(https:\/\/|data:image\/)/i.test(url) ? url : "");
-
 const KINDS: [string, RegExp][] = [
   ["about", /about|summary|profile|objective/],
   ["experience", /experience|employment|work/],
@@ -171,7 +170,12 @@ function renderSection(name: string, rows: Row[], layout?: ResumeLayout): string
 }
 
 /** Converts resume CSV into HTML. All user-provided text and image sources are escaped. */
-export function resumeToHtml(csv: string, photoOverride = "", layout?: ResumeLayout): string {
+export function resumeToHtml(
+  csv: string,
+  photoOverride = "",
+  layout?: ResumeLayout,
+  fallbackPhoto = "",
+): string {
   const { rows, missing } = readRows(csv);
   if (missing.length) {
     return render("error", {
@@ -194,7 +198,7 @@ export function resumeToHtml(csv: string, photoOverride = "", layout?: ResumeLay
       name = row.title || name;
       role = row.subtitle || role;
     } else if (key === "photo") {
-      photo = safeSrc(row.details) || photo;
+      photo = safePhotoSrc(row.details) || photo;
     } else if (key === "contact") {
       contactName = row.section;
       contacts.push(...split(row.details));
@@ -203,7 +207,7 @@ export function resumeToHtml(csv: string, photoOverride = "", layout?: ResumeLay
     }
   }
 
-  const shownPhoto = safeSrc(photoOverride) || photo;
+  const shownPhoto = safePhotoSrc(photoOverride) || photo || safePhotoSrc(fallbackPhoto);
   const contactItems = contacts
     .map((contact) =>
       render("contact-item", {
@@ -293,11 +297,12 @@ export function buildResumeDocument(
   css: string,
   photo = "",
   layout?: ResumeLayout,
+  fallbackPhoto = "",
 ): string {
   const safeCss = css.replace(/<\/style/gi, "<\\/style");
   return render("document", {
     RESUME_CSS: safeCss,
     LAYOUT: layout ?? "",
-    RESUME: resumeToHtml(csv, photo, layout),
+    RESUME: resumeToHtml(csv, photo, layout, fallbackPhoto),
   });
 }
