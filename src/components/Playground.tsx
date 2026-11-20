@@ -53,7 +53,10 @@ export default function Playground({
   const [view, setView] = useState<View>(FEATURES.table ? "table" : "resume");
   const [data, setData] = useState<Work>({
     table: { csv: DEFAULT_CSV, css: themes[0]?.css ?? "" },
-    resume: { csv: DEFAULT_RESUME_CSV, css: resumeThemes[0]?.css ?? "" },
+    resume: {
+      csv: resumeThemes[0]?.sample ?? DEFAULT_RESUME_CSV,
+      css: resumeThemes[0]?.css ?? "",
+    },
     board: { csv: BOARD_CSV, css: boardThemeOptions[0]?.css ?? "" },
     cards: { csv: CARDS_CSV, css: cardsThemeOptions[0]?.css ?? "" },
     certificates: { csv: CERTIFICATES_CSV, css: certificatesThemeOptions[0]?.css ?? "" },
