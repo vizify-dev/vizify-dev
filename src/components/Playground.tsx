@@ -21,6 +21,7 @@ import {
   isResumeSample,
   type ThemeOption,
 } from "@/lib/resume/resume";
+import { SAMPLE_PHOTO_SRC } from "@/lib/resume/resume-samples";
 import { persist, restore, savePhoto, saveSidebar, type Work } from "@/lib/storage";
 import { withTools } from "@/lib/table/tools";
 import type { Theme } from "@/lib/table/themes";
@@ -33,6 +34,7 @@ import { cardsThemeOptions, migrateLegacyCardsThemeCss } from "@/lib/cards/theme
 import { buildCertificatesDocument } from "@/lib/certificates/render";
 import { CERTIFICATES_CSV } from "@/lib/certificates/sample";
 import { certificatesThemeOptions } from "@/lib/certificates/themes";
+import { FEATURES } from "@/lib/features";
 
 const CSV_ACCEPT = ".csv,text/csv,text/plain";
 const SIDEBAR_DEFAULT = 440;
@@ -49,7 +51,7 @@ export default function Playground({
   themes: Theme[];
   resumeThemes: ThemeOption[];
 }) {
-  const [view, setView] = useState<View>("table");
+  const [view, setView] = useState<View>(FEATURES.table ? "table" : "resume");
   const [data, setData] = useState<Work>({
     table: { csv: DEFAULT_CSV, css: themes[0]?.css ?? "" },
     resume: { csv: DEFAULT_RESUME_CSV, css: resumeThemes[0]?.css ?? "" },
@@ -81,42 +83,69 @@ export default function Playground({
   const resumeLayout =
     theme?.id === "resume-graphic"
       ? "graphic"
-      : theme?.id === "resume-sidebar"
-        ? "sidebar"
-        : theme?.id === "resume-uiux"
-          ? "uiux"
-          : undefined;
+      : theme?.id === "resume-pop"
+        ? "uiux"
+        : undefined;
+  const resumeFallbackPhoto = themeId === "resume-pop" ? SAMPLE_PHOTO_SRC : "";
 
   // Restore saved work after mount (avoids SSR hydration mismatch).
   useEffect(() => {
     const saved = restore();
+    const cssForTheme = (
+      list: { id: string; css: string }[],
+      savedCss: string | null,
+      themeId: string | null,
+    ) => list.find((item) => item.id === themeId)?.css ?? savedCss;
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setData((current) => ({
       table: {
         csv: saved.work.table?.csv ?? current.table.csv,
-        css: saved.work.table?.css ?? current.table.css,
+        css:
+          cssForTheme(themes, saved.work.table?.css ?? null, saved.work.table?.themeId ?? null) ??
+          current.table.css,
       },
       resume: {
         csv: saved.work.resume?.csv ?? current.resume.csv,
-        css: saved.work.resume?.css ?? current.resume.css,
+        css:
+          cssForTheme(
+            resumeThemes,
+            saved.work.resume?.css ?? null,
+            saved.work.resume?.themeId ?? null,
+          ) ?? current.resume.css,
       },
       board: {
         csv: saved.work.board?.csv ?? current.board.csv,
-        css: saved.work.board?.css ?? current.board.css,
+        css:
+          cssForTheme(
+            boardThemeOptions,
+            saved.work.board?.css ?? null,
+            saved.work.board?.themeId ?? null,
+          ) ?? current.board.css,
       },
       cards: {
         csv:
           saved.work.cards?.csv === LEGACY_CARDS_CSV
             ? CARDS_CSV
             : (saved.work.cards?.csv ?? current.cards.csv),
-        css: migrateLegacyCardsThemeCss(saved.work.cards?.css ?? current.cards.css),
+        css: migrateLegacyCardsThemeCss(
+          cssForTheme(
+            cardsThemeOptions,
+            saved.work.cards?.css ?? null,
+            saved.work.cards?.themeId ?? null,
+          ) ?? current.cards.css,
+        ),
       },
       certificates: {
         csv: saved.work.certificates?.csv ?? current.certificates.csv,
-        css: saved.work.certificates?.css ?? current.certificates.css,
+        css:
+          cssForTheme(
+            certificatesThemeOptions,
+            saved.work.certificates?.css ?? null,
+            saved.work.certificates?.themeId ?? null,
+          ) ?? current.certificates.css,
       },
     }));
-    if (saved.view) setView(saved.view);
+    if (saved.view && FEATURES.table) setView(saved.view);
     if (
       saved.work.table ||
       saved.work.resume ||
@@ -134,11 +163,11 @@ export default function Playground({
   useEffect(() => {
     if (!loaded) return;
     const t = setTimeout(
-      () => setStatus(persist(view, csv, css) ? "Saved" : "Not saved"),
+      () => setStatus(persist(view, csv, css, themeId ?? "") ? "Saved" : "Not saved"),
       AUTOSAVE_MS,
     );
     return () => clearTimeout(t);
-  }, [view, csv, css, loaded]);
+  }, [view, csv, css, themeId, loaded]);
 
   function resizeSidebar(width: number) {
     const max = Math.max(SIDEBAR_MIN, window.innerWidth - PREVIEW_MIN);
@@ -169,10 +198,10 @@ export default function Playground({
               ? buildCardsDocument(csv, css, true, themeId)
               : view === "certificates"
                 ? buildCertificatesDocument(csv, css, themeId)
-                : buildResumeDocument(csv, css, photo, resumeLayout);
+                : buildResumeDocument(csv, css, photo, resumeLayout, resumeFallbackPhoto);
       return document.replace(/\r\n?/g, "\n");
     },
-    [view, csv, css, photo, resumeLayout, themeId],
+    [view, csv, css, photo, resumeLayout, resumeFallbackPhoto, themeId],
   );
 
   async function onUpload(e: React.ChangeEvent<HTMLInputElement>) {
@@ -207,18 +236,16 @@ export default function Playground({
           ? buildCardsDocument(csv, css, false, themeId)
           : view === "certificates"
             ? buildCertificatesDocument(csv, css, themeId, false)
-            : buildResumeDocument(csv, css, photo, resumeLayout);
+            : buildResumeDocument(csv, css, photo, resumeLayout, resumeFallbackPhoto);
 
   return (
     <div className="flex h-dvh flex-col overflow-hidden bg-sunken">
       <header className="flex min-h-[56px] shrink-0 flex-wrap items-center gap-[8px] border-b border-line bg-surface px-[10px] py-[8px] sm:px-[16px] lg:h-[56px] lg:flex-nowrap lg:gap-[12px]">
         <Logo />
-        <div className="hidden h-[24px] w-px shrink-0 bg-line lg:block" />
-        <div className="hidden min-w-0 items-center gap-[10px] lg:flex">
-          <span className="whitespace-nowrap text-[15px] font-semibold text-ink">Untitled project</span>
-          <span className="whitespace-nowrap font-mono text-[12px] text-ink3">{status}</span>
-        </div>
-        <ViewSwitch value={view} onChange={setView} />
+        <span className="sr-only" aria-live="polite">
+          {status}
+        </span>
+        {FEATURES.table && <ViewSwitch value={view} onChange={setView} />}
         <div className="hidden min-w-px flex-1 lg:block" />
 
         <input ref={fileInput} type="file" accept={CSV_ACCEPT} hidden onChange={onUpload} />
@@ -226,14 +253,22 @@ export default function Playground({
           <UploadIcon />
           Upload
         </Button>
-        <Button onClick={() => setStatus(persist(view, csv, css) ? "Saved" : "Not saved")}>
-          <SaveIcon />
-          Save
-        </Button>
+        {FEATURES.auth && (
+          <Button
+            onClick={() =>
+              setStatus(persist(view, csv, css, themeId ?? "") ? "Saved" : "Not saved")
+            }
+          >
+            <SaveIcon />
+            Save
+          </Button>
+        )}
         <ExportMenu view={view} html={doc} csv={csv} staticHtml={staticDoc()} />
-        <Button variant="ghost" disabled title="Accounts aren't available in the client-only MVP">
-          Sign in
-        </Button>
+        {FEATURES.auth && (
+          <Button variant="ghost" disabled title="Accounts aren't available in the client-only MVP">
+            Sign in
+          </Button>
+        )}
       </header>
 
       <main className="flex min-h-0 flex-1 flex-col gap-[8px] overflow-y-auto p-[8px] lg:flex-row lg:gap-0 lg:overflow-hidden">
