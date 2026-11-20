@@ -1,4 +1,4 @@
-import { SAMPLE_EXECUTIVE, SAMPLE_GRAPHIC, SAMPLE_SIDEBAR, SAMPLE_UIUX } from "./resume-samples";
+import { SAMPLE_GRAPHIC } from "./resume-samples";
 
 /** `sample` is the demo data shown when this theme is picked and the editor still holds a sample. */
 export type ThemeOption = { id: string; name: string; css: string; pro?: boolean; sample?: string };
@@ -25,13 +25,8 @@ const D = DEFAULT_RESUME_CSV;
 
 export const RESUME_THEME_DEFS: ThemeDefinition[] = [
   { id: "resume-classic", name: "Classic", directory: "classic", sample: D },
-  { id: "resume-timeline", name: "Timeline", directory: "timeline", sample: D },
   { id: "resume-editorial", name: "Editorial", directory: "editorial", sample: D },
-  { id: "resume-minimal", name: "Minimal", directory: "minimal", sample: D },
-  { id: "resume-sidebar", name: "Sidebar", directory: "sidebar", sample: SAMPLE_SIDEBAR },
-  { id: "resume-executive", name: "Executive", directory: "executive", sample: SAMPLE_EXECUTIVE },
   { id: "resume-graphic", name: "Graphic Designer", directory: "graphic", sample: SAMPLE_GRAPHIC },
-  { id: "resume-uiux", name: "UI/UX Designer", directory: "uiux", sample: SAMPLE_UIUX },
 ];
 
 /** True while the editor still holds one of our demo datasets (so swapping in another one is safe). */
