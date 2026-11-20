@@ -12,6 +12,10 @@ describe("Pop resume theme", () => {
     expect(theme?.css).toContain(".resume--uiux");
     expect(theme?.sample).toContain("Photo,,,,/images/resume-sample.jpeg");
     expect(theme?.css).toContain(".r-uiux-photo-label");
+    expect(theme?.css).toContain("@media print");
+    expect(theme?.css).toContain(".resume--uiux .r-head");
+    expect(theme?.css).toContain(".resume--uiux.is-printing");
+    expect(theme?.css).toContain("--pop-print-font-scale");
     expect(safePhotoSrc("/images/resume-sample.jpeg")).toBe("/images/resume-sample.jpeg");
     expect(safePhotoSrc("//example.com/photo.jpeg")).toBe("");
     expect(existsSync(path.join(process.cwd(), "public", "images", "resume-sample.jpeg"))).toBe(
