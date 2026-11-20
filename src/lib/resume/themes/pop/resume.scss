@@ -529,6 +529,10 @@ body[data-layout="uiux"] {
   padding: 12px 24px 10px;
   font-size: calc(11px * var(--pop-print-font-scale, 1));
 
+  &::after {
+    display: none;
+  }
+
   .r-head {
     grid-template-columns: 215px minmax(0, 1fr);
     gap: 20px;
