@@ -25,11 +25,12 @@ const VIEW_KEY = "vizify:view";
 const SIDEBAR_KEY = "vizify:sidebar";
 const PHOTO_KEY = "vizify:resume:photo";
 
-export function persist(view: View, csv: string, css: string, themeId: string): boolean {
+export function persist(view: View, csv: string, css: string, themeId = ""): boolean {
   try {
     localStorage.setItem(KEYS[view].csv, csv);
     localStorage.setItem(KEYS[view].css, css);
-    localStorage.setItem(KEYS[view].themeId, themeId);
+    if (themeId) localStorage.setItem(KEYS[view].themeId, themeId);
+    else localStorage.removeItem(KEYS[view].themeId);
     localStorage.setItem(VIEW_KEY, view);
     return true;
   } catch {
