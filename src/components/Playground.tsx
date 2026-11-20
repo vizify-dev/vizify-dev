@@ -248,7 +248,7 @@ export default function Playground({
             label="DATA"
             filename={`${view === "table" ? "data" : view}.csv`}
             action={
-              view === "resume" ? (
+              view === "resume" && theme?.id !== "resume-ledger" ? (
                 <PhotoButton hasPhoto={photo !== ""} onPick={onPhoto} onRemove={onRemovePhoto} />
               ) : undefined
             }
