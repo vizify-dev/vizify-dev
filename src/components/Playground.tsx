@@ -21,6 +21,7 @@ import {
   isResumeSample,
   type ThemeOption,
 } from "@/lib/resume/resume";
+import { SAMPLE_PHOTO_SRC } from "@/lib/resume/resume-samples";
 import { persist, restore, savePhoto, saveSidebar, type Work } from "@/lib/storage";
 import { withTools } from "@/lib/table/tools";
 import type { Theme } from "@/lib/table/themes";
@@ -33,6 +34,7 @@ import { cardsThemeOptions, migrateLegacyCardsThemeCss } from "@/lib/cards/theme
 import { buildCertificatesDocument } from "@/lib/certificates/render";
 import { CERTIFICATES_CSV } from "@/lib/certificates/sample";
 import { certificatesThemeOptions } from "@/lib/certificates/themes";
+import { FEATURES } from "@/lib/features";
 
 const CSV_ACCEPT = ".csv,text/csv,text/plain";
 const SIDEBAR_DEFAULT = 440;
@@ -49,10 +51,13 @@ export default function Playground({
   themes: Theme[];
   resumeThemes: ThemeOption[];
 }) {
-  const [view, setView] = useState<View>("table");
+  const [view, setView] = useState<View>(FEATURES.table ? "table" : "resume");
   const [data, setData] = useState<Work>({
     table: { csv: DEFAULT_CSV, css: themes[0]?.css ?? "" },
-    resume: { csv: DEFAULT_RESUME_CSV, css: resumeThemes[0]?.css ?? "" },
+    resume: {
+      csv: resumeThemes[0]?.sample ?? DEFAULT_RESUME_CSV,
+      css: resumeThemes[0]?.css ?? "",
+    },
     board: { csv: BOARD_CSV, css: boardThemeOptions[0]?.css ?? "" },
     cards: { csv: CARDS_CSV, css: cardsThemeOptions[0]?.css ?? "" },
     certificates: { csv: CERTIFICATES_CSV, css: certificatesThemeOptions[0]?.css ?? "" },
@@ -81,11 +86,12 @@ export default function Playground({
   const resumeLayout =
     theme?.id === "resume-graphic"
       ? "graphic"
-      : theme?.id === "resume-sidebar"
+      : theme?.id === "resume-sidebar" || theme?.id === "resume-midnight"
         ? "sidebar"
         : theme?.id === "resume-uiux"
           ? "uiux"
           : undefined;
+  const resumeFallbackPhoto = themeId === "resume-midnight" ? SAMPLE_PHOTO_SRC : "";
 
   // Restore saved work after mount (avoids SSR hydration mismatch).
   useEffect(() => {
@@ -116,7 +122,7 @@ export default function Playground({
         css: saved.work.certificates?.css ?? current.certificates.css,
       },
     }));
-    if (saved.view) setView(saved.view);
+    if (saved.view && FEATURES.table) setView(saved.view);
     if (
       saved.work.table ||
       saved.work.resume ||
@@ -169,10 +175,10 @@ export default function Playground({
               ? buildCardsDocument(csv, css, true, themeId)
               : view === "certificates"
                 ? buildCertificatesDocument(csv, css, themeId)
-                : buildResumeDocument(csv, css, photo, resumeLayout);
+                : buildResumeDocument(csv, css, photo, resumeLayout, resumeFallbackPhoto);
       return document.replace(/\r\n?/g, "\n");
     },
-    [view, csv, css, photo, resumeLayout, themeId],
+    [view, csv, css, photo, resumeLayout, resumeFallbackPhoto, themeId],
   );
 
   async function onUpload(e: React.ChangeEvent<HTMLInputElement>) {
@@ -207,18 +213,16 @@ export default function Playground({
           ? buildCardsDocument(csv, css, false, themeId)
           : view === "certificates"
             ? buildCertificatesDocument(csv, css, themeId, false)
-            : buildResumeDocument(csv, css, photo, resumeLayout);
+            : buildResumeDocument(csv, css, photo, resumeLayout, resumeFallbackPhoto);
 
   return (
     <div className="flex h-dvh flex-col overflow-hidden bg-sunken">
       <header className="flex min-h-[56px] shrink-0 flex-wrap items-center gap-[8px] border-b border-line bg-surface px-[10px] py-[8px] sm:px-[16px] lg:h-[56px] lg:flex-nowrap lg:gap-[12px]">
         <Logo />
-        <div className="hidden h-[24px] w-px shrink-0 bg-line lg:block" />
-        <div className="hidden min-w-0 items-center gap-[10px] lg:flex">
-          <span className="whitespace-nowrap text-[15px] font-semibold text-ink">Untitled project</span>
-          <span className="whitespace-nowrap font-mono text-[12px] text-ink3">{status}</span>
-        </div>
-        <ViewSwitch value={view} onChange={setView} />
+        <span className="sr-only" aria-live="polite">
+          {status}
+        </span>
+        {FEATURES.table && <ViewSwitch value={view} onChange={setView} />}
         <div className="hidden min-w-px flex-1 lg:block" />
 
         <input ref={fileInput} type="file" accept={CSV_ACCEPT} hidden onChange={onUpload} />
@@ -226,14 +230,18 @@ export default function Playground({
           <UploadIcon />
           Upload
         </Button>
-        <Button onClick={() => setStatus(persist(view, csv, css) ? "Saved" : "Not saved")}>
-          <SaveIcon />
-          Save
-        </Button>
+        {FEATURES.auth && (
+          <Button onClick={() => setStatus(persist(view, csv, css) ? "Saved" : "Not saved")}>
+            <SaveIcon />
+            Save
+          </Button>
+        )}
         <ExportMenu view={view} html={doc} csv={csv} staticHtml={staticDoc()} />
-        <Button variant="ghost" disabled title="Accounts aren't available in the client-only MVP">
-          Sign in
-        </Button>
+        {FEATURES.auth && (
+          <Button variant="ghost" disabled title="Accounts aren't available in the client-only MVP">
+            Sign in
+          </Button>
+        )}
       </header>
 
       <main className="flex min-h-0 flex-1 flex-col gap-[8px] overflow-y-auto p-[8px] lg:flex-row lg:gap-0 lg:overflow-hidden">

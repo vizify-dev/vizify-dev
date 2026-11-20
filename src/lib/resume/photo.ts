@@ -1,5 +1,10 @@
 const MAX = 480; // px on the longest side; keeps the stored image small
 
+export function safePhotoSrc(url: string): string {
+  if (/^(https:\/\/|data:image\/)/i.test(url)) return url;
+  return url.startsWith("/") && !url.startsWith("//") && !url.includes("\\") ? url : "";
+}
+
 /** Resizes an image file in the browser and returns a JPEG data URL. */
 export async function fileToPhoto(file: File): Promise<string> {
   if (!file.type.startsWith("image/")) throw new Error("Not an image");

@@ -1,3 +1,5 @@
+export const SAMPLE_PHOTO_SRC = "/images/resume-sample.jpeg";
+
 export const SAMPLE_SIDEBAR = `section,title,subtitle,date,details
 Name,Mike Richard,Marketing Manager,,
 Contact,,,,+99 123 456 789
@@ -12,6 +14,9 @@ Work Experience,AB Development,Marketing Manager,2019 - Present,"Led a team of 1
 Work Experience,Blue Agency,Senior Marketer,2015 - 2019,"Managed 20+ client accounts across retail and tech.|Launched an award-winning social campaign."
 References,Amay Newton,Company Name / Position,,Phone: +99 123 456 789|Email: amay@yourname.com
 References,Olivia May,Company Name / Position,,Phone: +99 987 654 321|Email: olivia@yourname.com
+`;
+
+export const SAMPLE_MIDNIGHT = `${SAMPLE_SIDEBAR}Photo,,,,${SAMPLE_PHOTO_SRC}
 `;
 
 export const SAMPLE_EXECUTIVE = `section,title,subtitle,date,details
