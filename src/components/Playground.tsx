@@ -50,9 +50,11 @@ export default function Playground({
   resumeThemes: ThemeOption[];
 }) {
   const [view, setView] = useState<View>("table");
+  const defaultResumeTheme =
+    resumeThemes.find((theme) => theme.id === "resume-classic") ?? resumeThemes[0];
   const [data, setData] = useState<Work>({
     table: { csv: DEFAULT_CSV, css: themes[0]?.css ?? "" },
-    resume: { csv: DEFAULT_RESUME_CSV, css: resumeThemes[0]?.css ?? "" },
+    resume: { csv: DEFAULT_RESUME_CSV, css: defaultResumeTheme?.css ?? "" },
     board: { csv: BOARD_CSV, css: boardThemeOptions[0]?.css ?? "" },
     cards: { csv: CARDS_CSV, css: cardsThemeOptions[0]?.css ?? "" },
     certificates: { csv: CERTIFICATES_CSV, css: certificatesThemeOptions[0]?.css ?? "" },
@@ -79,13 +81,11 @@ export default function Playground({
   const theme = themeList.find((t) => t.css === css);
   const themeId = theme?.id;
   const resumeLayout =
-    theme?.id === "resume-graphic"
-      ? "graphic"
-      : theme?.id === "resume-sidebar"
-        ? "sidebar"
-        : theme?.id === "resume-uiux"
-          ? "uiux"
-          : undefined;
+    theme?.id === "resume-uiux"
+      ? "uiux"
+      : theme?.id === "resume-executive"
+        ? "executive"
+        : undefined;
 
   // Restore saved work after mount (avoids SSR hydration mismatch).
   useEffect(() => {
@@ -261,8 +261,8 @@ export default function Playground({
             action={
               <Select
                 label="Theme"
-                value={theme?.id ?? "custom"}
-                display={`Theme: ${theme?.name ?? "Custom"}`}
+                value={theme?.id ?? ""}
+                display={`Theme: ${theme?.name ?? ""}`}
                 onChange={(id) => {
                   const nextTheme = themeList.find((t) => t.id === id);
                   if (!nextTheme) return;
@@ -275,9 +275,8 @@ export default function Playground({
                   ...themeList.map((t) => ({
                     value: t.id,
                     label: t.name,
-                    hint: t.pro ? "free account" : undefined,
+                    hint: t.hint ?? (t.pro ? "free account" : undefined),
                   })),
-                  { value: "custom", label: "Custom", disabled: true },
                 ]}
               />
             }
