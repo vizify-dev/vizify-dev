@@ -1,5 +1,8 @@
+import { existsSync, readFileSync } from "node:fs";
+import path from "node:path";
 import { describe, expect, it } from "vitest";
 import { loadResumeThemes } from "./themes/load";
+import { safePhotoSrc } from "./photo";
 
 describe("Pop resume theme", () => {
   it("is registered and loads its stylesheet", () => {
@@ -7,6 +10,20 @@ describe("Pop resume theme", () => {
 
     expect(theme?.name).toBe("Pop");
     expect(theme?.css).toContain(".resume--uiux");
+    expect(theme?.sample).toContain("Photo,,,,/images/resume-sample.jpeg");
+    expect(theme?.css).toContain(".r-uiux-photo-label");
+    expect(safePhotoSrc("/images/resume-sample.jpeg")).toBe("/images/resume-sample.jpeg");
+    expect(safePhotoSrc("//example.com/photo.jpeg")).toBe("");
+    expect(existsSync(path.join(process.cwd(), "public", "images", "resume-sample.jpeg"))).toBe(
+      true,
+    );
+    const templates = readFileSync(
+      path.join(process.cwd(), "src", "lib", "resume", "templates.html"),
+      "utf8",
+    );
+    expect(templates).toContain('<span class="r-uiux-photo-label">UI/UX Designer</span>');
+    expect(templates).toContain('<span class="r-uiux-paperclip"></span>');
+    expect(templates).toContain("family=Roboto+Slab");
   });
 });
 

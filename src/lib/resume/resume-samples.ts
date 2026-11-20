@@ -1,3 +1,5 @@
+export const SAMPLE_PHOTO_SRC = "/images/resume-sample.jpeg";
+
 export const SAMPLE_SIDEBAR = `section,title,subtitle,date,details
 Name,Mike Richard,Marketing Manager,,
 Contact,,,,+99 123 456 789
@@ -43,7 +45,7 @@ Professional Experience,Senior Graphic Designer,Fradel and Spies Company,June 20
 Professional Experience,Graphic Designer,Ryn-x Company,January 2020 - March 2022,"Created website and mobile app designs that increased engagement by 20%.|Led the redesign of the company website, resulting in a 30% increase in web traffic.|Conducted client presentations and refined design concepts."
 `;
 
-export const SAMPLE_UIUX = `section,title,subtitle,date,details
+export const LEGACY_SAMPLE_UIUX = `section,title,subtitle,date,details
 Name,Riya Menon,Passionate UI/UX Designer,,
 Contact,,,,riya.menon@example.com
 Contact,,,,+91 98765 43210
@@ -59,4 +61,17 @@ Experience,"Freelance, UI/UX Designer",,2022 - 2023,
 Projects,Online Travel & Rooms Booking Website,,,"Frontend design using HTML, CSS and JavaScript."
 Projects,Teeth Aligner Reminder,,,"A reminder mobile app design in Figma, with responsive screens made in Framer."
 Projects,Real Estate Website,,,"A flat and house rental and buying website, designed in Figma and Framer."
+`;
+
+export const SAMPLE_UIUX = `section,title,subtitle,date,details
+Name,Katie Lawson,"User-Centered | Problem Solver | Detail-Oriented",,
+Photo,,,,${SAMPLE_PHOTO_SRC}
+Contact,,,,katie.lawson@example.com
+Contact,,,,+1 555 014 2860
+Contact,,,,"Portland, Oregon"
+About Me,,,,"Creative and detail-oriented UI/UX designer who turns complex problems into clear, approachable digital experiences. I combine thoughtful research, purposeful visual design, and close collaboration to make products easier and more enjoyable to use."
+Education,Bachelor of Fine Arts in Graphic Design,"Silverdale Academy",2020 - 2024,
+Skills,,,,User Research|Wireframing|Prototyping|Figma|Interaction Design|Usability Testing
+Work Experience,UI/UX Designer,"Brightside Studio | Portland, OR",2023 - Present,"Designed accessible web and mobile experiences from early research through polished, interactive prototypes.|Partnered with product and engineering teams to improve task completion and reduce user friction."
+Work Experience,Junior UI/UX Designer,"Northstar Creative | Portland, OR",2021 - 2023,"Created wireframes, user flows, and responsive interface designs for client projects.|Ran usability sessions and translated feedback into clear, prioritized design updates."
 `;

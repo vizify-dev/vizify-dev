@@ -1,4 +1,4 @@
-import { SAMPLE_GRAPHIC, SAMPLE_UIUX } from "./resume-samples";
+import { LEGACY_SAMPLE_UIUX, SAMPLE_GRAPHIC, SAMPLE_UIUX } from "./resume-samples";
 
 /** `sample` is the demo data shown when this theme is picked and the editor still holds a sample. */
 export type ThemeOption = { id: string; name: string; css: string; pro?: boolean; sample?: string };
@@ -33,4 +33,5 @@ export const RESUME_THEME_DEFS: ThemeDefinition[] = [
 ];
 
 /** True while the editor still holds one of our demo datasets (so swapping in another one is safe). */
-export const isResumeSample = (csv: string) => RESUME_THEME_DEFS.some((theme) => theme.sample === csv);
+export const isResumeSample = (csv: string) =>
+  csv === LEGACY_SAMPLE_UIUX || RESUME_THEME_DEFS.some((theme) => theme.sample === csv);

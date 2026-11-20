@@ -21,6 +21,7 @@ import {
   isResumeSample,
   type ThemeOption,
 } from "@/lib/resume/resume";
+import { SAMPLE_PHOTO_SRC } from "@/lib/resume/resume-samples";
 import { persist, restore, savePhoto, saveSidebar, type Work } from "@/lib/storage";
 import { withTools } from "@/lib/table/tools";
 import type { Theme } from "@/lib/table/themes";
@@ -85,6 +86,7 @@ export default function Playground({
       : theme?.id === "resume-pop"
         ? "uiux"
         : undefined;
+  const resumeFallbackPhoto = themeId === "resume-pop" ? SAMPLE_PHOTO_SRC : "";
 
   // Restore saved work after mount (avoids SSR hydration mismatch).
   useEffect(() => {
@@ -196,10 +198,10 @@ export default function Playground({
               ? buildCardsDocument(csv, css, true, themeId)
               : view === "certificates"
                 ? buildCertificatesDocument(csv, css, themeId)
-                : buildResumeDocument(csv, css, photo, resumeLayout);
+                : buildResumeDocument(csv, css, photo, resumeLayout, resumeFallbackPhoto);
       return document.replace(/\r\n?/g, "\n");
     },
-    [view, csv, css, photo, resumeLayout, themeId],
+    [view, csv, css, photo, resumeLayout, resumeFallbackPhoto, themeId],
   );
 
   async function onUpload(e: React.ChangeEvent<HTMLInputElement>) {
@@ -234,7 +236,7 @@ export default function Playground({
           ? buildCardsDocument(csv, css, false, themeId)
           : view === "certificates"
             ? buildCertificatesDocument(csv, css, themeId, false)
-            : buildResumeDocument(csv, css, photo, resumeLayout);
+            : buildResumeDocument(csv, css, photo, resumeLayout, resumeFallbackPhoto);
 
   return (
     <div className="flex h-dvh flex-col overflow-hidden bg-sunken">
