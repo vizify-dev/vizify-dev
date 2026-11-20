@@ -8,4 +8,8 @@ describe("Ledger resume theme", () => {
     expect(theme?.name).toBe("Ledger");
     expect(theme?.css).toContain(".resume .r-head::after");
   });
+
+  it("is the default resume theme", () => {
+    expect(loadResumeThemes()[0]?.id).toBe("resume-ledger");
+  });
 });

@@ -74,7 +74,7 @@
 
 .resume .r-sec {
   display: grid;
-  grid-template-columns: 112px minmax(0, 1fr);
+  grid-template-columns: 128px minmax(0, 1fr);
   column-gap: 16px;
   align-items: start;
   margin: 0;
@@ -196,7 +196,7 @@
   }
 
   .resume .r-sec {
-    grid-template-columns: minmax(56px, 30%) minmax(0, 1fr);
+    grid-template-columns: minmax(128px, 40%) minmax(0, 1fr);
     column-gap: 12px;
     padding: 8px 0;
   }
