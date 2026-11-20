@@ -79,13 +79,11 @@ export default function Playground({
   const theme = themeList.find((t) => t.css === css);
   const themeId = theme?.id;
   const resumeLayout =
-    theme?.id === "resume-graphic"
-      ? "graphic"
-      : theme?.id === "resume-sidebar"
-        ? "sidebar"
-        : theme?.id === "resume-uiux"
-          ? "uiux"
-          : undefined;
+    theme?.id === "resume-uiux"
+      ? "uiux"
+      : theme?.id === "resume-executive"
+        ? "executive"
+        : undefined;
 
   // Restore saved work after mount (avoids SSR hydration mismatch).
   useEffect(() => {
