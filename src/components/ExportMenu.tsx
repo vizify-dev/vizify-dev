@@ -14,14 +14,15 @@ type ExportMenuProps = {
 
 export default function ExportMenu({ view, html, csv, staticHtml }: ExportMenuProps) {
   const baseName = `vizify-${view}`;
+  const hasJavascript = view !== "resume" && view !== "idcard";
   const files = useMemo(
     () =>
       separateHtmlAssets(
         html,
         `${baseName}.css`,
-        view !== "resume" ? `${baseName}.js` : undefined,
+        hasJavascript ? `${baseName}.js` : undefined,
       ),
-    [baseName, html, view],
+    [baseName, hasJavascript, html],
   );
 
   return (
@@ -29,7 +30,7 @@ export default function ExportMenu({ view, html, csv, staticHtml }: ExportMenuPr
       onDownloadHtml={() => download(files.html, "text/html", `${baseName}.html`)}
       onDownloadCss={() => download(files.css, "text/css;charset=utf-8", `${baseName}.css`)}
       onDownloadJavascript={
-        view !== "resume"
+        hasJavascript
           ? () =>
               download(
                 files.javascript,
