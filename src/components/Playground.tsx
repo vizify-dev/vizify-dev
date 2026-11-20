@@ -81,11 +81,7 @@ export default function Playground({
   const resumeLayout =
     theme?.id === "resume-graphic"
       ? "graphic"
-      : theme?.id === "resume-sidebar"
-        ? "sidebar"
-        : theme?.id === "resume-uiux"
-          ? "uiux"
-          : undefined;
+      : undefined;
 
   // Restore saved work after mount (avoids SSR hydration mismatch).
   useEffect(() => {
