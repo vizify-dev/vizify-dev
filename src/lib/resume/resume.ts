@@ -1,7 +1,7 @@
 import { SAMPLE_EXECUTIVE, SAMPLE_UIUX } from "./resume-samples";
 
 /** `sample` is the demo data shown when this theme is picked and the editor still holds a sample. */
-export type ThemeOption = { id: string; name: string; css: string; pro?: boolean; sample?: string };
+export type ThemeOption = { id: string; name: string; css: string; pro?: boolean; hint?: string; sample?: string };
 export type ThemeDefinition = Omit<ThemeOption, "css"> & { directory: string };
 
 export const DEFAULT_RESUME_CSV = `section,title,subtitle,date,details
@@ -24,11 +24,11 @@ Additional Information,,,,"Certifications: Professional Design Engineer (PDE) Li
 const D = DEFAULT_RESUME_CSV;
 
 export const RESUME_THEME_DEFS: ThemeDefinition[] = [
-  { id: "resume-uiux", name: "Pop", directory: "pop", sample: SAMPLE_UIUX },
+  { id: "resume-classic", name: "Plain", directory: "plain", sample: D, hint: "ATS-friendly" },
   { id: "resume-timeline", name: "Ledger", directory: "ledger", sample: D },
   { id: "resume-editorial", name: "Margin", directory: "margin", sample: D },
-  { id: "resume-executive", name: "Boardroom", directory: "boardroom", sample: SAMPLE_EXECUTIVE },
-  { id: "resume-classic", name: "Plain", directory: "plain", sample: D },
+  { id: "resume-executive", name: "Boardroom", directory: "boardroom", sample: SAMPLE_EXECUTIVE, hint: "ATS-friendly" },
+  { id: "resume-uiux", name: "Pop", directory: "pop", sample: SAMPLE_UIUX },
 ];
 
 /** True while the editor still holds one of our demo datasets (so swapping in another one is safe). */
