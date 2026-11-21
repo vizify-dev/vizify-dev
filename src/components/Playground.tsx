@@ -3,7 +3,7 @@
 import Image from "next/image";
 import { useEffect, useMemo, useRef, useState } from "react";
 import liveDot from "@/assets/icons/live-dot.svg";
-import Button from "@/components/Button";
+import Button, { buttonClass } from "@/components/Button";
 import EditorPane from "@/components/EditorPane";
 import ExportMenu from "@/components/ExportMenu";
 import { SaveIcon, UploadIcon } from "@/components/Icons";
@@ -18,6 +18,8 @@ import { DEFAULT_CSV } from "@/lib/table/defaults";
 import { fileToPhoto } from "@/lib/resume/photo";
 import { buildDocument } from "@/lib/table/preview";
 import { buildResumeDocument } from "@/lib/resume";
+import Link from "next/link";
+
 import {
   DEFAULT_RESUME_CSV,
   isResumeSample,
@@ -351,7 +353,13 @@ export default function Playground({
           Save
         </Button>
         <ExportMenu view={view} html={doc} csv={csv} staticHtml={staticDoc()} />
-        <AuthButton user={user} onSignOut={handleSignOut} />
+        {user ? (
+  <AuthButton user={user} onSignOut={handleSignOut} />
+) : (
+  <Link href="/sign-in" className={buttonClass("ghost")}>
+    Sign in
+  </Link>
+)}
       </header>
 
       <main className="flex min-h-0 flex-1 flex-col gap-[8px] overflow-y-auto p-[8px] lg:flex-row lg:gap-0 lg:overflow-hidden">
