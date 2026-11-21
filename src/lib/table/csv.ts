@@ -22,7 +22,7 @@ function cellContent(value: string, column: string): string | null {
 }
 
 /** Converts raw CSV into a semantic HTML table. The first row becomes the header. */
-export function csvToHtmlTable(csv: string): string {
+export function csvToHtmlTable(csv: string, interactiveCells = true): string {
   const rows = parseCsv(csv, "auto");
   if (rows.length === 0) {
     return '<div class="cssv-empty" role="status">No data yet. Upload a CSV to get started.</div>';
@@ -51,11 +51,17 @@ export function csvToHtmlTable(csv: string): string {
         ROW_TEMPLATE.trim(),
         "<!-- ROW_CELLS -->",
         pad(row)
-          .map((value, index) => {
+          .map((value, column) => {
             const content = value
-              ? (cellContent(value, paddedHeader[index]) ??
-                `<button class="cssv-cell" type="button" aria-expanded="false" title="Show full cell text">${escapeHtml(value)}</button>`)
+              ? (cellContent(value, paddedHeader[column] ?? "") ??
+                (interactiveCells
+                  ? `<button class="cssv-cell" type="button" aria-expanded="false" title="Show full cell text">${escapeHtml(value)}</button>`
+                  : `<span class="cssv-cell">${escapeHtml(value)}</span>`))
               : "";
+            const rowCellContent =
+              column === 0
+                ? `<span class="cssv-first-cell"><span class="cssv-row-checkbox" aria-hidden="true"></span>${content}</span>`
+                : content;
             return replaceToken(
               replaceToken(
                 DATA_CELL_TEMPLATE.trim(),
@@ -63,7 +69,7 @@ export function csvToHtmlTable(csv: string): string {
                 escapeHtml(value.trim()),
               ),
               "<!-- CELL_CONTENT -->",
-              content,
+              rowCellContent,
             );
           })
           .join(""),

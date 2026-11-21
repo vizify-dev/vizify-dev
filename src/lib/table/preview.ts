@@ -17,6 +17,53 @@ const LEGACY_ROW_MARKER_SIGNATURES = [
   'content: "📋";',
 ];
 
+const TODO_LIGHT_PRINT_CSS = `
+.cssv-scroll td:first-child {
+  display: table-cell !important;
+  position: static !important;
+  padding-left: 18px !important;
+}
+
+.cssv-scroll td:first-child::before {
+  content: none !important;
+  display: none !important;
+}
+
+.cssv-scroll td:first-child .cssv-first-cell {
+  box-sizing: border-box;
+  display: grid !important;
+  grid-template-columns: 17px minmax(0, 1fr);
+  align-items: start;
+  gap: 11px;
+  width: 100%;
+}
+
+.cssv-scroll td:first-child .cssv-row-checkbox {
+  box-sizing: border-box;
+  display: grid !important;
+  place-items: center;
+  width: 17px;
+  height: 17px;
+  margin-top: 1px;
+  border: 1.5px solid #cbd4e3;
+  border-radius: 5px;
+  background: #fff;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.cssv-scroll td:first-child .cssv-cell {
+  display: block !important;
+  width: auto !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
+  white-space: normal !important;
+  overflow-wrap: anywhere !important;
+}
+`;
+
 function replace(template: string, token: string, value: string): string {
   return template.replace(token, () => value);
 }
@@ -27,6 +74,7 @@ function replace(template: string, token: string, value: string): string {
  */
 
 export function buildDocument(csv: string, css: string, interactive = true): string {
+  const isTodoLightTheme = /--vz-title:\s*["']My tasks["']/.test(css);
   const hasLegacyRowMarkers = LEGACY_ROW_MARKER_SIGNATURES.some((signature) =>
     css.includes(signature),
   );
@@ -38,8 +86,10 @@ export function buildDocument(csv: string, css: string, interactive = true): str
     "/* BASE_CSS */": BASE_CSS,
     "/* INTERACTIVE_CSS */": interactive ? INTERACTIVE_CSS : "",
     "/* THEME_CSS */": safeCss,
-    "/* PRINT_CSS */": interactive ? "" : PRINT_CSS,
-    "<!-- TABLE -->": csvToHtmlTable(csv),
+    "/* PRINT_CSS */": interactive
+      ? ""
+      : `${PRINT_CSS}${isTodoLightTheme ? TODO_LIGHT_PRINT_CSS : ""}`,
+    "<!-- TABLE -->": csvToHtmlTable(csv, interactive),
     "<!-- SCRIPT -->": interactive ? INTERACTIVE_SCRIPT : "",
   };
   return Object.entries(values).reduce(

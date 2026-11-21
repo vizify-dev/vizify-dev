@@ -71,6 +71,14 @@ body {
   overflow-wrap: anywhere;
 }
 
+.cssv-first-cell {
+  display: contents;
+}
+
+.cssv-row-checkbox {
+  display: none;
+}
+
 @media (max-width: 640px) {
   body {
     padding: 16px;
