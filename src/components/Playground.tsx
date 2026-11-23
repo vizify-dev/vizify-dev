@@ -13,11 +13,12 @@ import PhotoButton from "@/components/PhotoButton";
 import ResizeHandle from "@/components/ResizeHandle";
 import Select from "@/components/Select";
 import ViewSwitch, { type View } from "@/components/ViewSwitch";
-import { DEFAULT_VIEW, isViewEnabled } from "@/lib/features";
+import { AUTH_ENABLED, DEFAULT_VIEW, isViewEnabled } from "@/lib/features";
 import { DEFAULT_CSV } from "@/lib/table/defaults";
 import { fileToPhoto } from "@/lib/resume/photo";
 import { buildDocument } from "@/lib/table/preview";
 import { buildResumeDocument } from "@/lib/resume";
+import { parseCsv } from "@/lib/csv-parser";
 import { importCandidateResumes } from "@/lib/resume/import-csv";
 import {
   DEFAULT_RESUME_CSV,
@@ -70,6 +71,7 @@ export default function Playground({
     certificates: { csv: CERTIFICATES_CSV, css: certificatesThemeOptions[0]?.css ?? "" },
   });
   const [photo, setPhoto] = useState("");
+  const [candidateIndex, setCandidateIndex] = useState(0);
   const [loaded, setLoaded] = useState(false);
   const [status, setStatus] = useState<SaveStatus>("Not saved");
   const [dataCollapsed, setDataCollapsed] = useState(false);
@@ -78,9 +80,19 @@ export default function Playground({
   const fileInput = useRef<HTMLInputElement>(null);
 
   const { csv, css } = data[view];
-  const resumeCsv = useMemo(
-    () => (view === "resume" ? (importCandidateResumes(csv)?.[0]?.csv ?? csv) : csv),
+  // A CSV with one row per person becomes several resumes; the user picks which to preview.
+  const candidates = useMemo(
+    () => (view === "resume" ? importCandidateResumes(csv) : null),
     [view, csv],
+  );
+  const activeCandidateIndex =
+    candidates && candidates.length > 0 ? Math.min(candidateIndex, candidates.length - 1) : 0;
+  const resumeCsv = candidates?.[activeCandidateIndex]?.csv ?? csv;
+  const csvPhoto = useMemo(
+    () =>
+      parseCsv(resumeCsv).find((row) => row[0]?.trim().toLowerCase() === "photo")?.[4]?.trim() ??
+      "",
+    [resumeCsv],
   );
   const themeList: ThemeOption[] =
     view === "table"
@@ -211,6 +223,7 @@ export default function Playground({
 
     if (!file) return;
 
+    if (view === "resume") setCandidateIndex(0);
     onCsvChange(await file.text());
   }
 
@@ -276,14 +289,16 @@ export default function Playground({
           Upload
         </Button>
 
-        <Button
-          onClick={() =>
-            setStatus(persist(view, csv, css) ? "Saved" : "Not saved")
-          }
-        >
-          <SaveIcon />
-          Save
-        </Button>
+        {AUTH_ENABLED && (
+          <Button
+            onClick={() =>
+              setStatus(persist(view, csv, css) ? "Saved" : "Not saved")
+            }
+          >
+            <SaveIcon />
+            Save
+          </Button>
+        )}
 
         <ExportMenu
           view={view}
@@ -292,13 +307,15 @@ export default function Playground({
           staticHtml={staticDoc()}
         />
 
-        <Button
-          variant="ghost"
-          disabled
-          title="Accounts aren't available in the client-only MVP"
-        >
-          Sign in
-        </Button>
+        {AUTH_ENABLED && (
+          <Button
+            variant="ghost"
+            disabled
+            title="Accounts aren't available in the client-only MVP"
+          >
+            Sign in
+          </Button>
+        )}
       </header>
 
       <main className="flex min-h-0 flex-1 flex-col gap-[8px] overflow-y-auto p-[8px] lg:flex-row lg:gap-0 lg:overflow-hidden">
@@ -311,11 +328,26 @@ export default function Playground({
             filename={`${view === "table" ? "data" : view}.csv`}
             action={
               view === "resume" ? (
-                <PhotoButton
-                  hasPhoto={photo !== ""}
-                  onPick={onPhoto}
-                  onRemove={onRemovePhoto}
-                />
+                <div className="flex items-center gap-[6px]">
+                  {candidates && candidates.length > 1 && (
+                    <Select
+                      label="Candidate"
+                      value={String(activeCandidateIndex)}
+                      display={`Candidate: ${candidates[activeCandidateIndex]?.name ?? ""}`}
+                      onChange={(value) => setCandidateIndex(Number(value))}
+                      options={candidates.map((candidate, index) => ({
+                        value: String(index),
+                        label: candidate.name,
+                      }))}
+                    />
+                  )}
+                  <PhotoButton
+                    hasPhoto={photo !== "" || csvPhoto !== ""}
+                    canRemove={photo !== ""}
+                    onPick={onPhoto}
+                    onRemove={onRemovePhoto}
+                  />
+                </div>
               ) : undefined
             }
             language="plaintext"
