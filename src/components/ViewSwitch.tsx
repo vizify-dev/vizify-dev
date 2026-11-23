@@ -7,13 +7,20 @@ export type View = ViewId;
 const OPTIONS: { value: View; label: string }[] = [
   { value: "table", label: "Table" },
   { value: "resume", label: "Resume" },
+  { value: "idcard", label: "ID Card" },
   { value: "board", label: "Jira Board" },
   { value: "cards", label: "ID Cards" },
   { value: "certificates", label: "Certificates" },
 ];
 
 /** Segmented control for choosing how the data is rendered. */
-export default function ViewSwitch({ value, onChange }: { value: View; onChange: (v: View) => void }) {
+export default function ViewSwitch({
+  value,
+  onChange,
+}: {
+  value: View;
+  onChange: (v: View) => void;
+}) {
   return (
     <div
       role="radiogroup"

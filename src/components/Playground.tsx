@@ -1,3 +1,4 @@
+
 "use client";
 
 import Image from "next/image";
@@ -21,6 +22,11 @@ import {
   isResumeSample,
   type ThemeOption,
 } from "@/lib/resume/resume";
+import {
+  DEFAULT_ID_CARD_CSV,
+  ID_CARD_THEMES,
+  buildIdCardDocument,
+} from "@/lib/cards";
 import { persist, restore, savePhoto, saveSidebar, type Work } from "@/lib/storage";
 import { withTools } from "@/lib/table/tools";
 import type { Theme } from "@/lib/table/themes";
@@ -53,6 +59,10 @@ export default function Playground({
   const [data, setData] = useState<Work>({
     table: { csv: DEFAULT_CSV, css: themes[0]?.css ?? "" },
     resume: { csv: DEFAULT_RESUME_CSV, css: resumeThemes[0]?.css ?? "" },
+    idcard: {
+      csv: DEFAULT_ID_CARD_CSV,
+      css: ID_CARD_THEMES[0]?.css ?? "",
+    },
     board: { csv: BOARD_CSV, css: boardThemeOptions[0]?.css ?? "" },
     cards: { csv: CARDS_CSV, css: cardsThemeOptions[0]?.css ?? "" },
     certificates: { csv: CERTIFICATES_CSV, css: certificatesThemeOptions[0]?.css ?? "" },
@@ -71,11 +81,13 @@ export default function Playground({
       ? themes
       : view === "resume"
         ? resumeThemes
-        : view === "board"
-          ? boardThemeOptions
-          : view === "cards"
-            ? cardsThemeOptions
-            : certificatesThemeOptions;
+        : view === "idcard"
+          ? ID_CARD_THEMES
+          : view === "board"
+            ? boardThemeOptions
+            : view === "cards"
+              ? cardsThemeOptions
+              : certificatesThemeOptions;
   const theme = themeList.find((t) => t.css === css);
   const themeId = theme?.id;
   const resumeLayout =
@@ -86,6 +98,7 @@ export default function Playground({
   // Restore saved work after mount (avoids SSR hydration mismatch).
   useEffect(() => {
     const saved = restore();
+
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setData((current) => ({
       table: {
@@ -96,13 +109,17 @@ export default function Playground({
         csv: saved.work.resume?.csv ?? current.resume.csv,
         css: saved.work.resume?.css ?? current.resume.css,
       },
+      idcard: {
+        csv: saved.work.idcard?.csv ?? current.idcard.csv,
+        css: saved.work.idcard?.css ?? current.idcard.css,
+      },
       board: {
         csv: saved.work.board?.csv ?? current.board.csv,
         css: saved.work.board?.css ?? current.board.css,
       },
       cards: {
         csv:
-          saved.work.cards?.csv === LEGACY_CARDS_CSV
+          saved.work.cards?.csv?.replace(/\r\n/g, "\n") === LEGACY_CARDS_CSV
             ? CARDS_CSV
             : (saved.work.cards?.csv ?? current.cards.csv),
         css: migrateLegacyCardsThemeCss(saved.work.cards?.css ?? current.cards.css),
@@ -112,10 +129,12 @@ export default function Playground({
         css: saved.work.certificates?.css ?? current.certificates.css,
       },
     }));
+
     if (saved.view) setView(saved.view);
     if (
       saved.work.table ||
       saved.work.resume ||
+      saved.work.idcard ||
       saved.work.board ||
       saved.work.cards ||
       saved.work.certificates
@@ -129,10 +148,12 @@ export default function Playground({
   // Autosave shortly after the user stops typing, once saved values were restored.
   useEffect(() => {
     if (!loaded) return;
+
     const t = setTimeout(
       () => setStatus(persist(view, csv, css) ? "Saved" : "Not saved"),
       AUTOSAVE_MS,
     );
+
     return () => clearTimeout(t);
   }, [view, csv, css, loaded]);
 
@@ -146,9 +167,13 @@ export default function Playground({
   function update(field: "csv" | "css") {
     return (v: string) => {
       setStatus("Not saved");
-      setData((d) => ({ ...d, [view]: { ...d[view], [field]: v } }));
+      setData((d) => ({
+        ...d,
+        [view]: { ...d[view], [field]: v },
+      }));
     };
   }
+
   const setCsv = update("csv");
   const setCss = update("css");
   const onCsvChange = setCsv;
@@ -159,13 +184,15 @@ export default function Playground({
       const document =
         view === "table"
           ? withTools(buildDocument(csv, css))
-          : view === "board"
-            ? buildBoardDocument(csv, css, themeId)
-            : view === "cards"
-              ? buildCardsDocument(csv, css, true, themeId)
-              : view === "certificates"
-                ? buildCertificatesDocument(csv, css, themeId)
-                : buildResumeDocument(csv, css, photo, resumeLayout);
+          : view === "idcard"
+            ? buildIdCardDocument(csv, css)
+            : view === "board"
+              ? buildBoardDocument(csv, css, themeId)
+              : view === "cards"
+                ? buildCardsDocument(csv, css, true, themeId)
+                : view === "certificates"
+                  ? buildCertificatesDocument(csv, css, themeId)
+                  : buildResumeDocument(csv, css, photo, resumeLayout);
       return document.replace(/\r\n?/g, "\n");
     },
     [view, csv, css, photo, resumeLayout, themeId],
@@ -174,7 +201,9 @@ export default function Playground({
   async function onUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     e.target.value = "";
+
     if (!file) return;
+
     onCsvChange(await file.text());
   }
 
@@ -197,37 +226,70 @@ export default function Playground({
   const staticDoc = () =>
     view === "table"
       ? buildDocument(csv, css, false)
-      : view === "board"
-        ? buildBoardDocument(csv, css, themeId, false)
-        : view === "cards"
-          ? buildCardsDocument(csv, css, false, themeId)
-          : view === "certificates"
-            ? buildCertificatesDocument(csv, css, themeId, false)
-            : buildResumeDocument(csv, css, photo, resumeLayout);
+      : view === "idcard"
+        ? buildIdCardDocument(csv, css)
+        : view === "board"
+          ? buildBoardDocument(csv, css, themeId, false)
+          : view === "cards"
+            ? buildCardsDocument(csv, css, false, themeId)
+            : view === "certificates"
+              ? buildCertificatesDocument(csv, css, themeId, false)
+              : buildResumeDocument(csv, css, photo, resumeLayout);
 
   return (
     <div className="flex h-dvh flex-col overflow-hidden bg-sunken">
       <header className="flex min-h-[56px] shrink-0 flex-wrap items-center gap-[8px] border-b border-line bg-surface px-[10px] py-[8px] sm:px-[16px] lg:h-[56px] lg:flex-nowrap lg:gap-[12px]">
         <Logo />
+
         <div className="hidden h-[24px] w-px shrink-0 bg-line lg:block" />
+
         <div className="hidden min-w-0 items-center gap-[10px] lg:flex">
-          <span className="whitespace-nowrap text-[15px] font-semibold text-ink">Untitled project</span>
-          <span className="whitespace-nowrap font-mono text-[12px] text-ink3">{status}</span>
+          <span className="whitespace-nowrap text-[15px] font-semibold text-ink">
+            Untitled project
+          </span>
+          <span className="whitespace-nowrap font-mono text-[12px] text-ink3">
+            {status}
+          </span>
         </div>
+
         <ViewSwitch value={view} onChange={setView} />
+
         <div className="hidden min-w-px flex-1 lg:block" />
 
-        <input ref={fileInput} type="file" accept={CSV_ACCEPT} hidden onChange={onUpload} />
+        <input
+          ref={fileInput}
+          type="file"
+          accept={CSV_ACCEPT}
+          hidden
+          onChange={onUpload}
+        />
+
         <Button onClick={() => fileInput.current?.click()}>
           <UploadIcon />
           Upload
         </Button>
-        <Button onClick={() => setStatus(persist(view, csv, css) ? "Saved" : "Not saved")}>
+
+        <Button
+          onClick={() =>
+            setStatus(persist(view, csv, css) ? "Saved" : "Not saved")
+          }
+        >
           <SaveIcon />
           Save
         </Button>
-        <ExportMenu view={view} html={doc} csv={csv} staticHtml={staticDoc()} />
-        <Button variant="ghost" disabled title="Accounts aren't available in the client-only MVP">
+
+        <ExportMenu
+          view={view}
+          html={doc}
+          csv={csv}
+          staticHtml={staticDoc()}
+        />
+
+        <Button
+          variant="ghost"
+          disabled
+          title="Accounts aren't available in the client-only MVP"
+        >
           Sign in
         </Button>
       </header>
@@ -242,7 +304,11 @@ export default function Playground({
             filename={`${view === "table" ? "data" : view}.csv`}
             action={
               view === "resume" ? (
-                <PhotoButton hasPhoto={photo !== ""} onPick={onPhoto} onRemove={onRemovePhoto} />
+                <PhotoButton
+                  hasPhoto={photo !== ""}
+                  onPick={onPhoto}
+                  onRemove={onRemovePhoto}
+                />
               ) : undefined
             }
             language="plaintext"
@@ -251,6 +317,7 @@ export default function Playground({
             onToggle={() => setDataCollapsed((c) => !c)}
             onChange={onCsvChange}
           />
+
           <EditorPane
             label="CSS"
             filename="styles.css"
@@ -261,9 +328,16 @@ export default function Playground({
                 display={`Theme: ${theme?.name ?? "Custom"}`}
                 onChange={(id) => {
                   const nextTheme = themeList.find((t) => t.id === id);
+
                   if (!nextTheme) return;
+
                   setCss(nextTheme.css);
-                  if (view === "resume" && nextTheme.sample && isResumeSample(csv)) {
+
+                  if (
+                    view === "resume" &&
+                    nextTheme.sample &&
+                    isResumeSample(csv)
+                  ) {
                     setCsv(nextTheme.sample);
                   }
                 }}
@@ -295,11 +369,13 @@ export default function Playground({
         <section className="flex min-h-[65vh] min-w-px shrink-0 flex-col overflow-clip rounded-[12px] bg-surface lg:min-h-0 lg:flex-1">
           <div className="flex h-[40px] shrink-0 items-center justify-between gap-[12px] border-b border-line bg-paper px-[16px] font-mono text-[12px] text-ink3">
             <span className="font-medium tracking-[0.72px]">PREVIEW</span>
+
             <span className="flex shrink-0 items-center gap-[6px]">
               <Image src={liveDot} alt="" width={6} height={6} />
               Live
             </span>
           </div>
+
           {/* Sandboxed without allow-same-origin: only our injected scripts run, isolated from the app. */}
           <iframe
             title="Preview"

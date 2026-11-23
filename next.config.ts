@@ -38,8 +38,11 @@ const nextConfig: NextConfig = {
         loaders: [require.resolve("./scripts/ts-to-text-loader.cjs")],
         as: "*.js",
       },
+      
+      
     },
   },
 };
+
 
 export default nextConfig;
