@@ -1,9 +1,4 @@
-import {
-  SAMPLE_EXECUTIVE,
-  SAMPLE_GRAPHIC,
-  SAMPLE_SIDEBAR,
-  SAMPLE_UIUX,
-} from "./resume-samples";
+import { SAMPLE_EXECUTIVE, SAMPLE_UIUX } from "./resume-samples";
 
 /** `sample` is the demo data shown when this theme is picked and the editor still holds a sample. */
 export type ThemeOption = {
@@ -36,17 +31,22 @@ Additional Information,,,,"Certifications: Professional Design Engineer (PDE) Li
 
 const D = DEFAULT_RESUME_CSV;
 
+/** Dropdown order. Plain is the default (see DEFAULT_RESUME_THEME_ID). */
 export const RESUME_THEME_DEFS: ThemeDefinition[] = [
-  { id: "resume-classic", name: "Classic", directory: "classic", sample: D },
-  { id: "resume-ledger", name: "Ledger", directory: "ledger", sample: D },
-  { id: "resume-editorial", name: "Editorial", directory: "editorial", sample: D },
-  { id: "resume-margin", name: "Margin", directory: "margin", sample: D },
-  { id: "resume-plain", name: "Plain", directory: "plain", sample: D },
-  { id: "resume-boardroom", name: "Boardroom", directory: "boardroom", sample: SAMPLE_EXECUTIVE },
-  { id: "resume-midnight", name: "Midnight", directory: "midnight", sample: SAMPLE_SIDEBAR },
   { id: "resume-pop", name: "Pop", directory: "pop", sample: SAMPLE_UIUX },
-  { id: "resume-graphic", name: "Graphic Designer", directory: "graphic", sample: SAMPLE_GRAPHIC },
+  { id: "resume-ledger", name: "Ledger", directory: "ledger", sample: D },
+  { id: "resume-margin", name: "Margin", directory: "margin", sample: D },
+  {
+    id: "resume-boardroom",
+    name: "Boardroom",
+    directory: "boardroom",
+    sample: SAMPLE_EXECUTIVE,
+    hint: "ATS-friendly",
+  },
+  { id: "resume-plain", name: "Plain", directory: "plain", sample: D, hint: "ATS-friendly" },
 ];
+
+export const DEFAULT_RESUME_THEME_ID = "resume-plain";
 
 /** True while the editor still holds one of our demo datasets (so swapping in another one is safe). */
 export const isResumeSample = (csv: string) => RESUME_THEME_DEFS.some((theme) => theme.sample === csv);
