@@ -115,7 +115,9 @@ export default function Playground({
         ? "executive"
         : theme?.id === "resume-midnight"
           ? "sidebar"
-          : undefined;
+          : theme?.id === "resume-pop"
+            ? "uiux"
+            : undefined;
 
   // Restore saved work after mount (avoids SSR hydration mismatch).
   useEffect(() => {
