@@ -5,6 +5,7 @@ describe("resume theme registry", () => {
   it("loads the remaining resume themes", () => {
     expect(loadResumeThemes().map(({ id }) => id)).toEqual([
       "resume-classic",
+      "resume-ledger",
       "resume-editorial",
       "resume-boardroom",
       "resume-graphic",
