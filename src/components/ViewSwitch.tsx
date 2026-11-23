@@ -1,10 +1,11 @@
 "use client";
 
+import { isViewEnabled } from "@/lib/features";
 import type { ViewId } from "@/lib/jiraboard/views";
 
 export type View = ViewId;
 
-const OPTIONS: { value: View; label: string }[] = [
+const ALL_OPTIONS: { value: View; label: string }[] = [
   { value: "table", label: "Table" },
   { value: "resume", label: "Resume" },
   { value: "idcard", label: "ID Card" },
@@ -12,6 +13,8 @@ const OPTIONS: { value: View; label: string }[] = [
   { value: "cards", label: "ID Cards" },
   { value: "certificates", label: "Certificates" },
 ];
+
+const OPTIONS = ALL_OPTIONS.filter((option) => isViewEnabled(option.value));
 
 /** Segmented control for choosing how the data is rendered. */
 export default function ViewSwitch({
@@ -21,6 +24,9 @@ export default function ViewSwitch({
   value: View;
   onChange: (v: View) => void;
 }) {
+  // Nothing to switch between while only Resume is enabled.
+  if (OPTIONS.length < 2) return null;
+
   return (
     <div
       role="radiogroup"

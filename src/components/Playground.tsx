@@ -13,6 +13,7 @@ import PhotoButton from "@/components/PhotoButton";
 import ResizeHandle from "@/components/ResizeHandle";
 import Select from "@/components/Select";
 import ViewSwitch, { type View } from "@/components/ViewSwitch";
+import { DEFAULT_VIEW, isViewEnabled } from "@/lib/features";
 import { DEFAULT_CSV } from "@/lib/table/defaults";
 import { fileToPhoto } from "@/lib/resume/photo";
 import { buildDocument } from "@/lib/table/preview";
@@ -56,7 +57,7 @@ export default function Playground({
   themes: Theme[];
   resumeThemes: ThemeOption[];
 }) {
-  const [view, setView] = useState<View>("table");
+  const [view, setView] = useState<View>(DEFAULT_VIEW);
   const [data, setData] = useState<Work>({
     table: { csv: DEFAULT_CSV, css: themes[0]?.css ?? "" },
     resume: { csv: DEFAULT_RESUME_CSV, css: resumeThemes[0]?.css ?? "" },
@@ -135,7 +136,8 @@ export default function Playground({
       },
     }));
 
-    if (saved.view) setView(saved.view);
+    // Only restore a saved view that is currently available.
+    if (saved.view && isViewEnabled(saved.view)) setView(saved.view);
     if (
       saved.work.table ||
       saved.work.resume ||
