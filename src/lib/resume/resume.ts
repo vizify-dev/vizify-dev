@@ -40,6 +40,8 @@ export const RESUME_THEME_DEFS: ThemeDefinition[] = [
   { id: "resume-classic", name: "Classic", directory: "classic", sample: D },
   { id: "resume-ledger", name: "Ledger", directory: "ledger", sample: D },
   { id: "resume-editorial", name: "Editorial", directory: "editorial", sample: D },
+  { id: "resume-margin", name: "Margin", directory: "margin", sample: D },
+  { id: "resume-plain", name: "Plain", directory: "plain", sample: D },
   { id: "resume-boardroom", name: "Boardroom", directory: "boardroom", sample: SAMPLE_EXECUTIVE },
   { id: "resume-midnight", name: "Midnight", directory: "midnight", sample: SAMPLE_SIDEBAR },
   { id: "resume-pop", name: "Pop", directory: "pop", sample: SAMPLE_UIUX },

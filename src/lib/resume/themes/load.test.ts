@@ -7,6 +7,8 @@ describe("resume theme registry", () => {
       "resume-classic",
       "resume-ledger",
       "resume-editorial",
+      "resume-margin",
+      "resume-plain",
       "resume-boardroom",
       "resume-midnight",
       "resume-pop",
