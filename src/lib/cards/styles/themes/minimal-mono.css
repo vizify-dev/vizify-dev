@@ -3,4 +3,4 @@
 .id-photo{margin-top:4mm;border:.3mm solid #111;background:#e5e5e5}
 .id-initials{color:#111}
 .id-role{color:#111;text-transform:uppercase;letter-spacing:.12em;font-size:6.5pt}
-.id-card{border:.3mm solid #111}
+.id-card{height:auto;min-height:86mm;border:.3mm solid #111}
