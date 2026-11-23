@@ -1,4 +1,4 @@
-import { SAMPLE_GRAPHIC } from "./resume-samples";
+import { SAMPLE_EXECUTIVE, SAMPLE_GRAPHIC } from "./resume-samples";
 
 /** `sample` is the demo data shown when this theme is picked and the editor still holds a sample. */
 export type ThemeOption = {
@@ -34,6 +34,7 @@ const D = DEFAULT_RESUME_CSV;
 export const RESUME_THEME_DEFS: ThemeDefinition[] = [
   { id: "resume-classic", name: "Classic", directory: "classic", sample: D },
   { id: "resume-editorial", name: "Editorial", directory: "editorial", sample: D },
+  { id: "resume-boardroom", name: "Boardroom", directory: "boardroom", sample: SAMPLE_EXECUTIVE },
   { id: "resume-graphic", name: "Graphic Designer", directory: "graphic", sample: SAMPLE_GRAPHIC },
 ];
 

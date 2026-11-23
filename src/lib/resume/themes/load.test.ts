@@ -6,6 +6,7 @@ describe("resume theme registry", () => {
     expect(loadResumeThemes().map(({ id }) => id)).toEqual([
       "resume-classic",
       "resume-editorial",
+      "resume-boardroom",
       "resume-graphic",
     ]);
   });
