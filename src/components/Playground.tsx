@@ -336,12 +336,14 @@ export default function Playground({
                       }))}
                     />
                   )}
-                  <PhotoButton
-                    hasPhoto={photo !== "" || csvPhoto !== ""}
-                    canRemove={photo !== ""}
-                    onPick={onPhoto}
-                    onRemove={onRemovePhoto}
-                  />
+                  {theme?.id !== "resume-ledger" && (
+                    <PhotoButton
+                      hasPhoto={photo !== "" || csvPhoto !== ""}
+                      canRemove={photo !== ""}
+                      onPick={onPhoto}
+                      onRemove={onRemovePhoto}
+                    />
+                  )}
                 </div>
               ) : undefined
             }
