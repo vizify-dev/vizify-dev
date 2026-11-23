@@ -65,3 +65,16 @@ export function restore(): { work: Restored; view: View | null; sidebar: number 
   }
   return { work, view, sidebar, photo };
 }
+/** Clears every locally saved draft (used on sign-out). */
+export function clearLocal() {
+  try {
+    for (const v of VIEWS) {
+      localStorage.removeItem(KEYS[v].csv);
+      localStorage.removeItem(KEYS[v].css);
+    }
+    localStorage.removeItem(VIEW_KEY);
+    localStorage.removeItem(PHOTO_KEY);
+  } catch {
+    // storage blocked
+  }
+}
