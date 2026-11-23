@@ -20,3 +20,6 @@ export function isViewEnabled(view: ViewId): boolean {
 
 /** The view to open on a fresh load: Table when enabled, otherwise Resume. */
 export const DEFAULT_VIEW: ViewId = VIEW_FLAGS.table ? "table" : "resume";
+
+/** Account controls (Save + Sign in) stay hidden until NEXT_PUBLIC_FEATURE_AUTH is "true". */
+export const AUTH_ENABLED = process.env.NEXT_PUBLIC_FEATURE_AUTH === "true";
