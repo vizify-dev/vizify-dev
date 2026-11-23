@@ -7,6 +7,7 @@ describe("resume theme registry", () => {
       "resume-classic",
       "resume-editorial",
       "resume-boardroom",
+      "resume-midnight",
       "resume-graphic",
     ]);
   });
