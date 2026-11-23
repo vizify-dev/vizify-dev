@@ -113,7 +113,9 @@ export default function Playground({
       ? "graphic"
       : theme?.id === "resume-boardroom"
         ? "executive"
-        : undefined;
+        : theme?.id === "resume-midnight"
+          ? "sidebar"
+          : undefined;
 
   // Restore saved work after mount (avoids SSR hydration mismatch).
   useEffect(() => {
