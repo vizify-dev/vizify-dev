@@ -261,16 +261,9 @@ export default function Playground({
       <header className="flex min-h-[56px] shrink-0 flex-wrap items-center gap-[8px] border-b border-line bg-surface px-[10px] py-[8px] sm:px-[16px] lg:h-[56px] lg:flex-nowrap lg:gap-[12px]">
         <Logo />
 
-        <div className="hidden h-[24px] w-px shrink-0 bg-line lg:block" />
-
-        <div className="hidden min-w-0 items-center gap-[10px] lg:flex">
-          <span className="whitespace-nowrap text-[15px] font-semibold text-ink">
-            Untitled project
-          </span>
-          <span className="whitespace-nowrap font-mono text-[12px] text-ink3">
-            {status}
-          </span>
-        </div>
+        <span className="sr-only" aria-live="polite">
+          {status}
+        </span>
 
         <ViewSwitch value={view} onChange={setView} />
 
