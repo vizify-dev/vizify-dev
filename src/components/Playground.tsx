@@ -26,7 +26,6 @@ import {
   type ThemeOption,
 } from "@/lib/resume/resume";
 import { SAMPLE_PHOTO_SRC } from "@/lib/resume/resume-samples";
-import { SAMPLE_PHOTO_SRC } from "@/lib/resume/resume-samples";
 import {
   DEFAULT_ID_CARD_CSV,
   ID_CARD_THEMES,
@@ -125,11 +124,6 @@ export default function Playground({
   // Restore saved work after mount (avoids SSR hydration mismatch).
   useEffect(() => {
     const saved = restore();
-    const cssForTheme = (
-      list: { id: string; css: string }[],
-      savedCss: string | null,
-      themeId: string | null,
-    ) => list.find((item) => item.id === themeId)?.css ?? savedCss;
     const cssForTheme = (
       list: { id: string; css: string }[],
       savedCss: string | null,
