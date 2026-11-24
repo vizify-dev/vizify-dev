@@ -2,11 +2,10 @@ import { parseCsv } from "@/lib/csv-parser";
 import RESUME_TEMPLATES_HTML from "./templates.html";
 import { readWideResumeRows, type ResumeRow } from "./wide-format";
 import { safePhotoSrc } from "./photo";
-
 const COLS = ["section", "title", "subtitle", "date", "details"] as const;
 type Col = (typeof COLS)[number];
 type Row = ResumeRow;
-type ResumeLayout = "graphic" | "sidebar" | "uiux";
+type ResumeLayout = "graphic" | "sidebar" | "executive" | "uiux";
 
 const ESC: Record<string, string> = {
   "&": "&amp;",
@@ -21,6 +20,7 @@ const KINDS: [string, RegExp][] = [
   ["about", /about|summary|profile|objective/],
   ["experience", /experience|employment|work/],
   ["education", /education|academic/],
+  ["awards", /award|certification/],
   ["skills", /skill/],
   ["languages", /language/],
   ["references", /reference/],
@@ -247,6 +247,13 @@ export function resumeToHtml(
       CONTACT_SECTION: contactSection,
       BODY: renderedSections.map(({ html }) => html).join(""),
       SOCIALS: render("uiux-socials"),
+    });
+  }
+
+  if (layout === "executive") {
+    return render("article-executive", {
+      HEADER: head,
+      BODY: renderedSections.map(({ html }) => html).join(""),
     });
   }
 

@@ -1,7 +1,21 @@
-import { LEGACY_SAMPLE_UIUX, SAMPLE_GRAPHIC, SAMPLE_UIUX } from "./resume-samples";
+import {
+  LEGACY_SAMPLE_UIUX,
+  SAMPLE_EXECUTIVE,
+  SAMPLE_GRAPHIC,
+  SAMPLE_SIDEBAR,
+  SAMPLE_UIUX,
+} from "./resume-samples";
 
 /** `sample` is the demo data shown when this theme is picked and the editor still holds a sample. */
-export type ThemeOption = { id: string; name: string; css: string; pro?: boolean; sample?: string };
+export type ThemeOption = {
+  id: string;
+  name: string;
+  hint?: string;
+  css: string;
+  pro?: boolean;
+  sample?: string;
+  supportsPhoto?: boolean;
+};
 export type ThemeDefinition = Omit<ThemeOption, "css"> & { directory: string };
 
 export const DEFAULT_RESUME_CSV = `section,title,subtitle,date,details
@@ -25,11 +39,14 @@ const D = DEFAULT_RESUME_CSV;
 
 export const RESUME_THEME_DEFS: ThemeDefinition[] = [
   { id: "resume-classic", name: "Classic", directory: "classic", sample: D },
+  { id: "resume-ledger", name: "Ledger", directory: "ledger", sample: D },
   { id: "resume-editorial", name: "Editorial", directory: "editorial", sample: D },
-  { id: "resume-graphic", name: "Graphic Designer", directory: "graphic", sample: SAMPLE_GRAPHIC },
   { id: "resume-margin", name: "Margin", directory: "margin", sample: D },
   { id: "resume-plain", name: "Plain", directory: "plain", sample: D },
+  { id: "resume-boardroom", name: "Boardroom", directory: "boardroom", sample: SAMPLE_EXECUTIVE },
+  { id: "resume-midnight", name: "Midnight", directory: "midnight", sample: SAMPLE_SIDEBAR },
   { id: "resume-pop", name: "Pop", directory: "pop", sample: SAMPLE_UIUX },
+  { id: "resume-graphic", name: "Graphic Designer", directory: "graphic", sample: SAMPLE_GRAPHIC },
 ];
 
 /** True while the editor still holds one of our demo datasets (so swapping in another one is safe). */
