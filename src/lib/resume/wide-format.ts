@@ -20,6 +20,16 @@ export function readWideResumeRows(table: string[][]): ResumeRow[] | null {
   if (fieldIndex("full name") < 0) return null;
 
   const rows: ResumeRow[] = [];
+  const emitted = new Set<string>();
+  const uniqueList = (items: string, commaSeparated = false) => {
+    const delimiter = commaSeparated ? /[,;|\r\n]+/ : /[;|\r\n]+/;
+    return items
+      .split(delimiter)
+      .map((item) => item.trim())
+      .filter((item, index, all) => item && all.findIndex((candidate) =>
+        candidate.trim().toLowerCase() === item.toLowerCase()) === index);
+  };
+
   for (const source of table.slice(1)) {
     const value = (...names: string[]) => {
       const index = fieldIndex(...names);
@@ -36,41 +46,77 @@ export function readWideResumeRows(table: string[][]): ResumeRow[] | null {
         rows.push({ section, title, subtitle, date, details });
       }
     };
-    const list = (items: string) =>
-      items.split(/[;|]/).map((item) => item.trim()).filter(Boolean).join("|");
+    const list = (items: string, commaSeparated = false) =>
+      uniqueList(items, commaSeparated).join("|");
 
-    add("Name", value("full name"), value("professional title"));
+    const fullName = value("full name");
+    const professionalTitle = value("professional title");
+    if (fullName && !emitted.has("name")) {
+      emitted.add("name");
+      add("Name", fullName, professionalTitle);
+    } else if (professionalTitle && !emitted.has("role")) {
+      emitted.add("role");
+      add("Name", "", professionalTitle);
+    }
+
     for (const contact of [
       value("email"),
       value("phone"),
       value("location"),
       value("portfolio url", "portfolio"),
     ]) {
-      add("Contact", "", "", "", contact);
+      const normalized = contact.toLowerCase();
+      if (contact && !emitted.has(`contact:${normalized}`)) {
+        emitted.add(`contact:${normalized}`);
+        add("Contact", "", "", "", contact);
+      }
     }
-    add("Summary", "", "", "", value("summary"));
-    add("Skills", "", "", "", list(value("skills")));
 
-    const education = value("education");
-    const degree = value("degree");
-    add(
-      "Education",
-      [education, degree].filter(Boolean).join(" - "),
-      value("institution", "school", "university"),
-      value("graduation year", "graduation date"),
-    );
+    const summary = value("summary");
+    if (summary && !emitted.has(`summary:${summary.toLowerCase()}`)) {
+      emitted.add(`summary:${summary.toLowerCase()}`);
+      add("Summary", "", "", "", summary);
+    }
+    const skills = list(value("skills"), true);
+    if (skills) add("Skills", "", "", "", skills);
+
+    const educationName = value("education");
+    const degreeName = value("education degree", "degree");
+    const degree = [educationName, degreeName].filter(Boolean).join(" - ");
+    const institution = value("institution", "school", "university");
+    const graduationYear = value("graduation year", "graduation date");
+    const educationKey = `education:${degree}|${institution}|${graduationYear}`.toLowerCase();
+    if (!emitted.has(educationKey) && [degree, institution, graduationYear].some(Boolean)) {
+      emitted.add(educationKey);
+      add("Education", degree, institution, graduationYear);
+    }
 
     const startDate = value("start date");
     const endDate = value("end date");
-    add(
-      "Work Experience",
-      value("job title", "position"),
-      value("company", "employer"),
-      [startDate, endDate].filter(Boolean).join(" - "),
-      value("responsibilities", "description"),
-    );
-    add("Projects", "", "", "", list(value("projects")));
-    add("Certifications", "", "", "", list(value("certifications")));
+    const company = value("company", "employer");
+    const jobTitle = value("job title", "position");
+    const responsibilities = value("responsibilities", "description");
+    const date = [startDate, endDate].filter(Boolean).join(" - ");
+    const experienceKey =
+      `experience:${jobTitle}|${company}|${date}|${responsibilities}`.toLowerCase();
+    if (!emitted.has(experienceKey) &&
+      [company, jobTitle, startDate, endDate, responsibilities].some(Boolean)) {
+      emitted.add(experienceKey);
+      add("Work Experience", jobTitle || company, jobTitle ? company : "", date, responsibilities);
+    }
+
+    const projects = list(value("projects"), true);
+    if (projects) {
+      for (const project of projects.split("|")) {
+        const key = `project:${project.toLowerCase()}`;
+        if (!emitted.has(key)) {
+          emitted.add(key);
+          add("Projects", project);
+        }
+      }
+    }
+    const certifications = list(value("certifications"), true);
+    if (certifications) add("Certifications", "", "", "", certifications);
   }
 
   return rows;

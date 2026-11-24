@@ -122,16 +122,27 @@ export default function Playground({
   // Restore saved work after mount (avoids SSR hydration mismatch).
   useEffect(() => {
     const saved = restore();
-
+    const cssForTheme = (
+      list: { id: string; css: string }[],
+      savedCss: string | null,
+      themeId: string | null,
+    ) => list.find((item) => item.id === themeId)?.css ?? savedCss;
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setData((current) => ({
       table: {
         csv: saved.work.table?.csv ?? current.table.csv,
-        css: saved.work.table?.css ?? current.table.css,
+        css:
+          cssForTheme(themes, saved.work.table?.css ?? null, saved.work.table?.themeId ?? null) ??
+          current.table.css,
       },
       resume: {
         csv: saved.work.resume?.csv ?? current.resume.csv,
-        css: saved.work.resume?.css ?? current.resume.css,
+        css:
+          cssForTheme(
+            resumeThemes,
+            saved.work.resume?.css ?? null,
+            saved.work.resume?.themeId ?? null,
+          ) ?? current.resume.css,
       },
       idcard: {
         csv: saved.work.idcard?.csv ?? current.idcard.csv,
@@ -139,21 +150,36 @@ export default function Playground({
       },
       board: {
         csv: saved.work.board?.csv ?? current.board.csv,
-        css: saved.work.board?.css ?? current.board.css,
+        css:
+          cssForTheme(
+            boardThemeOptions,
+            saved.work.board?.css ?? null,
+            saved.work.board?.themeId ?? null,
+          ) ?? current.board.css,
       },
       cards: {
         csv:
           saved.work.cards?.csv?.replace(/\r\n/g, "\n") === LEGACY_CARDS_CSV
             ? CARDS_CSV
             : (saved.work.cards?.csv ?? current.cards.csv),
-        css: migrateLegacyCardsThemeCss(saved.work.cards?.css ?? current.cards.css),
+        css: migrateLegacyCardsThemeCss(
+          cssForTheme(
+            cardsThemeOptions,
+            saved.work.cards?.css ?? null,
+            saved.work.cards?.themeId ?? null,
+          ) ?? current.cards.css,
+        ),
       },
       certificates: {
         csv: saved.work.certificates?.csv ?? current.certificates.csv,
-        css: saved.work.certificates?.css ?? current.certificates.css,
+        css:
+          cssForTheme(
+            certificatesThemeOptions,
+            saved.work.certificates?.css ?? null,
+            saved.work.certificates?.themeId ?? null,
+          ) ?? current.certificates.css,
       },
     }));
-
     // Only restore a saved view that is currently available.
     if (saved.view && isViewEnabled(saved.view)) setView(saved.view);
     if (
@@ -175,12 +201,12 @@ export default function Playground({
     if (!loaded) return;
 
     const t = setTimeout(
-      () => setStatus(persist(view, csv, css) ? "Saved" : "Not saved"),
+      () => setStatus(persist(view, csv, css, themeId ?? "") ? "Saved" : "Not saved"),
       AUTOSAVE_MS,
     );
 
     return () => clearTimeout(t);
-  }, [view, csv, css, loaded]);
+  }, [view, csv, css, themeId, loaded]);
 
   function resizeSidebar(width: number) {
     const max = Math.max(SIDEBAR_MIN, window.innerWidth - PREVIEW_MIN);
@@ -266,13 +292,10 @@ export default function Playground({
     <div className="flex h-dvh flex-col overflow-hidden bg-sunken">
       <header className="flex min-h-[56px] shrink-0 flex-wrap items-center gap-[8px] border-b border-line bg-surface px-[10px] py-[8px] sm:px-[16px] lg:h-[56px] lg:flex-nowrap lg:gap-[12px]">
         <Logo />
-
         <span className="sr-only" aria-live="polite">
           {status}
         </span>
-
         <ViewSwitch value={view} onChange={setView} />
-
         <div className="hidden min-w-px flex-1 lg:block" />
 
         <input
@@ -287,11 +310,10 @@ export default function Playground({
           <UploadIcon />
           Upload
         </Button>
-
         {AUTH_ENABLED && (
           <Button
             onClick={() =>
-              setStatus(persist(view, csv, css) ? "Saved" : "Not saved")
+              setStatus(persist(view, csv, css, themeId ?? "") ? "Saved" : "Not saved")
             }
           >
             <SaveIcon />

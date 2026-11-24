@@ -2,28 +2,37 @@ import type { View } from "@/components/ViewSwitch";
 
 export const VIEWS: View[] = ["table", "resume", "board", "cards", "certificates", "idcard"];
 export type Work = Record<View, { csv: string; css: string }>;
-
 export type Restored = Partial<
-  Record<View, { csv: string | null; css: string | null }>
+  Record<View, { csv: string | null; css: string | null; themeId: string | null }>
 >;
 
-const KEYS: Record<View, { csv: string; css: string }> = {
-  table: { csv: "vizify:csv", css: "vizify:css" },
-  resume: { csv: "vizify:resume:csv", css: "vizify:resume:css" },
-  idcard: { csv: "vizify:idcard:csv", css: "vizify:idcard:css" },
-  board: { csv: "vizify:board:csv", css: "vizify:board:css" },
-  cards: { csv: "vizify:cards:csv", css: "vizify:cards:css" },
-  certificates: { csv: "vizify:certificates:csv", css: "vizify:certificates:css" },
+const KEYS: Record<View, { csv: string; css: string; themeId: string }> = {
+  table: { csv: "vizify:csv", css: "vizify:css", themeId: "vizify:theme" },
+  resume: {
+    csv: "vizify:resume:csv",
+    css: "vizify:resume:css",
+    themeId: "vizify:resume:theme",
+  },
+  board: { csv: "vizify:board:csv", css: "vizify:board:css", themeId: "vizify:board:theme" },
+  cards: { csv: "vizify:cards:csv", css: "vizify:cards:css", themeId: "vizify:cards:theme" },
+  certificates: {
+    csv: "vizify:certificates:csv",
+    css: "vizify:certificates:css",
+    themeId: "vizify:certificates:theme",
+  },
+  idcard: { csv: "vizify:idcard:csv", css: "vizify:idcard:css", themeId: "vizify:idcard:theme" },
 };
 
 const VIEW_KEY = "vizify:view";
 const SIDEBAR_KEY = "vizify:sidebar";
 const PHOTO_KEY = "vizify:resume:photo";
 
-export function persist(view: View, csv: string, css: string): boolean {
+export function persist(view: View, csv: string, css: string, themeId = ""): boolean {
   try {
     localStorage.setItem(KEYS[view].csv, csv);
     localStorage.setItem(KEYS[view].css, css);
+    if (themeId) localStorage.setItem(KEYS[view].themeId, themeId);
+    else localStorage.removeItem(KEYS[view].themeId);
     localStorage.setItem(VIEW_KEY, view);
     return true;
   } catch {
@@ -57,12 +66,12 @@ export function restore(): { work: Restored; view: View | null; sidebar: number 
   let photo = "";
 
   try {
-    for (const currentView of VIEWS) {
-      const csv = localStorage.getItem(KEYS[currentView].csv);
-      const css = localStorage.getItem(KEYS[currentView].css);
-
-      if (csv !== null || css !== null) {
-        work[currentView] = { csv, css };
+    for (const v of VIEWS) {
+      const csv = localStorage.getItem(KEYS[v].csv);
+      const css = localStorage.getItem(KEYS[v].css);
+      const themeId = localStorage.getItem(KEYS[v].themeId);
+      if (csv !== null || css !== null || themeId !== null) {
+        work[v] = { csv, css, themeId };
       }
     }
 

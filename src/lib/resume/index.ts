@@ -99,8 +99,8 @@ function readRows(csv: string): { rows: Row[]; missing: string[] } {
   const header = table[0].map((value) => value.trim().toLowerCase());
   const columnIndex = (column: Col) => header.indexOf(column);
   if (columnIndex("section") < 0) {
-    const rows = readWideResumeRows(table);
-    return rows ? { rows, missing: [] } : { rows: [], missing: ["section"] };
+    const wideRows = readWideResumeRows(table);
+    return wideRows ? { rows: wideRows, missing: [] } : { rows: [], missing: ["section"] };
   }
 
   const rows = table.slice(1).map(
