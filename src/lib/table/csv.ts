@@ -52,11 +52,12 @@ export function csvToHtmlTable(csv: string, interactiveCells = true): string {
         "<!-- ROW_CELLS -->",
         pad(row)
           .map((value, column) => {
+            const escapedValue = escapeHtml(value);
             const content = value
               ? (cellContent(value, paddedHeader[column] ?? "") ??
                 (interactiveCells
-                  ? `<button class="cssv-cell" type="button" aria-expanded="false" title="Show full cell text">${escapeHtml(value)}</button>`
-                  : `<span class="cssv-cell">${escapeHtml(value)}</span>`))
+                  ? `<button class="cssv-cell" type="button" aria-expanded="false" title="Show full cell text">${escapedValue}</button>`
+                  : `<span class="cssv-cell">${escapedValue}</span>`))
               : "";
             const rowCellContent =
               column === 0
