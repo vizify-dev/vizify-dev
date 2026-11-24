@@ -46,7 +46,7 @@ Kabir Khan,kabir.khan@example.com,+91-9988776655,"Hyderabad, Telangana, India",F
       details: "",
     });
     expect(rows).toContainEqual({
-      section: "Professional Experience",
+      section: "Work Experience",
       title: "Software Engineer",
       subtitle: "Example Company",
       date: "2023 - Present",

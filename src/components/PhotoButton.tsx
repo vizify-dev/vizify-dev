@@ -8,12 +8,14 @@ const BTN =
 
 type Props = {
   hasPhoto: boolean;
+  /** Only a photo uploaded here can be removed; one embedded in the CSV is edited in the data. */
+  canRemove: boolean;
   onPick: (file: File) => void;
   onRemove: () => void;
 };
 
 /** Photo picker for the dark editor pane header. */
-export default function PhotoButton({ hasPhoto, onPick, onRemove }: Props) {
+export default function PhotoButton({ hasPhoto, canRemove, onPick, onRemove }: Props) {
   const input = useRef<HTMLInputElement>(null);
   return (
     <div className="flex items-center gap-[6px]">
@@ -30,9 +32,9 @@ export default function PhotoButton({ hasPhoto, onPick, onRemove }: Props) {
       />
       <button type="button" className={BTN} onClick={() => input.current?.click()}>
         <UploadIcon className="size-[12px]" />
-        {hasPhoto ? "Change" : "Add photo"}
+        {hasPhoto ? "Change Photo" : "Add photo"}
       </button>
-      {hasPhoto && (
+      {canRemove && (
         <button type="button" aria-label="Remove photo" className={BTN} onClick={onRemove}>
           ×
         </button>

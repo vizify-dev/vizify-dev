@@ -6,141 +6,117 @@ export type ResumeRow = {
   details: string;
 };
 
-const HEADER_KEYS = [
-  "fullname",
-  "email",
-  "phone",
-  "location",
-  "professionaltitle",
-  "summary",
-  "skills",
-  "educationdegree",
-  "institution",
-  "graduationyear",
-  "company",
-  "jobtitle",
-  "startdate",
-  "enddate",
-  "responsibilities",
-  "projects",
-  "certifications",
-  "portfoliourl",
-] as const;
-
-type HeaderKey = (typeof HEADER_KEYS)[number];
-
-const normalizeHeader = (value: string) => value.toLowerCase().replace(/[^a-z0-9]/g, "");
-
-function listItems(value: string, commaSeparated = false): string[] {
-  const delimiter = commaSeparated ? /[,;|\r\n]+/ : /[;|\r\n]+/;
-  return value.split(delimiter).map((item) => item.trim()).filter(Boolean);
-}
-
+/** Maps single-row resume CSVs into the section-based format used by the renderer. */
 export function readWideResumeRows(table: string[][]): ResumeRow[] | null {
   if (table.length === 0) return null;
 
-  const indexes = new Map<string, number>();
-  table[0].forEach((header, index) => {
-    const key = normalizeHeader(header);
-    if (HEADER_KEYS.includes(key as HeaderKey) && !indexes.has(key)) indexes.set(key, index);
-  });
-  if (!indexes.has("fullname") || indexes.size < 2) return null;
+  const normalize = (value: string) => value.trim().toLowerCase().replace(/[^a-z0-9]/g, "");
+  const normalizedHeader = table[0].map(normalize);
+  const fieldIndex = (...names: string[]) =>
+    names.reduce(
+      (found, name) => (found >= 0 ? found : normalizedHeader.indexOf(normalize(name))),
+      -1,
+    );
+  if (fieldIndex("full name") < 0) return null;
 
   const rows: ResumeRow[] = [];
   const emitted = new Set<string>();
-  const value = (record: string[], key: HeaderKey) =>
-    (record[indexes.get(key) ?? -1] ?? "").trim();
-  const add = (
-    section: string,
-    title = "",
-    subtitle = "",
-    date = "",
-    details = "",
-  ) => {
-    if (![title, subtitle, date, details].some(Boolean)) return;
-    rows.push({ section, title, subtitle, date, details });
-  };
-  const addContact = (contact: string) => {
-    const normalized = contact.toLowerCase();
-    if (!contact || emitted.has(`contact:${normalized}`)) return;
-    emitted.add(`contact:${normalized}`);
-    add("Contact", "", "", "", contact);
+  const uniqueList = (items: string, commaSeparated = false) => {
+    const delimiter = commaSeparated ? /[,;|\r\n]+/ : /[;|\r\n]+/;
+    return items
+      .split(delimiter)
+      .map((item) => item.trim())
+      .filter((item, index, all) => item && all.findIndex((candidate) =>
+        candidate.trim().toLowerCase() === item.toLowerCase()) === index);
   };
 
-  for (const record of table.slice(1)) {
-    const fullName = value(record, "fullname");
-    const title = value(record, "professionaltitle");
+  for (const source of table.slice(1)) {
+    const value = (...names: string[]) => {
+      const index = fieldIndex(...names);
+      return index < 0 ? "" : (source[index] ?? "").trim();
+    };
+    const add = (
+      section: string,
+      title = "",
+      subtitle = "",
+      date = "",
+      details = "",
+    ) => {
+      if ([title, subtitle, date, details].some(Boolean)) {
+        rows.push({ section, title, subtitle, date, details });
+      }
+    };
+    const list = (items: string, commaSeparated = false) =>
+      uniqueList(items, commaSeparated).join("|");
+
+    const fullName = value("full name");
+    const professionalTitle = value("professional title");
     if (fullName && !emitted.has("name")) {
       emitted.add("name");
-      add("Name", fullName, title);
-    } else if (title && !emitted.has("role")) {
+      add("Name", fullName, professionalTitle);
+    } else if (professionalTitle && !emitted.has("role")) {
       emitted.add("role");
-      add("Name", "", title);
+      add("Name", "", professionalTitle);
     }
 
-    addContact(value(record, "email"));
-    addContact(value(record, "phone"));
-    addContact(value(record, "location"));
-    addContact(value(record, "portfoliourl"));
+    for (const contact of [
+      value("email"),
+      value("phone"),
+      value("location"),
+      value("portfolio url", "portfolio"),
+    ]) {
+      const normalized = contact.toLowerCase();
+      if (contact && !emitted.has(`contact:${normalized}`)) {
+        emitted.add(`contact:${normalized}`);
+        add("Contact", "", "", "", contact);
+      }
+    }
 
-    const summary = value(record, "summary");
-    if (summary && !emitted.has(`summary:${summary}`)) {
-      emitted.add(`summary:${summary}`);
+    const summary = value("summary");
+    if (summary && !emitted.has(`summary:${summary.toLowerCase()}`)) {
+      emitted.add(`summary:${summary.toLowerCase()}`);
       add("Summary", "", "", "", summary);
     }
+    const skills = list(value("skills"), true);
+    if (skills) add("Skills", "", "", "", skills);
 
-    const skills = value(record, "skills");
-    if (skills) {
-      const uniqueSkills = listItems(skills, true).filter((skill) => {
-        const key = `skill:${skill.toLowerCase()}`;
-        if (emitted.has(key)) return false;
-        emitted.add(key);
-        return true;
-      });
-      if (uniqueSkills.length) add("Skills", "", "", "", uniqueSkills.join("|"));
+    const educationName = value("education");
+    const degreeName = value("education degree", "degree");
+    const degree = [educationName, degreeName].filter(Boolean).join(" - ");
+    const institution = value("institution", "school", "university");
+    const graduationYear = value("graduation year", "graduation date");
+    const educationKey = `education:${degree}|${institution}|${graduationYear}`.toLowerCase();
+    if (!emitted.has(educationKey) && [degree, institution, graduationYear].some(Boolean)) {
+      emitted.add(educationKey);
+      add("Education", degree, institution, graduationYear);
     }
 
-    const degree = value(record, "educationdegree");
-    const institution = value(record, "institution");
-    const graduationYear = value(record, "graduationyear");
-    if (degree || institution || graduationYear) {
-      const key = `education:${degree}|${institution}|${graduationYear}`.toLowerCase();
-      if (!emitted.has(key)) {
-        emitted.add(key);
-        add("Education", degree, institution, graduationYear);
+    const startDate = value("start date");
+    const endDate = value("end date");
+    const company = value("company", "employer");
+    const jobTitle = value("job title", "position");
+    const responsibilities = value("responsibilities", "description");
+    const date = [startDate, endDate].filter(Boolean).join(" - ");
+    const experienceKey =
+      `experience:${jobTitle}|${company}|${date}|${responsibilities}`.toLowerCase();
+    if (!emitted.has(experienceKey) &&
+      [company, jobTitle, startDate, endDate, responsibilities].some(Boolean)) {
+      emitted.add(experienceKey);
+      add("Work Experience", jobTitle || company, jobTitle ? company : "", date, responsibilities);
+    }
+
+    const projects = list(value("projects"), true);
+    if (projects) {
+      for (const project of projects.split("|")) {
+        const key = `project:${project.toLowerCase()}`;
+        if (!emitted.has(key)) {
+          emitted.add(key);
+          add("Projects", project);
+        }
       }
     }
-
-    const company = value(record, "company");
-    const jobTitle = value(record, "jobtitle");
-    const startDate = value(record, "startdate");
-    const endDate = value(record, "enddate");
-    const responsibilities = value(record, "responsibilities");
-    if (company || jobTitle || startDate || endDate || responsibilities) {
-      const date = [startDate, endDate].filter(Boolean).join(" - ");
-      const key = `experience:${jobTitle}|${company}|${date}|${responsibilities}`.toLowerCase();
-      if (!emitted.has(key)) {
-        emitted.add(key);
-        add("Professional Experience", jobTitle || company, jobTitle ? company : "", date, responsibilities);
-      }
-    }
-
-    const project = value(record, "projects");
-    if (project && !emitted.has(`project:${project.toLowerCase()}`)) {
-      emitted.add(`project:${project.toLowerCase()}`);
-      add("Projects", project);
-    }
-
-    const certifications = value(record, "certifications");
-    if (certifications) {
-      const items = listItems(certifications, true).filter((item) => {
-        const key = `certification:${item.toLowerCase()}`;
-        if (emitted.has(key)) return false;
-        emitted.add(key);
-        return true;
-      });
-      if (items.length) add("Certifications", "", "", "", items.join("|"));
-    }
+    const certifications = list(value("certifications"), true);
+    if (certifications) add("Certifications", "", "", "", certifications);
   }
 
   return rows;
