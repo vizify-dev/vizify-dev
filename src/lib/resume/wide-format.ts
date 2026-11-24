@@ -37,7 +37,11 @@ export function readWideResumeRows(table: string[][]): ResumeRow[] | null {
       }
     };
     const list = (items: string) =>
-      items.split(/[;|]/).map((item) => item.trim()).filter(Boolean).join("|");
+      items
+        .split(/[;|]/)
+        .map((item) => item.trim())
+        .filter(Boolean)
+        .join("|");
 
     add("Name", value("full name"), value("professional title"));
     for (const contact of [

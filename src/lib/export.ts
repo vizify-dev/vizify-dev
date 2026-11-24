@@ -186,8 +186,38 @@ export function printHtml(
         resume.style.setProperty("min-height", "0", "important");
         resume.style.setProperty("overflow", "visible", "important");
         const pageHeight = (297 * 96) / 25.4;
-        const contentHeight = Math.max(resume.offsetHeight, resume.scrollHeight);
-        resume.style.zoom = String(Math.min(1, (pageHeight * 0.92) / contentHeight));
+        if (resume.classList.contains("resume--uiux")) {
+          resume.classList.add("is-printing");
+          const targetHeight = pageHeight * 0.88;
+          let minScale = 0.15;
+          let maxScale = 1;
+          let bestScale = minScale;
+
+          for (let attempt = 0; attempt < 12; attempt += 1) {
+            const scale = (minScale + maxScale) / 2;
+            resume.style.setProperty("--pop-print-font-scale", String(scale));
+            const documentHeight = Math.max(
+              win.document.documentElement.scrollHeight,
+              win.document.body.scrollHeight,
+            );
+            const contentHeight = Math.max(
+              resume.offsetHeight,
+              resume.scrollHeight,
+              documentHeight > win.innerHeight ? documentHeight : 0,
+            );
+            if (contentHeight <= targetHeight) {
+              bestScale = scale;
+              minScale = scale;
+            } else {
+              maxScale = scale;
+            }
+          }
+
+          resume.style.setProperty("--pop-print-font-scale", String(bestScale));
+        } else {
+          const contentHeight = Math.max(resume.offsetHeight, resume.scrollHeight);
+          resume.style.zoom = String(Math.min(1, (pageHeight * 0.92) / contentHeight));
+        }
       }
     }
     if (fitTableWidth) splitWideTable(win.document);

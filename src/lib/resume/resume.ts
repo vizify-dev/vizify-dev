@@ -1,4 +1,5 @@
 import {
+  LEGACY_SAMPLE_UIUX,
   SAMPLE_EXECUTIVE,
   SAMPLE_GRAPHIC,
   SAMPLE_SIDEBAR,
@@ -49,4 +50,5 @@ export const RESUME_THEME_DEFS: ThemeDefinition[] = [
 ];
 
 /** True while the editor still holds one of our demo datasets (so swapping in another one is safe). */
-export const isResumeSample = (csv: string) => RESUME_THEME_DEFS.some((theme) => theme.sample === csv);
+export const isResumeSample = (csv: string) =>
+  csv === LEGACY_SAMPLE_UIUX || RESUME_THEME_DEFS.some((theme) => theme.sample === csv);

@@ -417,7 +417,7 @@ body[data-layout="uiux"] {
   pointer-events: none;
 }
 
-@media (max-width: 760px) {
+@media screen and (max-width: 760px) {
   .resume--uiux {
     width: 100%;
     min-height: 0;
@@ -522,8 +522,212 @@ body[data-layout="uiux"] {
   }
 }
 
+@mixin pop-print-layout {
+  margin: 0;
+  min-height: 0;
+  overflow: visible;
+  padding: 12px 24px 10px;
+  font-size: calc(11px * var(--pop-print-font-scale, 1));
+
+  &::after {
+    display: none;
+  }
+
+  .r-head {
+    grid-template-columns: 215px minmax(0, 1fr);
+    gap: 20px;
+    min-height: 220px;
+  }
+
+  .r-head::before {
+    top: 16px;
+    left: 3px;
+    width: 205px;
+    height: 210px;
+  }
+
+  .r-photo {
+    width: 180px;
+    height: 184px;
+    margin: 8px 0 0 10px;
+    border-width: 6px;
+  }
+
+  .r-id {
+    padding-top: 32px;
+  }
+
+  .r-id h1 {
+    margin-bottom: 10px;
+    font-size: calc(48px * var(--pop-print-font-scale, 1));
+  }
+
+  .r-role {
+    margin-bottom: 10px;
+    padding: 8px 10px;
+    font-size: calc(11px * var(--pop-print-font-scale, 1));
+  }
+
+  .r-uiux-photo-label {
+    top: 198px;
+    left: 3px;
+    width: 190px;
+    padding: 5px 8px;
+    font-size: calc(15px * var(--pop-print-font-scale, 1));
+  }
+
+  .r-uiux-paperclip {
+    left: 150px;
+    transform: rotate(38deg) scale(0.8);
+    transform-origin: top left;
+  }
+
+  .r-uiux-grid {
+    display: block;
+  }
+
+  .r-sec {
+    display: grid;
+    grid-template-columns: 120px minmax(0, 1fr);
+    gap: 0 10px;
+    margin: 0;
+    padding: 3px 0;
+  }
+
+  .r-sec > .r-text,
+  .r-sec > .r-sub,
+  .r-sec > .r-entry,
+  .r-sec > .r-list,
+  .r-sec > .r-skills,
+  .r-sec > .r-clist {
+    grid-column: 2;
+  }
+
+  .r-sec h2 {
+    margin-bottom: 6px;
+    font-size: calc(21px * var(--pop-print-font-scale, 1));
+  }
+
+  .r-sec[data-s="contact"] {
+    display: grid;
+    grid-template-columns: 120px minmax(0, 1fr);
+    min-height: 0;
+    padding: 8px 10px;
+  }
+
+  .r-sec[data-s="contact"] > .r-clist {
+    grid-column: 1 / -1;
+  }
+
+  .r-clist {
+    gap: 8px;
+  }
+
+  .r-clist li {
+    gap: 7px;
+    font-size: calc(10px * var(--pop-print-font-scale, 1));
+  }
+
+  .r-sec[data-s="education"] {
+    padding: 8px 10px;
+    border-width: 4px;
+  }
+
+  .r-sec[data-s="education"] h2 {
+    margin-bottom: 7px;
+  }
+
+  .r-sec[data-s="education"] .r-entry + .r-entry {
+    margin-top: 6px;
+  }
+
+  .r-text,
+  .r-sub,
+  .r-title,
+  .r-date,
+  .r-bullets li,
+  .r-list li,
+  .r-skills li {
+    font-size: calc(10.5px * var(--pop-print-font-scale, 1));
+    line-height: 1.35;
+  }
+
+  .r-sec[data-s="about"] .r-text {
+    font-size: calc(11px * var(--pop-print-font-scale, 1));
+    line-height: 1.45;
+  }
+
+  .r-sec[data-s="education"] .r-title {
+    font-size: calc(14px * var(--pop-print-font-scale, 1));
+  }
+
+  .r-sec[data-s="experience"] {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 5px 14px;
+  }
+
+  .r-sec[data-s="experience"] h2 {
+    grid-column: 1 / -1;
+    margin-bottom: 0;
+    padding: 5px 42px 5px 17px;
+    font-size: calc(20px * var(--pop-print-font-scale, 1));
+  }
+
+  .r-sec[data-s="experience"] .r-title {
+    font-size: calc(12px * var(--pop-print-font-scale, 1));
+  }
+
+  .r-sec[data-s="experience"] > .r-entry {
+    grid-column: auto;
+  }
+
+  .r-sec[data-s="experience"]:has(.r-entry:only-of-type) > .r-entry {
+    grid-column: 1 / -1;
+  }
+
+  .r-bullets {
+    margin-top: 3px;
+    padding-left: 14px;
+  }
+
+  .r-sec[data-s="skills"] {
+    display: grid;
+    grid-template-columns: 120px minmax(0, 1fr);
+    gap: 10px;
+    min-height: 0;
+    padding: 8px 14px;
+  }
+
+  .r-sec[data-s="skills"] h2 {
+    font-size: calc(26px * var(--pop-print-font-scale, 1));
+  }
+
+  .r-sec[data-s="skills"] .r-skills {
+    grid-column: 2;
+  }
+
+  .r-skills {
+    gap: 4px 14px;
+  }
+
+  .r-skills li {
+    padding-left: 14px;
+  }
+
+  .r-skills li::before {
+    width: 6px;
+    height: 6px;
+  }
+
+}
+
 @media print {
   .resume--uiux {
-    margin: 0;
+    @include pop-print-layout;
   }
+}
+
+.resume--uiux.is-printing {
+  @include pop-print-layout;
 }
