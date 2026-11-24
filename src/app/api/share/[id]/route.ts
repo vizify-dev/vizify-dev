@@ -1,8 +1,5 @@
-import { createAdminClient } from "@/lib/supabase/admin";
-import { buildDocument } from "@/lib/table/preview";
-import { buildBoardDocument } from "@/lib/jiraboard/render";
-import { buildCertificatesDocument } from "@/lib/certificates/render";
-// import resume / cards builders the same way
+import { createClient } from "@/lib/supabase/server";
+import { buildResumeDocument } from "@/lib/resume";
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -18,26 +15,34 @@ const HEADERS = {
 };
 
 function render(view: string, csv: string, css: string, themeId?: string) {
-  switch (view) {
-    case "table": return buildDocument(csv, css, false);
-    case "board": return buildBoardDocument(csv, css, themeId, false);
-    case "certificates": return buildCertificatesDocument(csv, css, themeId, false);
-    // case "resume": return buildResumeDocument(csv, css, "", layoutFromTheme(themeId));
-    // case "cards": return buildCardsDocument(...);
-    default: return null;
-  }
+  if (view !== "resume") return null;
+
+  const layout =
+    themeId === "resume-graphic"
+      ? "graphic"
+      : themeId === "resume-boardroom"
+        ? "executive"
+        : themeId === "resume-sidebar"
+          ? "sidebar"
+          : themeId === "resume-uiux"
+            ? "uiux"
+            : undefined;
+
+  return buildResumeDocument(csv, css, "", layout);
 }
 
 export async function GET(_: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   if (!UUID.test(id)) return new Response("Not found", { status: 404 });
 
-  const admin = createAdminClient();
-  const { data } = await admin
-    .from("projects").select("view,csv,css,theme_id").eq("id", id).maybeSingle();
-  if (!data) return new Response("Not found", { status: 404 });
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("get_public_resume", { p_id: id });
+  if (error) return new Response("Not found", { status: 404 });
 
-  const html = render(data.view, data.csv, data.css, data.theme_id ?? undefined);
+  const project = Array.isArray(data) ? data[0] : null;
+  if (!project) return new Response("Not found", { status: 404 });
+
+  const html = render("resume", project.csv, project.css, project.theme_id);
   if (!html) return new Response("Not found", { status: 404 });
   return new Response(html, { headers: HEADERS });
 }
