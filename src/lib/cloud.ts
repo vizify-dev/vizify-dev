@@ -34,3 +34,9 @@ export function saveProject(
 /** Push local edits (csv set) or just check S3 for changes (csv undefined). */
 export const syncProject = (id: string, csv: string | undefined, baseEtag: string | null) =>
   api<SyncResult>(`/api/projects/${id}/sync`, { method: "POST", body: JSON.stringify({ csv, baseEtag }) });
+export const renameProject = (id: string, name: string) =>
+  api<CloudProject>(`/api/projects/${id}`, { method: "PATCH", body: JSON.stringify({ name }) });
+export const duplicateProject = (id: string) =>
+  api<CloudProject>(`/api/projects/${id}/duplicate`, { method: "POST" });
+export const deleteProject = (id: string) =>
+  api<void>(`/api/projects/${id}`, { method: "DELETE" });

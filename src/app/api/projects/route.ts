@@ -5,16 +5,21 @@ import { ProjectInput, toApi } from "@/lib/projects";
 
 const COLS = "id,name,view,theme_id,updated_at";
 
-export async function GET() {
+export async function GET(req: Request) {
   const user = await currentUser();
   if (!user) return Response.json({ error: "Unauthorized" }, { status: 401 });
 
+  const view = new URL(req.url).searchParams.get("view");
   const supabase = await createClient();
-  const { data, error } = await supabase
+  let query = supabase
     .from("projects")
     .select(COLS)
     .eq("user_id", user.id)
+    .is("deleted_at", null)
     .order("updated_at", { ascending: false });
+  if (view) query = query.eq("view", view);
+
+  const { data, error } = await query;
   if (error) return Response.json({ error: "Failed" }, { status: 500 });
   return Response.json(data.map(toApi));
 }
