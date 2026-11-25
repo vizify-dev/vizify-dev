@@ -1,10 +1,9 @@
-
 "use client";
 
 import Image from "next/image";
 import { useEffect, useMemo, useRef, useState } from "react";
 import liveDot from "@/assets/icons/live-dot.svg";
-import Button from "@/components/Button";
+import Button, { buttonClass } from "@/components/Button";
 import EditorPane from "@/components/EditorPane";
 import ExportMenu from "@/components/ExportMenu";
 import { SaveIcon, UploadIcon } from "@/components/Icons";
@@ -13,6 +12,8 @@ import PhotoButton from "@/components/PhotoButton";
 import ResizeHandle from "@/components/ResizeHandle";
 import Select from "@/components/Select";
 import ViewSwitch, { type View } from "@/components/ViewSwitch";
+import AuthButton from "@/components/AuthButton";
+import { useUser } from "@/app/hooks/useUser";
 import { AUTH_ENABLED, DEFAULT_VIEW, isViewEnabled } from "@/lib/features";
 import { DEFAULT_CSV } from "@/lib/table/defaults";
 import { fileToPhoto } from "@/lib/resume/photo";
@@ -20,6 +21,7 @@ import { buildDocument } from "@/lib/table/preview";
 import { buildResumeDocument } from "@/lib/resume";
 import { parseCsv } from "@/lib/csv-parser";
 import { importCandidateResumes } from "@/lib/resume/import-csv";
+import Link from "next/link";
 import {
   DEFAULT_RESUME_CSV,
   isResumeSample,
@@ -30,7 +32,21 @@ import {
   ID_CARD_THEMES,
   buildIdCardDocument,
 } from "@/lib/cards";
-import { persist, restore, savePhoto, saveSidebar, type Work } from "@/lib/storage";
+import {
+  persist,
+  restore,
+  savePhoto,
+  saveSidebar,
+  VIEWS,
+  type Work,
+} from "@/lib/storage";
+import {
+  getProject,
+  listProjects,
+  saveProject,
+  syncProject,
+  type CloudProject,
+} from "@/lib/cloud";
 import { withTools } from "@/lib/table/tools";
 import type { Theme } from "@/lib/table/themes";
 import { boardThemeOptions } from "@/lib/jiraboard/board-themes";
@@ -48,8 +64,21 @@ const SIDEBAR_DEFAULT = 440;
 const SIDEBAR_MIN = 280;
 const PREVIEW_MIN = 360;
 const AUTOSAVE_MS = 500;
+const CLOUD_AUTOSAVE_MS = 1500;
+const PULL_INTERVAL_MS = 30_000;
 
-type SaveStatus = "Not saved" | "Saved";
+type SaveStatus = "Not saved" | "Saving…" | "Saved";
+
+/** Removes every vizify:* key so the next person on this browser starts clean. */
+function clearLocal() {
+  try {
+    Object.keys(localStorage)
+      .filter((key) => key.startsWith("vizify:"))
+      .forEach((key) => localStorage.removeItem(key));
+  } catch {
+    // storage blocked
+  }
+}
 
 export default function Playground({
   themes,
@@ -78,6 +107,12 @@ export default function Playground({
   const [cssCollapsed, setCssCollapsed] = useState(false);
   const [sidebarWidth, setSidebarWidth] = useState(SIDEBAR_DEFAULT);
   const fileInput = useRef<HTMLInputElement>(null);
+  const { user } = useUser();
+  const userId = user?.id ?? null;
+  const [cloudReady, setCloudReady] = useState(false);
+  const projectIds = useRef<Partial<Record<View, string>>>({});
+  const dirty = useRef<Partial<Record<View, boolean>>>({});
+  const etags = useRef<Partial<Record<View, string | null>>>({});
 
   const { csv, css } = data[view];
   // A CSV with one row per person becomes several resumes; the user picks which to preview.
@@ -170,17 +205,170 @@ export default function Playground({
     setLoaded(true);
   }, []);
 
-  // Autosave shortly after the user stops typing, once saved values were restored.
+  // Guests: autosave to localStorage shortly after the user stops typing.
   useEffect(() => {
-    if (!loaded) return;
-
+    if (!loaded || (AUTH_ENABLED && userId)) return;
     const t = setTimeout(
       () => setStatus(persist(view, csv, css) ? "Saved" : "Not saved"),
       AUTOSAVE_MS,
     );
 
     return () => clearTimeout(t);
-  }, [view, csv, css, loaded]);
+  }, [view, csv, css, loaded, userId]);
+
+  // Signed in: load the user's latest project for each view.
+  useEffect(() => {
+    if (!AUTH_ENABLED || !userId) return;
+    let cancelled = false;
+
+    (async () => {
+      try {
+        const list = await listProjects();
+        const latest = new Map<View, CloudProject>();
+        for (const project of list) {
+          if (VIEWS.includes(project.view) && !latest.has(project.view)) {
+            latest.set(project.view, project);
+          }
+        }
+
+        const full = await Promise.all(
+          [...latest.values()].map((project) => getProject(project.id)),
+        );
+        if (cancelled) return;
+
+        setData((previous) => {
+          const next = { ...previous };
+          for (const project of full) {
+            projectIds.current[project.view] = project.id;
+            next[project.view] = {
+              csv: project.csv ?? previous[project.view].csv,
+              css: project.css ?? previous[project.view].css,
+            };
+          }
+          return next;
+        });
+      } catch {
+        // Keep local data if cloud loading fails.
+      }
+      if (!cancelled) setCloudReady(true);
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [userId]);
+
+  // Put S3's version into the editor without marking it as an edit (so it is not pushed back).
+  function applyRemoteCsv(viewKey: View, text: string) {
+    dirty.current[viewKey] = false;
+    setData((d) => ({ ...d, [viewKey]: { ...d[viewKey], csv: text } }));
+  }
+
+  async function runSync(
+    id: string,
+    viewKey: View,
+    csvToSave: string | undefined,
+    retry = true,
+  ): Promise<void> {
+    const res = await syncProject(id, csvToSave, etags.current[viewKey] ?? null);
+    if (res.etag) etags.current[viewKey] = res.etag;
+
+    if (res.status === "pulled" && res.csv !== undefined) {
+      applyRemoteCsv(viewKey, res.csv);
+    } else if (res.status === "conflict" && res.csv !== undefined) {
+      const useRemote = window.confirm(
+        "This file also changed in S3.\n\nOK = load the S3 version\nCancel = keep your edits and overwrite S3",
+      );
+      if (useRemote) applyRemoteCsv(viewKey, res.csv);
+      else if (retry) return runSync(id, viewKey, csvToSave, false);
+    } else {
+      dirty.current[viewKey] = false; // pushed / in-sync
+    }
+  }
+
+  async function cloudSave(
+    viewToSave: View,
+    csvToSave: string,
+    cssToSave: string,
+    themeIdToSave: string | null,
+  ) {
+    setStatus("Saving…");
+    try {
+      let id = projectIds.current[viewToSave];
+      if (!id) {
+        const created = await saveProject(
+          undefined,
+          viewToSave,
+          csvToSave,
+          cssToSave,
+          themeIdToSave,
+        );
+        id = created.id;
+        projectIds.current[viewToSave] = id;
+      } else {
+        // css + theme only; the CSV goes through the S3 sync below
+        await saveProject(id, viewToSave, undefined, cssToSave, themeIdToSave);
+      }
+      await runSync(id, viewToSave, csvToSave);
+      setStatus("Saved");
+    } catch (error) {
+      setStatus("Not saved");
+      alert(error instanceof Error ? error.message : "Could not save");
+    }
+  }
+
+  // Autosave cloud projects after the user edits and cloud data is loaded.
+  useEffect(() => {
+    if (!AUTH_ENABLED || !userId || !cloudReady || !dirty.current[view]) return;
+    const timeout = setTimeout(
+      () => void cloudSave(view, csv, css, themeId ?? null),
+      CLOUD_AUTOSAVE_MS,
+    );
+    return () => clearTimeout(timeout);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userId, cloudReady, view, csv, css, themeId]);
+
+  // Pull S3 changes when the tab regains focus and every 30 s (skipped while there are unsaved edits).
+  useEffect(() => {
+    if (!AUTH_ENABLED || !userId || !cloudReady) return;
+    const pull = async () => {
+      const id = projectIds.current[view];
+      if (!id || dirty.current[view]) return;
+      try {
+        const res = await syncProject(id, undefined, etags.current[view] ?? null);
+        if (res.etag) etags.current[view] = res.etag;
+        if (dirty.current[view]) return; // the user started typing while we were checking
+        if (res.status === "pulled" && res.csv !== undefined) applyRemoteCsv(view, res.csv);
+      } catch {
+        // offline or S3 hiccup: try again next time
+      }
+    };
+    window.addEventListener("focus", pull);
+    const timer = setInterval(pull, PULL_INTERVAL_MS);
+    return () => {
+      window.removeEventListener("focus", pull);
+      clearInterval(timer);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userId, cloudReady, view]);
+
+  function handleSignOut() {
+    clearLocal();
+    projectIds.current = {};
+    dirty.current = {};
+    etags.current = {};
+    setCloudReady(false);
+    setPhoto("");
+    setData({
+      table: { csv: DEFAULT_CSV, css: themes[0]?.css ?? "" },
+      resume: { csv: DEFAULT_RESUME_CSV, css: resumeThemes[0]?.css ?? "" },
+      idcard: { csv: DEFAULT_ID_CARD_CSV, css: ID_CARD_THEMES[0]?.css ?? "" },
+      board: { csv: BOARD_CSV, css: boardThemeOptions[0]?.css ?? "" },
+      cards: { csv: CARDS_CSV, css: cardsThemeOptions[0]?.css ?? "" },
+      certificates: { csv: CERTIFICATES_CSV, css: certificatesThemeOptions[0]?.css ?? "" },
+    });
+    setStatus("Not saved");
+  }
 
   function resizeSidebar(width: number) {
     const max = Math.max(SIDEBAR_MIN, window.innerWidth - PREVIEW_MIN);
@@ -191,6 +379,7 @@ export default function Playground({
 
   function update(field: "csv" | "css") {
     return (v: string) => {
+      dirty.current[view] = true;
       setStatus("Not saved");
       setData((d) => ({
         ...d,
@@ -287,34 +476,27 @@ export default function Playground({
           <UploadIcon />
           Upload
         </Button>
-
         {AUTH_ENABLED && (
           <Button
             onClick={() =>
-              setStatus(persist(view, csv, css) ? "Saved" : "Not saved")
+              userId
+                ? void cloudSave(view, csv, css, themeId ?? null)
+                : setStatus(persist(view, csv, css) ? "Saved" : "Not saved")
             }
           >
             <SaveIcon />
             Save
           </Button>
         )}
-
-        <ExportMenu
-          view={view}
-          html={doc}
-          csv={csv}
-          staticHtml={staticDoc()}
-        />
-
-        {AUTH_ENABLED && (
-          <Button
-            variant="ghost"
-            disabled
-            title="Accounts aren't available in the client-only MVP"
-          >
-            Sign in
-          </Button>
-        )}
+        <ExportMenu view={view} html={doc} csv={csv} staticHtml={staticDoc()} />
+        {AUTH_ENABLED &&
+          (user ? (
+            <AuthButton user={user} onSignOut={handleSignOut} />
+          ) : (
+            <Link href="/sign-in" className={buttonClass("ghost")}>
+              Sign in
+            </Link>
+          ))}
       </header>
 
       <main className="flex min-h-0 flex-1 flex-col gap-[8px] overflow-y-auto p-[8px] lg:flex-row lg:gap-0 lg:overflow-hidden">
