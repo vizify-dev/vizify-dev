@@ -1,7 +1,6 @@
 import { z } from "zod";
 
-export const VIEWS = ["table", "resume", "board", "cards", "certificates"] as const;
-
+export const VIEWS = ["table", "resume", "idcard", "board", "cards", "certificates"] as const;
 export const ProjectInput = z.object({
   name: z.string().trim().min(1).max(100).default("Untitled project"),
   view: z.enum(VIEWS),

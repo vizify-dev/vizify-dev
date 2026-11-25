@@ -15,7 +15,7 @@ export async function GET(_: Request, { params }: Ctx) {
 
   const supabase = await createClient();
   const { data } = await supabase
-    .from("projects").select(COLS).eq("id", id).eq("user_id", user.id).maybeSingle();
+    .from("projects").select(COLS).eq("id", id).eq("user_id", user.id).is("deleted_at", null).maybeSingle();
   return data ? Response.json(toApi(data)) : notFound();
 }
 
@@ -52,6 +52,12 @@ export async function DELETE(_: Request, { params }: Ctx) {
 
   const supabase = await createClient();
   const { data } = await supabase
-    .from("projects").delete().eq("id", id).eq("user_id", user.id).select("id").maybeSingle();
+    .from("projects")
+    .update({ deleted_at: new Date().toISOString() })
+    .eq("id", id)
+    .eq("user_id", user.id)
+    .is("deleted_at", null)
+    .select("id")
+    .maybeSingle();
   return data ? new Response(null, { status: 204 }) : notFound();
 }
