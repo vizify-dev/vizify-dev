@@ -17,13 +17,17 @@ export async function POST(req: Request, { params }: Ctx) {
     return Response.json({ error: "Too large" }, { status: 413 });
 
   const supabase = await createClient();
-  const { data: p } = await supabase
+  const { data: p, error: pErr } = await supabase
     .from("projects")
     .select("id,csv,s3_key,s3_etag")
     .eq("id", id)
     .eq("user_id", user.id)
     .is("deleted_at", null)
     .maybeSingle();
+  if (pErr) {
+    console.error("sync: project lookup failed", pErr);
+    return Response.json({ error: "Lookup failed" }, { status: 500 });
+  }
   if (!p) return Response.json({ error: "Not found" }, { status: 404 });
 
   const key = p.s3_key ?? csvKey(user.id, id);

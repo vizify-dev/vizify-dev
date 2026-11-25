@@ -2,30 +2,27 @@ import { S3Client, PutObjectCommand, GetObjectCommand, HeadObjectCommand } from 
 
 const s3 = new S3Client({ region: process.env.AWS_REGION! });
 const Bucket = process.env.S3_BUCKET!;
+if (!Bucket) throw new Error("S3_BUCKET is not set");
 
 export const csvKey = (uid: string, pid: string) => `users/${uid}/${pid}.csv`;
 
+type AwsError = { name?: string; Code?: string; $metadata?: { httpStatusCode?: number } };
+
+// Only a missing FILE counts as "not found". A missing bucket must stay an error.
 function isMissingS3Object(error: unknown): boolean {
-  if (typeof error !== "object" || error === null) return false;
-
-  if ("name" in error && error.name === "NotFound") return true;
-  if ("$metadata" in error) {
-    const metadata = error.$metadata;
-    if (
-      typeof metadata === "object" &&
-      metadata !== null &&
-      "httpStatusCode" in metadata &&
-      metadata.httpStatusCode === 404
-    ) return true;
-  }
-
-  return false;
+  const err = error as AwsError;
+  if (err.name === "NoSuchBucket" || err.Code === "NoSuchBucket") return false;
+  return (
+    err.name === "NotFound" ||
+    err.name === "NoSuchKey" ||
+    err.$metadata?.httpStatusCode === 404
+  );
 }
 
 export async function putCsv(Key: string, text: string) {
-  const r = await s3.send(new PutObjectCommand({
-    Bucket, Key, Body: text, ContentType: "text/csv; charset=utf-8",
-  }));
+  const r = await s3.send(
+    new PutObjectCommand({ Bucket, Key, Body: text, ContentType: "text/csv; charset=utf-8" }),
+  );
   return r.ETag!;
 }
 
