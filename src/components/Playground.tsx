@@ -13,6 +13,7 @@ import ResizeHandle from "@/components/ResizeHandle";
 import Select from "@/components/Select";
 import ViewSwitch, { type View } from "@/components/ViewSwitch";
 import AuthButton from "@/components/AuthButton";
+import Dashboard from "@/components/Dashboard";
 import { useUser } from "@/app/hooks/useUser";
 import { AUTH_ENABLED, DEFAULT_VIEW, isViewEnabled } from "@/lib/features";
 import { DEFAULT_CSV } from "@/lib/table/defaults";
@@ -22,6 +23,7 @@ import { buildResumeDocument } from "@/lib/resume";
 import { parseCsv } from "@/lib/csv-parser";
 import { importCandidateResumes } from "@/lib/resume/import-csv";
 import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
 import {
   DEFAULT_RESUME_CSV,
   isResumeSample,
@@ -106,6 +108,10 @@ export default function Playground({
   const [dataCollapsed, setDataCollapsed] = useState(false);
   const [cssCollapsed, setCssCollapsed] = useState(false);
   const [sidebarWidth, setSidebarWidth] = useState(SIDEBAR_DEFAULT);
+  const [projectManagerOpen, setProjectManagerOpen] = useState(false);
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const requestedProjectId = searchParams.get("p");
   const fileInput = useRef<HTMLInputElement>(null);
   const { user } = useUser();
   const userId = user?.id ?? null;
@@ -223,6 +229,28 @@ export default function Playground({
 
     (async () => {
       try {
+        if (requestedProjectId) {
+          const project = await getProject(requestedProjectId);
+          if (cancelled) return;
+          if (!isViewEnabled(project.view)) {
+            throw new Error("This project uses a view that is currently unavailable.");
+          }
+          projectIds.current[project.view] = project.id;
+          dirty.current[project.view] = false;
+          etags.current[project.view] = null;
+          setData((previous) => ({
+            ...previous,
+            [project.view]: {
+              csv: project.csv ?? previous[project.view].csv,
+              css: project.css ?? previous[project.view].css,
+            },
+          }));
+          setCandidateIndex(0);
+          setView(project.view);
+          setStatus("Saved");
+          return;
+        }
+
         const list = await listProjects();
         const latest = new Map<View, CloudProject>();
         for (const project of list) {
@@ -248,7 +276,9 @@ export default function Playground({
           return next;
         });
       } catch {
-        // Keep local data if cloud loading fails.
+        if (requestedProjectId && !cancelled) {
+          alert("Could not open this project. It may have been deleted or you may no longer have access.");
+        }
       }
       if (!cancelled) setCloudReady(true);
     })();
@@ -256,7 +286,7 @@ export default function Playground({
     return () => {
       cancelled = true;
     };
-  }, [userId]);
+  }, [userId, requestedProjectId]);
 
   // Put S3's version into the editor without marking it as an edit (so it is not pushed back).
   function applyRemoteCsv(viewKey: View, text: string) {
@@ -349,7 +379,6 @@ export default function Playground({
       window.removeEventListener("focus", pull);
       clearInterval(timer);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userId, cloudReady, view]);
 
   function handleSignOut() {
@@ -357,6 +386,7 @@ export default function Playground({
     projectIds.current = {};
     dirty.current = {};
     etags.current = {};
+    setProjectManagerOpen(false);
     setCloudReady(false);
     setPhoto("");
     setData({
@@ -461,6 +491,12 @@ export default function Playground({
         </span>
 
         <ViewSwitch value={view} onChange={setView} />
+
+        {AUTH_ENABLED && (
+          <Button variant="ghost" onClick={() => setProjectManagerOpen(true)}>
+            Projects
+          </Button>
+        )}
 
         <div className="hidden min-w-px flex-1 lg:block" />
 
@@ -607,6 +643,27 @@ export default function Playground({
           />
         </section>
       </main>
+      {projectManagerOpen && (
+        <Dashboard
+          mode="panel"
+          defaultResumeCsv={DEFAULT_RESUME_CSV}
+          defaultResumeCss={
+            resumeThemes.find((resumeTheme) => resumeTheme.id === "resume-classic")?.css ??
+            resumeThemes[0]?.css ??
+            ""
+          }
+          defaultResumeThemeId={
+            resumeThemes.find((resumeTheme) => resumeTheme.id === "resume-classic")?.id ??
+            resumeThemes[0]?.id ??
+            null
+          }
+          onClose={() => setProjectManagerOpen(false)}
+          onOpenProject={(id) => {
+            setProjectManagerOpen(false);
+            router.push(`/?p=${encodeURIComponent(id)}`);
+          }}
+        />
+      )}
     </div>
   );
 }

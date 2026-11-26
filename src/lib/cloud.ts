@@ -1,7 +1,13 @@
 import type { View } from "@/components/ViewSwitch";
 
 export type CloudProject = {
-  id: string; name: string; view: View; csv?: string; css?: string; themeId: string | null;
+  id: string;
+  name: string;
+  view: View;
+  csv?: string;
+  css?: string;
+  themeId: string | null;
+  updatedAt?: string;
 };
 
 export type SyncResult = {
