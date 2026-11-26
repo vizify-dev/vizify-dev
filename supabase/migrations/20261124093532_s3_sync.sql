@@ -16,5 +16,5 @@ drop policy if exists "own projects delete" on projects;
 
 create policy "own projects select" on projects for select using (auth.uid() = user_id);
 create policy "own projects insert" on projects for insert with check (auth.uid() = user_id);
-create policy "own projects update" on projects for update using (auth.uid() = user_id);
+create policy "own projects update" on projects for update using  (auth.uid() = user_id) with check (auth.uid() = user_id);
 create policy "own projects delete" on projects for delete using (auth.uid() = user_id);
