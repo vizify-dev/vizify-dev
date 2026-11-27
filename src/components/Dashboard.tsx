@@ -208,7 +208,10 @@ export default function Dashboard({
           <div className="flex justify-center"><Logo /></div>
           <h1 className="mt-[24px] text-[24px] font-bold text-ink">Sign in to view your projects</h1>
           <p className="mt-[8px] text-[14px] text-ink3">Your saved projects are linked to your account.</p>
-          <Link href="/sign-in" className={`${buttonClass("primary")} mt-[24px]`}>
+          <Link
+            href={mode === "panel" ? "/sign-in?next=%2F" : "/sign-in?next=%2Fdashboard"}
+            className={`${buttonClass("primary")} mt-[24px]`}
+          >
             Sign in
           </Link>
         </section>

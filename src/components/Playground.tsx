@@ -529,7 +529,7 @@ export default function Playground({
           (user ? (
             <AuthButton user={user} onSignOut={handleSignOut} />
           ) : (
-            <Link href="/sign-in" className={buttonClass("ghost")}>
+            <Link href="/sign-in?next=%2F" className={buttonClass("ghost")}>
               Sign in
             </Link>
           ))}
