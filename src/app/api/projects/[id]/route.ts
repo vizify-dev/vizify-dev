@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { currentUser } from "@/lib/session";
 import { canUseTheme } from "@/lib/plans";
 import { ProjectPatch, toApi } from "@/lib/projects";
+import { cssKey, csvKey, getCsv, getCss, getPhoto, headCsv, photoKey } from "@/lib/s3";
 
 type Ctx = { params: Promise<{ id: string }> };
 const COLS = "id,name,view,csv,css,theme_id,updated_at";
@@ -14,9 +15,38 @@ export async function GET(_: Request, { params }: Ctx) {
   const { id } = await params;
 
   const supabase = await createClient();
-  const { data } = await supabase
-    .from("projects").select(COLS).eq("id", id).eq("user_id", user.id).is("deleted_at", null).maybeSingle();
-  return data ? Response.json(toApi(data)) : notFound();
+  const { data, error } = await supabase
+    .from("projects")
+    .select(`${COLS},s3_key,s3_etag`)
+    .eq("id", id)
+    .eq("user_id", user.id)
+    .is("deleted_at", null)
+    .maybeSingle();
+  if (error) {
+    console.error("project: lookup failed", error);
+    return Response.json({ error: "Could not load project" }, { status: 500 });
+  }
+  if (!data) return notFound();
+
+  const key = data.s3_key ?? csvKey(user.id, id);
+  try {
+    const remoteEtag = await headCsv(key);
+    const [remoteCsv, remoteCss, photo] = await Promise.all([
+      remoteEtag ? getCsv(key) : Promise.resolve(null),
+      getCss(cssKey(key)),
+      getPhoto(photoKey(key)),
+    ]);
+    return Response.json({
+      ...toApi(data),
+      csv: remoteCsv?.text ?? data.csv,
+      css: remoteCss ?? data.css,
+      photo,
+      etag: remoteCsv?.etag ?? data.s3_etag,
+    });
+  } catch (e) {
+    console.error("project: S3 load failed", e);
+    return Response.json({ error: "Could not load project files" }, { status: 502 });
+  }
 }
 
 export async function PATCH(req: Request, { params }: Ctx) {
@@ -25,8 +55,11 @@ export async function PATCH(req: Request, { params }: Ctx) {
   const { id } = await params;
 
   const parsed = ProjectPatch.safeParse(await req.json().catch(() => null));
-  if (!parsed.success) return Response.json({ error: "Invalid input" }, { status: 400 });
-  const p = parsed.data;
+  if (!parsed.success) {
+    console.error("project patch: invalid input", parsed.error.flatten());
+    return Response.json({ error: "Invalid input" }, { status: 400 });
+  }
+  const { expectedUpdatedAt, ...p } = parsed.data;
 
   if (p.themeId !== undefined && !canUseTheme(user.plan, p.themeId))
     return Response.json({ error: "Premium theme" }, { status: 403 });
@@ -39,10 +72,37 @@ export async function PATCH(req: Request, { params }: Ctx) {
   if (p.themeId !== undefined) update.theme_id = p.themeId;
 
   const supabase = await createClient();
-  const { data } = await supabase
-    .from("projects").update(update).eq("id", id).eq("user_id", user.id)
-    .select(COLS).maybeSingle();
-  return data ? Response.json(toApi(data)) : notFound();
+  const query = supabase
+    .from("projects")
+    .update({ ...update, updated_at: new Date().toISOString() })
+    .eq("id", id)
+    .eq("user_id", user.id)
+    .is("deleted_at", null);
+  const { data, error } = await (expectedUpdatedAt
+    ? query.eq("updated_at", expectedUpdatedAt)
+    : query)
+    .select(COLS)
+    .maybeSingle();
+  if (error) {
+    console.error("project: update failed", error);
+    return Response.json({ error: "Could not update project" }, { status: 500 });
+  }
+  if (data) return Response.json(toApi(data));
+
+  const { data: current } = await supabase
+    .from("projects")
+    .select("updated_at")
+    .eq("id", id)
+    .eq("user_id", user.id)
+    .is("deleted_at", null)
+    .maybeSingle();
+  if (current && expectedUpdatedAt) {
+    return Response.json(
+      { error: "This resume changed elsewhere.", updatedAt: current.updated_at },
+      { status: 409 },
+    );
+  }
+  return notFound();
 }
 
 export async function DELETE(_: Request, { params }: Ctx) {

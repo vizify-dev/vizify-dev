@@ -32,12 +32,21 @@ export async function POST(req: Request, { params }: Ctx) {
 
   const key = p.s3_key ?? csvKey(user.id, id);
   const save = async (csv: string, etag: string) => {
-    const { error } = await supabase
+    const { data, error } = await supabase
       .from("projects")
-      .update({ csv, s3_key: key, s3_etag: etag, synced_at: new Date().toISOString() })
+      .update({
+        csv,
+        s3_key: key,
+        s3_etag: etag,
+        synced_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      })
       .eq("id", id)
-      .eq("user_id", user.id);
+      .eq("user_id", user.id)
+      .select("updated_at")
+      .single();
     if (error) throw error;
+    return data.updated_at;
   };
 
   try {
@@ -47,8 +56,8 @@ export async function POST(req: Request, { params }: Ctx) {
     if (remote === null) {
       const csv = local ?? p.csv;
       const etag = await putCsv(key, csv);
-      await save(csv, etag);
-      return Response.json({ status: "pushed", etag });
+      const updatedAt = await save(csv, etag);
+      return Response.json({ status: "pushed", etag, updatedAt });
     }
 
     // 2. S3 file changed since we last saw it
@@ -56,15 +65,15 @@ export async function POST(req: Request, { params }: Ctx) {
       const r = await getCsv(key);
       if (local !== undefined && local !== r.text)
         return Response.json({ status: "conflict", csv: r.text, etag: r.etag });
-      await save(r.text, r.etag);
-      return Response.json({ status: "pulled", csv: r.text, etag: r.etag });
+      const updatedAt = await save(r.text, r.etag);
+      return Response.json({ status: "pulled", csv: r.text, etag: r.etag, updatedAt });
     }
 
     // 3. local edits are newer: upload
     if (local !== undefined && local !== p.csv) {
       const etag = await putCsv(key, local);
-      await save(local, etag);
-      return Response.json({ status: "pushed", etag });
+      const updatedAt = await save(local, etag);
+      return Response.json({ status: "pushed", etag, updatedAt });
     }
 
     return Response.json({ status: "in-sync", etag: remote });

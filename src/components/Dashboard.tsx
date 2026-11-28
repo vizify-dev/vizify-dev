@@ -143,7 +143,7 @@ export default function Dashboard({
 
   function openProject(project: CloudProject) {
     if (onOpenProject) onOpenProject(project.id);
-    else router.push(`/?p=${encodeURIComponent(project.id)}`);
+    else router.push(`/editor/${encodeURIComponent(project.id)}`);
   }
 
   async function rename(project: CloudProject) {
@@ -157,10 +157,12 @@ export default function Dashboard({
     setBusy(true);
     setActionError("");
     try {
-      const updated = await renameProject(project.id, name);
+      const updated = await renameProject(project.id, name, project.updatedAt);
       setProjects((current) =>
         current.map((item) =>
-          item.id === project.id ? { ...item, name: updated.name } : item,
+          item.id === project.id
+            ? { ...item, name: updated.name, updatedAt: updated.updatedAt }
+            : item,
         ),
       );
     } catch (error) {

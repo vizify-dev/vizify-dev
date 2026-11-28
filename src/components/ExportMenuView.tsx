@@ -26,7 +26,7 @@ export default function ExportMenuView({
 }: ExportMenuViewProps) {
   return (
     <Menu>
-      <MenuButton className={`group ${buttonClass("primary")}`}>
+      <MenuButton id="export-menu-button" className={`group ${buttonClass("primary")}`}>
         Export
         <ChevronDownIcon className="size-[16px] transition-transform group-data-open:rotate-180" />
       </MenuButton>
