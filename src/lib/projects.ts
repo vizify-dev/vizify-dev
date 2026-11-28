@@ -8,8 +8,10 @@ export const ProjectInput = z.object({
   css: z.string().max(500_000),
   themeId: z.string().max(50).nullable().optional(),
 });
-export const ProjectPatch = ProjectInput.partial().refine(
-  (o) => Object.keys(o).length > 0,
+export const ProjectPatch = ProjectInput.partial().extend({
+  expectedUpdatedAt: z.string().trim().min(1).max(100).optional(),
+}).refine(
+  (o) => Object.keys(o).some((key) => key !== "expectedUpdatedAt"),
   "Empty patch",
 );
 
